@@ -1,3 +1,24 @@
+## .env
+```
+DB_HOST=localhost
+DB_PORT=5432
+DB_DATABASE=your-local-database-name
+DB_PASSWORD=your-local-database-password
+DB_USERNAME=postgres
+JWT_SECRET=2ad07d22-6753-43ff-9911-1495ea7bc352
+ADMIN_SECRET=34a027bc-cc18-4553-b475-a23a8180ae31
+```
+
+## Swagger  
+After successfully run
+```
+npm run start:dev
+```
+Go to Swagger API link: [Manoke API](http://localhost:3000/api)       
+
+<br/>
+
+----  
 <p align="center">
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
 </p>
