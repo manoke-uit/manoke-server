@@ -21,7 +21,7 @@ export class User {
     imageUrl: string; // @IsUrl() in dto
 
     @Column({type: 'timestamp', default: () => 'CURRENT_TIMESTAMP'})
-    createdAt: string; // @IsDateString() in dto
+    createdAt: Date; // @IsDateString() in dto
 
     @OneToMany(() => Notification, (notification) => notification.user, { cascade: true })
     notifications: Notification[]; // @IsArray() in dto

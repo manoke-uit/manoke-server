@@ -20,7 +20,7 @@ export class Playlist {
     @JoinColumn({ name: 'userId' })
     user: User; // @IsUUID() in dto
 
-    @ManyToMany(() => Song, (song) => song.playlists)
+    @ManyToMany(() => Song, (song) => song.playlists, { cascade: true })
     @JoinTable({ name:'playlist_songs'})
     songs: Song[]; // @IsArray() in dto
 }
