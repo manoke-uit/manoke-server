@@ -16,7 +16,7 @@ export class Artist {
     @Check('popularity >= 0 AND popularity <= 100')
     popularity: number;
 
-    @ManyToMany(() => Song, (song) => song.artists, { cascade: true })
+    @ManyToMany(() => Song, (song) => song.artists)
     @JoinTable({ name:'artist_songs'})
     songs: Song[]; // @IsArray() in dto
 }

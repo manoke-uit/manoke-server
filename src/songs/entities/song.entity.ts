@@ -32,7 +32,7 @@ export class Song {
     @ManyToMany(() => Artist, (artist) => artist.songs, { cascade: true })
     artists: Artist[]; // @IsArray() in dto
 
-    @ManyToMany(() => Playlist, (playlist) => playlist.songs, { cascade: true })
+    @ManyToMany(() => Playlist, (playlist) => playlist.songs)
     playlists: Playlist[]; // @IsArray() in dto
 
     @OneToMany(() => Score, (score) => score.song, { cascade: true })
