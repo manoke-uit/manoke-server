@@ -1,5 +1,5 @@
 import { Song } from "src/songs/entities/song.entity";
-import { IsArray, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID } from "class-validator";
+import { IsArray, IsNotEmpty, IsNumber, IsOptional, IsString, IsUrl, IsUUID } from "class-validator";
 
 export class CreateArtistDto {
     @IsNotEmpty()
@@ -7,7 +7,7 @@ export class CreateArtistDto {
     name: string;
 
     @IsString()
-    @IsOptional()
+    @IsUrl()
     imageUrl?: string;
 
     @IsNumber()

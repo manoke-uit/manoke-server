@@ -13,9 +13,12 @@ export class CreateUserDto {
     @IsNotEmpty()
     email: string; // @IsEmail() in dto
 
-    @IsNotEmpty()
+    @IsOptional()
+    @IsString()
+    adminSecret?: string; // @IsString() in dto
+    
     @IsStrongPassword({ minLength: 8, minUppercase: 1, minLowercase: 1, minNumbers: 1, minSymbols: 1 }) // check password strength
-    @Exclude()
+    @IsNotEmpty()
     password: string; // @IsString() in dto
 
     @IsOptional()
