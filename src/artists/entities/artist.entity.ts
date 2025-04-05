@@ -1,4 +1,5 @@
-import { Check, Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Song } from 'src/songs/entities/song.entity';
+import { Check, Column, Entity, JoinTable, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('artists')
 export class Artist {
@@ -14,4 +15,8 @@ export class Artist {
     @Column({ type: 'smallint', nullable: true })
     @Check('popularity >= 0 AND popularity <= 100')
     popularity: number;
+
+    @ManyToMany(() => Song, (song) => song.artists, { cascade: true })
+    @JoinTable({ name:'artist_songs'})
+    songs: Song[]; // @IsArray() in dto
 }
