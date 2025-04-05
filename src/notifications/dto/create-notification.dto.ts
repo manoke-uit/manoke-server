@@ -9,7 +9,7 @@ export class CreateNotificationDto {
 
     @IsString()
     @IsOptional()
-    description: string;
+    description?: string;
 
     @IsDateString()
     @IsOptional() // default value is Date.now()
@@ -17,7 +17,7 @@ export class CreateNotificationDto {
             const [day, month, year] = value.split('/');
             return `${year}-${month}-${day}`;
     })
-    createdAt: string; 
+    createdAt?: string; 
 
     @IsBoolean()
     @IsOptional() // default value is false

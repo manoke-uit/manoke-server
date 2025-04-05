@@ -11,10 +11,10 @@ export class Playlist {
     title: string;
 
     @Column({type: 'text', nullable: true})
-    imageUrl: string;
+    imageUrl?: string;
 
     @Column({type: 'text'})
-    description: string;
+    description?: string;
 
     @ManyToOne(() => User, (user) => user.playlists, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'userId' })
