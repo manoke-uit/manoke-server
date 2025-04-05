@@ -14,6 +14,8 @@ import * as joi from 'joi';
 import { DataSource } from 'typeorm';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { typeOrmConfig } from 'database/database-source';
+import { AuthModule } from './auth/auth.module';
+import { JwtStrategy } from './auth/strategies/jwt-strategy';
 
 @Module({
   imports: [ConfigModule.forRoot({ // these are for joi validation
@@ -39,9 +41,10 @@ import { typeOrmConfig } from 'database/database-source';
   NotificationsModule, 
   FriendsModule,
   TypeOrmModule.forRootAsync(typeOrmConfig),
+  AuthModule,
 ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, JwtStrategy], // REMEMBER TO register JwtStrategy as provider whenever you use it in the module
 })
 export class AppModule implements OnModuleInit {
   constructor(private dataSource : DataSource) {}

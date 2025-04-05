@@ -1,3 +1,4 @@
+import { Transform } from "class-transformer";
 import { FriendStatus } from "../entities/friend.entity";
 import { IsDateString, IsEnum, IsNotEmpty, IsOptional, IsUUID } from "class-validator";
 
@@ -16,5 +17,9 @@ export class CreateFriendDto {
 
     @IsOptional()
     @IsDateString()
+    @Transform(({ value }) => {
+        const [day, month, year] = value.split('/');
+        return `${year}-${month}-${day}`;
+    })
     createdAt?: string; // @IsDateString() in dto
 }

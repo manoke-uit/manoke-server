@@ -10,11 +10,11 @@ export class Artist {
     name: string;
 
     @Column({ type: 'text', nullable: true })
-    imageUrl: string;
+    imageUrl?: string;
 
     @Column({ type: 'smallint', nullable: true })
     @Check('popularity >= 0 AND popularity <= 100')
-    popularity: number;
+    popularity?: number;
 
     @ManyToMany(() => Song, (song) => song.artists)
     @JoinTable({ name:'artist_songs'})
