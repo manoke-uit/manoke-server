@@ -5,12 +5,13 @@ import { LoginDto } from './dto/login.dto';
 import * as bcrypt from 'bcryptjs';
 import { PayLoadType } from './payload.type';
 import { JwtService } from '@nestjs/jwt';
+import { User } from 'src/users/entities/user.entity';
 
 @Injectable()
 export class AuthService {
     constructor(private readonly usersService: UsersService, private jwtService : JwtService) {}
-    async signup(createUserDto: CreateUserDto) {
-        this.usersService.create(createUserDto);
+    async signup(createUserDto: CreateUserDto) : Promise<User>{
+        return this.usersService.create(createUserDto);
     }
     async login(loginDto: LoginDto) : Promise<{ accessToken: string }> {
         // Implement your login logic here

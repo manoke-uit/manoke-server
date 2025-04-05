@@ -12,7 +12,8 @@ export class UsersService {
   constructor(private readonly configService: ConfigService) {} // Inject the ConfigService if needed
   @InjectRepository(User) // Inject the User repository
   private readonly usersRepository: Repository<User>; // Replace 'any' with your User entity type
-  async create(createUserDto: CreateUserDto) {
+  
+  async create(createUserDto: CreateUserDto) : Promise<User>{
     const user = new User();
     user.displayName = createUserDto.displayName;
     user.email = createUserDto.email;
