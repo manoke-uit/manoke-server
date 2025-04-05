@@ -1,5 +1,5 @@
-## .env
-```
+- Server .env
+``` env
 DB_HOST=localhost
 DB_PORT=5432
 DB_DATABASE=your-local-database-name
@@ -9,8 +9,10 @@ JWT_SECRET=2ad07d22-6753-43ff-9911-1495ea7bc352
 ADMIN_SECRET=34a027bc-cc18-4553-b475-a23a8180ae31
 ```
 
-## Swagger  
+- Swagger  
+
 After successfully run
+
 ```
 npm run start:dev
 ```
