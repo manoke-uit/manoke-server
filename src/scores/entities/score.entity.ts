@@ -1,4 +1,6 @@
-import {Column, Entity, PrimaryGeneratedColumn} from 'typeorm';
+import { Song } from 'src/songs/entities/song.entity';
+import { User } from 'src/users/entities/user.entity';
+import {Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn} from 'typeorm';
 
 @Entity('scores')
 export class Score {
@@ -12,9 +14,13 @@ export class Score {
     finalScore: number; // @IsNumber() in dto
 
     @Column({type: 'timestamp', default: () => 'CURRENT_TIMESTAMP'})
-    createdAt: string; // @IsDateString() in dto
+    createdAt: Date; // @IsDateString() in dto
 
-    // declare user relationship later
+    @ManyToOne(() => User, (user) => user.scores, { onDelete: 'CASCADE' })
+    @JoinColumn({ name: 'userId' })
+    user: User; // @IsUUID() in dto
 
-    // declare song relationship later
+    @ManyToOne(() => Song, (song) => song.scores, { onDelete: 'CASCADE' })
+    @JoinColumn({ name: 'songId' })
+    song: Song; // @IsUUID() in dto
 }

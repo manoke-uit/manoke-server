@@ -1,4 +1,7 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Artist } from "src/artists/entities/artist.entity";
+import { Playlist } from "src/playlists/entities/playlist.entity";
+import { Score } from "src/scores/entities/score.entity";
+import { Column, Entity, ManyToMany, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity('songs')
 export class Song {
@@ -14,8 +17,8 @@ export class Song {
     @Column({type: 'text', nullable: true})
     imageUrl: string;
 
-    @Column() // remember to transform to vn format in dto
-    releasedDate: string;
+    @Column({type: 'date'}) // remember to transform to vn format in dto
+    releasedDate: Date;
 
     @Column({type: 'int', default: 0})
     duration: number; // @IsNumber() in dto
@@ -25,4 +28,13 @@ export class Song {
     
     @Column({type: 'text'})
     spotifyUrl: string; // @IsUrl() in dto
+
+    @ManyToMany(() => Artist, (artist) => artist.songs, { cascade: true })
+    artists: Artist[]; // @IsArray() in dto
+
+    @ManyToMany(() => Playlist, (playlist) => playlist.songs, { cascade: true })
+    playlists: Playlist[]; // @IsArray() in dto
+
+    @OneToMany(() => Score, (score) => score.song, { cascade: true })
+    scores: Score[]; // @IsArray() in dto
 }

@@ -1,4 +1,6 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Song } from "src/songs/entities/song.entity";
+import { User } from "src/users/entities/user.entity";
+import { Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity('playlists')
 export class Playlist {
@@ -14,5 +16,11 @@ export class Playlist {
     @Column({type: 'text'})
     description: string;
 
-    // add user relationship later
+    @ManyToOne(() => User, (user) => user.playlists, { onDelete: 'CASCADE' })
+    @JoinColumn({ name: 'userId' })
+    user: User; // @IsUUID() in dto
+
+    @ManyToMany(() => Song, (song) => song.playlists, { cascade: true })
+    @JoinTable({ name:'playlist_songs'})
+    songs: Song[]; // @IsArray() in dto
 }
