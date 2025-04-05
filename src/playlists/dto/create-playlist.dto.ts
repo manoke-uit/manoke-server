@@ -1,25 +1,31 @@
+import { ApiProperty } from "@nestjs/swagger";
 import { IsArray, IsNotEmpty, IsOptional, IsString, IsUrl, IsUUID } from "class-validator";
-import { Song } from "src/songs/entities/song.entity";
-import { User } from "src/users/entities/user.entity";
 
 export class CreatePlaylistDto {
     @IsNotEmpty()
     @IsString()
+    @ApiProperty({ description: 'Playlist name' })
     title: string;
 
     @IsOptional()
     @IsUrl()
+    @ApiProperty({ required: false, description: 'Playlist image URL' })
     imageUrl?: string;
 
     @IsOptional()
     @IsString()
+    @ApiProperty({ required: false, description: 'Playlist description' })
     description?: string;
 
     @IsNotEmpty()
     @IsUUID('4')
-    user: User; // @IsUUID() in dto
+    @IsOptional()
+    @ApiProperty({ description: 'ID of the user who created the playlist' })
+    userId: string; // @IsUUID() in dto
 
     @IsArray()
     @IsUUID('4', { each: true })
-    songs: Song[]; // @IsArray() in dto
+    @IsOptional()
+    @ApiProperty({ required: false, description: 'Songs IDs' })
+    songIds: string[]; // @IsArray() in dto
 }
