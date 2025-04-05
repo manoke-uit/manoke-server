@@ -12,16 +12,16 @@ export class Song {
     title: string;
 
     @Column({type: 'varchar', length: 255})
-    albumTitle: string;
+    albumTitle?: string;
 
     @Column({type: 'text', nullable: true})
-    imageUrl: string;
+    imageUrl?: string;
 
     @Column({type: 'date'}) // remember to transform to vn format in dto
-    releasedDate: Date;
+    releasedDate?: Date;
 
     @Column({type: 'int', default: 0})
-    duration: number; // @IsNumber() in dto
+    duration?: number; // @IsNumber() in dto
 
     @Column({type: 'text'})
     youtubeUrl: string; // @IsUrl() in dto
