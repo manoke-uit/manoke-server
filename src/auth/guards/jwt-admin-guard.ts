@@ -15,6 +15,6 @@ export class JwtAdminGuard extends AuthGuard('jwt') {
         console.log(user); // for debug
         
         if(user.adminSecret) return user;
-        throw err || new UnauthorizedException('User is not admin'); // If user is not an artist, throw an error
+        throw err || new UnauthorizedException('User is not admin'); // If user is not an admin, throw an error
     }
 }

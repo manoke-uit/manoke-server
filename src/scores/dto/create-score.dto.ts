@@ -1,15 +1,16 @@
+import { ApiProperty } from "@nestjs/swagger";
 import { Transform } from "class-transformer";
 import { IsDateString, IsNotEmpty, IsNumber, IsOptional, IsString, IsUrl, IsUUID } from "class-validator";
-import { Song } from "src/songs/entities/song.entity";
-import { User } from "src/users/entities/user.entity";
 
 export class CreateScoreDto {
     @IsNotEmpty()
     @IsUrl()
+    @ApiProperty({description: 'URL of the audio file'})
     audioUrl: string;
 
     @IsNotEmpty()
     @IsNumber()
+    @ApiProperty({description: 'Score value'})
     finalScore: number; // @IsNumber() in dto
 
     @IsDateString()
@@ -18,13 +19,18 @@ export class CreateScoreDto {
         const [day, month, year] = value.split('/');
         return `${year}-${month}-${day}`;
     })
+    @ApiProperty({required: false, description: 'Score creation date'})
     createdAt?: string; // @IsDateString() in dto
 
     @IsUUID('4')
     @IsNotEmpty()
-    user: User; // @IsUUID() in dto
+    @IsOptional()
+    @ApiProperty({description: 'ID of the user who created the score'})
+    userId: string; // @IsUUID() in dto
 
     @IsUUID('4')
     @IsNotEmpty()
-    song: Song; // @IsUUID() in dto
+    @IsOptional()
+    @ApiProperty({description: 'ID of the song associated with the score'})
+    songId: String; // @IsUUID() in dto
 }

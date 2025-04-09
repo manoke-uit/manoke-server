@@ -1,8 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, HttpCode } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtAdminGuard } from 'src/auth/guards/jwt-admin-guard';
+import { User } from './entities/user.entity';
 
 @Controller('users')
 export class UsersController {
@@ -15,7 +16,8 @@ export class UsersController {
 
   @Get()
   @UseGuards(JwtAdminGuard)
-  findAll() {
+  @HttpCode(200)
+  findAll() : Promise<User[]>{
     return this.usersService.findAll();
   }
 
