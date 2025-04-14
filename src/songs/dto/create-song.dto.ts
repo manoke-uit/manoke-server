@@ -20,12 +20,12 @@ export class CreateSongDto {
 
     @IsDateString()
     @IsOptional() // default value is Date.now() or can just be null 🤷🏻‍♀️
-    @Transform(({ value }) => {
-        const [day, month, year] = value.split('/');
-        return `${year}-${month}-${day}`;
-    })
+    // @Transform(({ value }) => {
+    //     const [day, month, year] = value.split('/');
+    //     return `${year}-${month}-${day}`;
+    // })
     @ApiProperty({ required: false, description: 'Song release date' })
-    releasedDate?: string;
+    releasedDate?: Date;
 
     @IsNumber()
     @IsOptional() // default value is 0

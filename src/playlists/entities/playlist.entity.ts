@@ -5,7 +5,7 @@ import { Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, PrimaryGe
 @Entity('playlists')
 export class Playlist {
     @PrimaryGeneratedColumn('uuid')
-    id: number;
+    id: string;
 
     @Column({type: 'varchar', length: 255})
     title: string;

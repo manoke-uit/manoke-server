@@ -6,7 +6,7 @@ import { Column, Entity, ManyToMany, OneToMany, PrimaryGeneratedColumn } from "t
 @Entity('songs')
 export class Song {
     @PrimaryGeneratedColumn('uuid')
-    id: number;
+    id: string;
 
     @Column({type: 'varchar', length: 255})
     title: string;
