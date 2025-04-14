@@ -1,4 +1,4 @@
-import { IsArray, IsNotEmpty, IsNumber, IsOptional, IsString, IsUrl, IsUUID } from "class-validator";
+import { IsArray, IsNotEmpty, IsNumber, IsOptional, IsString, IsUrl, IsUUID, ValidatorConstraint } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 
 export class CreateArtistDto {

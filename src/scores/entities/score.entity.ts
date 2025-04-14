@@ -5,7 +5,7 @@ import {Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn} from 'typ
 @Entity('scores')
 export class Score {
     @PrimaryGeneratedColumn('uuid')
-    id: number;
+    id: string;
 
     @Column({type: 'text'})
     audioUrl: string;

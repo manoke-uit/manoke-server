@@ -4,7 +4,7 @@ import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "t
 @Entity('notifications')
 export class Notification {
     @PrimaryGeneratedColumn('uuid')
-    id: number;
+    id: string;
 
     @Column({ type: 'varchar', length: 255 })
     title: string;
