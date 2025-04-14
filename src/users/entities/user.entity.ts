@@ -8,7 +8,7 @@ import { IsOptional, IsString } from 'class-validator';
 @Entity('users')
 export class User {
     @PrimaryGeneratedColumn('uuid')
-    id: number; // @IsUUID() in dto
+    id: string; // @IsUUID() in dto
 
     @Column({type: 'varchar', length: 255, nullable: true})
     @Exclude({ toPlainOnly: true }) // Exclude from the response
