@@ -1,11 +1,12 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { Repository } from 'typeorm';
+import { DeleteResult, Repository, UpdateResult } from 'typeorm';
 import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcryptjs';
 import { ConfigService } from '@nestjs/config';
+import { paginate, Pagination, IPaginationOptions } from 'nestjs-typeorm-paginate'
 
 @Injectable()
 export class UsersService {
@@ -36,19 +37,27 @@ export class UsersService {
     return this.usersRepository.findOne({ where: { email } }); // Find a user by email
   }
 
-  findAll() {
+  async findByDisplayName(displayName: string): Promise<User | null> {
+    return this.usersRepository.findOne({ where: { displayName } }); // Find a user by display name
+  }
+
+  findAll(): Promise<User[]> {
     return this.usersRepository.find(); // Find all users
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+  findOne(id: string): Promise<User | null> {
+    return this.usersRepository.findOneBy({ id });
   }
 
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  update(id: string, updateUserDto: UpdateUserDto): Promise<UpdateResult> {
+    return this.usersRepository.update(id, updateUserDto);
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  remove(id: string): Promise<DeleteResult>  {
+    return this.usersRepository.delete(id);
+  }
+
+  paginate(options: IPaginationOptions): Promise<Pagination<User>> {
+    return paginate<User>(this.usersRepository, options);
   }
 }
