@@ -27,7 +27,7 @@ export class Song {
     youtubeUrl: string; // @IsUrl() in dto
     
     @Column({type: 'text'})
-    spotifyUrl: string; // @IsUrl() in dto
+    audioUrl: string; // @IsUrl() in dto
 
     @ManyToMany(() => Artist, (artist) => artist.songs, { cascade: true })
     artists: Artist[]; // @IsArray() in dto
