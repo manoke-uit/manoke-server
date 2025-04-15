@@ -10,6 +10,11 @@ export class CreateSongDto {
 
     @IsOptional()
     @IsString()
+    @ApiProperty({ description: 'lyrics' })
+    lyrics?: string;
+
+    @IsOptional()
+    @IsString()
     @ApiProperty({ description: 'Song album title' })
     albumTitle?: string;
 
