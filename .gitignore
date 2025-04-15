@@ -54,3 +54,6 @@ pids
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
+
+# Firebase Admin SDK
+manoke-8daad-firebase-adminsdk-fbsvc-dfb1f271c3.json
