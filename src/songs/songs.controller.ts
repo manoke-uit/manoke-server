@@ -6,6 +6,7 @@ import { JwtAdminGuard } from 'src/auth/guards/jwt-admin-guard';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { Song } from './entities/song.entity';
 import { DeleteResult, UpdateResult } from 'typeorm';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth-guard';
 
 @Controller('songs')
 export class SongsController {
@@ -46,5 +47,11 @@ export class SongsController {
   @Delete(':id')
   remove(@Param('id') id: string): Promise<DeleteResult> {
     return this.songsService.remove(id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('search')
+  searchSongs(@Body('query') query: string): Promise<Song[]> {
+    return this.songsService.search(query);
   }
 }

@@ -44,6 +44,10 @@ export class ArtistsService {
     return this.artistRepository.findOneBy({ id });
   }
 
+  async findOneBySpotifyId(spotifyId: string): Promise<Artist | null> {
+    return this.artistRepository.findOneBy({ spotifyId });
+  }
+
   update(id: string, updateArtistDto: UpdateArtistDto): Promise<UpdateResult> {
     return this.artistRepository.update(id, updateArtistDto);
   }
