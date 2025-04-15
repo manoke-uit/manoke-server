@@ -19,6 +19,8 @@ SPOTIFY_CALLBACK_URL=http://127.0.0.1:3000/callback
 
 YOUTUBE_API_KEY=AIzaSyAwcT0dVDCF6PGUz2RnbGSPimtZ0UTDGJk
 YOUTUBE_BASE_URL=https://www.googleapis.com/youtube/v3
+
+DEEZER_BASE_URL=https://api.deezer.com
 ```
 
 - Swagger  
