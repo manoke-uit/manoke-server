@@ -6,6 +6,9 @@ export class Artist {
     @PrimaryGeneratedColumn('uuid')
     id: string;
 
+    @Column({nullable: true})
+    spotifyId: string;
+
     @Column({ type: 'varchar', length: 255 })
     name: string;
 

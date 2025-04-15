@@ -5,6 +5,7 @@ import { UpdateArtistDto } from './dto/update-artist.dto';
 import { JwtAdminGuard } from 'src/auth/guards/jwt-admin-guard';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { Artist } from './entities/artist.entity';
+import { responseHelper } from 'helpers/response.helper';
 
 @Controller('artists')
 export class ArtistsController {
@@ -13,7 +14,18 @@ export class ArtistsController {
   @UseGuards(JwtAdminGuard)  
   @Post()
   create(@Body() createArtistDto: CreateArtistDto) {
-    return this.artistsService.create(createArtistDto);
+    const createdArtist = this.artistsService.create(createArtistDto);
+    if(!createdArtist) {
+      return responseHelper({
+        message: 'Artist creation failed',
+        statusCode: 400,
+      });
+    }
+    return responseHelper({
+      message: 'Artist created successfully',
+      data: createdArtist,
+      statusCode: 201,
+    });
   }
 
   @Get()
@@ -32,18 +44,51 @@ export class ArtistsController {
   
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.artistsService.findOne(id);
+    const foundArtist = this.artistsService.findOne(id);
+    if(!foundArtist) {
+      return responseHelper({
+        message: 'Artist not found',
+        statusCode: 404,
+      });
+    }
+    return responseHelper({
+      message: 'Artist found successfully',
+      data: foundArtist,
+      statusCode: 200,
+    });
   }
 
   @UseGuards(JwtAdminGuard)  
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateArtistDto: UpdateArtistDto) {
-    return this.artistsService.update(id, updateArtistDto);
+    const updatedArtist = this.artistsService.update(id, updateArtistDto);
+    if(!updatedArtist) {
+      return responseHelper({
+        message: 'Artist update failed',
+        statusCode: 400,
+      });
+    }
+    return responseHelper({
+      message: 'Artist updated successfully',
+      data: updatedArtist,
+      statusCode: 200,
+    });
   }
 
   @UseGuards(JwtAdminGuard)  
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.artistsService.remove(id);
+    const deletedArtist = this.artistsService.remove(id);
+    if(!deletedArtist) {
+      return responseHelper({
+        message: 'Artist deletion failed',
+        statusCode: 400,
+      });
+    }
+    return responseHelper({
+      message: 'Artist deleted successfully',
+      data: deletedArtist,
+      statusCode: 200,
+    });
   }
 }
