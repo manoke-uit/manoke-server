@@ -11,6 +11,9 @@ export class Song {
     @Column({type: 'varchar', length: 255})
     title: string;
 
+    @Column({type: 'text', nullable: true})
+    lyrics: string; // @IsString() in dto
+
     @Column({type: 'varchar', length: 255})
     albumTitle?: string;
 
