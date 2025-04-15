@@ -1,7 +1,9 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { SpotifyApiService } from './spotify-api.service';
 import { HttpModule } from '@nestjs/axios';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { SongsModule } from 'src/songs/songs.module';
+import { ArtistsModule } from 'src/artists/artists.module';
 
 @Module({
   providers: [SpotifyApiService],
@@ -10,12 +12,14 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
         imports: [ConfigModule],
         inject: [ConfigService],
         useFactory: (configService : ConfigService) => ({
-            baseURL: configService.get<string>('SPOTIFY_API_URL') || 'https://api.spotify.com/v1',
+            baseURL: configService.get<string>('SPOTIFY_BASE_URL') || 'https://api.spotify.com/v1',
             headers: {
             'Content-Type': 'application/json',
             },
         }),
-    })
+    }),
+    forwardRef(()=>SongsModule), // avoid circular dependency
+    ArtistsModule
   ],
   exports: [SpotifyApiService],
 })
