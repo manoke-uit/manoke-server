@@ -31,7 +31,7 @@ export class SongsService {
     song.releasedDate = createSongDto.releasedDate;
     song.duration = createSongDto.duration; 
     song.youtubeUrl = createSongDto.youtubeUrl; 
-    song.spotifyUrl = createSongDto.spotifyUrl;
+    song.audioUrl = createSongDto.audioUrl;
     
     if (createSongDto.artistIds && createSongDto.artistIds.length > 0) {
       const artists = await this.artistRepository.findBy({
