@@ -53,5 +53,5 @@ export class CreateUserDto {
     @IsUUID('4', { each: true })
     @IsArray()
     @ApiProperty({ required: false, description: 'User scores' })
-    scoreIds: string[]; // @IsArray() in dto
+    scoreIds?: string[]; // @IsArray() in dto
 }
