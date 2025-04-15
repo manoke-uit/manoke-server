@@ -54,6 +54,24 @@ export class SpotifyApiService {
         
     }
 
+    async getDeezerPreviewUrl(songTitle: string, artistName: string) : Promise<any>{
+        const query = `track:"${songTitle}" artist:"${artistName}"`;
+        const url = `${this.configService.get<string>("DEEZER_BASE_URL")}/search?q=${encodeURIComponent(query)}`;
+        try {
+            const response = await firstValueFrom(this.httpService.get(url));
+            const firstTrack = response.data?.data?.[0];
+            if (!firstTrack || !firstTrack.preview) {
+                console.error('No preview URL found in Deezer response:', response.data);
+                return null;
+            }
+            return firstTrack;
+        } catch(e){
+            console.error('Error fetching Deezer preview URL:', e?.response?.data || e.message || e);
+            throw new Error('Failed to fetch Deezer preview URL');
+        }
+        
+    }
+
     async searchSongs(query: string) : Promise<Song[]>{
         const token = await this.getToken();
         const baseUrl = this.configService.get<string>('SPOTIFY_BASE_URL') || 'https://api.spotify.com/v1';
@@ -77,7 +95,9 @@ export class SpotifyApiService {
             console.error('Error fetching Spotify search results:', response?.data || 'No data returned');
             throw new Error('Failed to fetch Spotify search results');
         }
+        
         return Promise.all(response.data.tracks.items.map(async track => {
+            const audioDeezer = await this.getDeezerPreviewUrl(query, track.artists[0].name);
             const artist = await Promise.all(track.artists.map(async artist => {
                 const foundArtist = await this.artistsService.findOneBySpotifyId(artist.id);
                 if(foundArtist) return foundArtist;
@@ -90,19 +110,22 @@ export class SpotifyApiService {
                 });
                 return newArtist;
             }));
+            // if (audioDeezer) {
+            //     console.log(`deezer title: ${audioDeezer.title}\naudio: ${audioDeezer.preview}`);
+            // } else {
+            //     console.warn(`No matching Deezer result for: ${track.name}`);
+            // }
             return await this.songsService.create({
                 title: track.name,
                 albumTitle: track.album.name,
                 imageUrl: track.album.images[0]?.url || null,
-                releasedDate: track.album.release_date,
+                releasedDate: track.album.release_date?.length === 4 ? `${track.album.release_date}-01-01` : track.album.release_date,
                 duration: track.duration_ms,
                 youtubeUrl: "", // update it later bc gonna search via youtube anyway !
-                spotifyUrl: track.external_urls.spotify,
+                audioUrl: track.preview_url || audioDeezer?.preview || "",
                 artistIds: artist.map(artist => artist.id),
                 playlistIds: [],
             })
         }));
-        
-
     }
 }

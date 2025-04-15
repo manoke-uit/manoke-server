@@ -45,7 +45,7 @@ export class CreateSongDto {
     @IsUrl()
     @IsOptional() // if can't find api generate score base on ...?
     @ApiProperty({ required: false, description: 'Spotify URL' })
-    spotifyUrl: string; // @IsUrl() in dto
+    audioUrl: string; // @IsUrl() in dto
 
     @IsOptional()
     @IsUUID('4', { each: true })
