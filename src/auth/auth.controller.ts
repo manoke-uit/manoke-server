@@ -5,6 +5,7 @@ import { JwtAuthGuard } from './guards/jwt-auth-guard';
 import { LoginDto } from './dto/login.dto';
 import { User } from 'src/users/entities/user.entity';
 import { GoogleGuard } from './guards/google-guard';
+import { responseHelper } from 'helpers/response.helper';
 
 @Controller('auth')
 export class AuthController {
@@ -13,7 +14,11 @@ export class AuthController {
     @Post('signup')
     @HttpCode(201)
     async signup(@Body() createUserDto: CreateUserDto) : Promise<User> {
-        return this.authService.signup(createUserDto);
+        const signupUser = await this.authService.signup(createUserDto);
+        if (!signupUser) {
+            throw new Error('User creation failed');
+        }
+        return signupUser;
     }
 
     @Post('login')
