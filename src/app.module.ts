@@ -16,6 +16,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { typeOrmConfig } from 'database/database-source';
 import { AuthModule } from './auth/auth.module';
 import { JwtStrategy } from './auth/strategies/jwt-strategy';
+import { YoutubeApiModule } from 'external-apis/youtube-api/youtube-api.module';
+import { SpotifyApiModule } from 'external-apis/spotify-api/spotify-api.module';
 
 @Module({
   imports: [ConfigModule.forRoot({ // these are for joi validation
@@ -42,6 +44,8 @@ import { JwtStrategy } from './auth/strategies/jwt-strategy';
   FriendsModule,
   TypeOrmModule.forRootAsync(typeOrmConfig),
   AuthModule,
+  YoutubeApiModule,
+  SpotifyApiModule,
 ],
   controllers: [AppController],
   providers: [AppService, JwtStrategy], // REMEMBER TO register JwtStrategy as provider whenever you use it in the module
