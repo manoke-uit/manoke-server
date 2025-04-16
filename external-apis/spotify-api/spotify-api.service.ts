@@ -1,6 +1,7 @@
 import { HttpService } from '@nestjs/axios';
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { GeniusApiService } from 'external-apis/genius-api/genius-api.service';
 import { firstValueFrom } from 'rxjs';
 import { ArtistsService } from 'src/artists/artists.service';
 import { Song } from 'src/songs/entities/song.entity';
@@ -11,7 +12,8 @@ export class SpotifyApiService {
     constructor(private httpService : HttpService, private configService : ConfigService,
         @Inject(forwardRef(() => SongsService)) // avoid circular dependency
         private songsService : SongsService, 
-        private artistsService : ArtistsService
+        private artistsService : ArtistsService,
+        private geniusApiService : GeniusApiService,
     ){}
     // implemnt getToken
     private token = null;
@@ -97,6 +99,7 @@ export class SpotifyApiService {
         }
         
         return Promise.all(response.data.tracks.items.map(async track => {
+            
             const audioDeezer = await this.getDeezerPreviewUrl(query, track.artists[0].name);
             const artist = await Promise.all(track.artists.map(async artist => {
                 const foundArtist = await this.artistsService.findOneBySpotifyId(artist.id);
@@ -108,13 +111,16 @@ export class SpotifyApiService {
                     popularity: artist.popularity,
                     songIds: [],
                 });
+                console.log("artist: ", newArtist);
                 return newArtist;
             }));
-            // if (audioDeezer) {
-            //     console.log(`deezer title: ${audioDeezer.title}\naudio: ${audioDeezer.preview}`);
-            // } else {
-            //     console.warn(`No matching Deezer result for: ${track.name}`);
-            // }
+            if (audioDeezer) {
+                console.log(`deezer title: ${audioDeezer.title}\naudio: ${audioDeezer.preview}`);
+            } else {
+                console.warn(`No matching Deezer result for: ${track.name}`);
+            }
+            console.log("track name" , track.name);
+            const geniusLyrics = await this.geniusApiService.getSongLyrics(query, track.artists[0].name);
             return await this.songsService.create({
                 title: track.name,
                 albumTitle: track.album.name,
@@ -125,6 +131,8 @@ export class SpotifyApiService {
                 audioUrl: track.preview_url || audioDeezer?.preview || "",
                 artistIds: artist.map(artist => artist.id),
                 playlistIds: [],
+                lyrics: geniusLyrics || "", // add lyrics via genius api later
+                
             })
         }));
     }
