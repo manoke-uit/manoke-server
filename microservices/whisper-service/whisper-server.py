@@ -1,19 +1,28 @@
-from fastapi import FastAPI, File, UploadFile
-import whisper
 import os
+from fastapi.responses import JSONResponse
+import traceback
+os.environ["XDG_CACHE_HOME"] = "/tmp/.cache"
+
+from fastapi import FastAPI, UploadFile, File
+import whisper
 
 app = FastAPI()
-model = whisper.load_model("base")
+
+model = whisper.load_model("base")  # try "base" for better words fetching
 
 @app.post("/transcribe")
-async def transcribe(file: UploadFile = File(...)):
-    os.makedirs("temp", exist_ok=True)
-    file_path = f"temp/{file.filename}"
+async def transcribe_audio(file: UploadFile = File(...)):
+    try:
+        # Save temp file in /tmp (writable in Hugging Face)
+        temp_file = f"/tmp/temp_{file.filename}"
+        with open(temp_file, "wb") as f:
+            f.write(await file.read())
 
-    with open(file_path, "wb") as f:
-        f.write(await file.read())
+        result = model.transcribe(temp_file)
+        os.remove(temp_file)
+        return {"transcription": result["text"]}
 
-    result = model.transcribe(file_path)
-    os.remove(file_path)
-
-    return {"text": result["text"]}
+    except Exception as e:
+        print("ERROR during transcription:")
+        traceback.print_exc()
+        return JSONResponse(status_code=500, content={"error": str(e)})
