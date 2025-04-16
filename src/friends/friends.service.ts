@@ -10,8 +10,6 @@ import { Friend, FriendStatus } from './entities/friend.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { DeleteResult, Repository, UpdateResult } from 'typeorm';
 import { User } from 'src/users/entities/user.entity';
-import { UpdateRequest } from 'firebase-admin/lib/auth/auth-config';
-import { from } from 'form-data';
 
 @Injectable()
 export class FriendsService {
