@@ -21,5 +21,4 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt'){ // default n
             adminSecret: payload.adminSecret // for role based but maybe not gonna use
         }
     }
-
 }
