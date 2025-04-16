@@ -18,7 +18,6 @@ import { AuthModule } from './auth/auth.module';
 import { JwtStrategy } from './auth/strategies/jwt-strategy';
 import { YoutubeApiModule } from 'external-apis/youtube-api/youtube-api.module';
 import { SpotifyApiModule } from 'external-apis/spotify-api/spotify-api.module';
-import { WhisperApiModule } from 'external-apis/whisper-api/whisper-api.module';
 
 @Module({
   imports: [ConfigModule.forRoot({ // these are for joi validation
@@ -47,7 +46,6 @@ import { WhisperApiModule } from 'external-apis/whisper-api/whisper-api.module';
   AuthModule,
   YoutubeApiModule,
   SpotifyApiModule,
-  WhisperApiModule
 ],
   controllers: [AppController],
   providers: [AppService, JwtStrategy], // REMEMBER TO register JwtStrategy as provider whenever you use it in the module
