@@ -23,6 +23,7 @@ export class ArtistsService {
     artist.name = createArtistDto.name; 
     artist.imageUrl = createArtistDto.imageUrl;
     artist.popularity = createArtistDto.popularity;
+    artist.spotifyId = createArtistDto.spotifyId; // add this line to set the spotifyId
     
     if (createArtistDto.songIds && createArtistDto.songIds.length > 0) {
       const songs = await this.songRepository.findBy({
