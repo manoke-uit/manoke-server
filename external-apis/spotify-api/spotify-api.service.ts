@@ -1,7 +1,7 @@
 import { HttpService } from '@nestjs/axios';
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { GeniusApiService } from 'external-apis/genius-api/genius-api.service';
+import { LyricsOvhApiService } from 'external-apis/lyrics.ovh-api/lyrics.ovh-api.service';
 import { firstValueFrom } from 'rxjs';
 import { ArtistsService } from 'src/artists/artists.service';
 import { Song } from 'src/songs/entities/song.entity';
@@ -13,7 +13,7 @@ export class SpotifyApiService {
         @Inject(forwardRef(() => SongsService)) // avoid circular dependency
         private songsService : SongsService, 
         private artistsService : ArtistsService,
-        private geniusApiService : GeniusApiService,
+        private lyricsOvhApiService : LyricsOvhApiService,
     ){}
     // implemnt getToken
     private token = null;
@@ -59,6 +59,7 @@ export class SpotifyApiService {
     async getDeezerPreviewUrl(songTitle: string, artistName: string) : Promise<any>{
         const query = `track:"${songTitle}" artist:"${artistName}"`;
         const url = `${this.configService.get<string>("DEEZER_BASE_URL")}/search?q=${encodeURIComponent(query)}`;
+        console.log("deezer url: ", url);
         try {
             const response = await firstValueFrom(this.httpService.get(url));
             const firstTrack = response.data?.data?.[0];
@@ -88,7 +89,7 @@ export class SpotifyApiService {
                     params: {
                         q: query,
                         type: 'track',
-                        limit: 10,
+                        limit: 5,
                     }
                 }
             )
@@ -119,19 +120,25 @@ export class SpotifyApiService {
             } else {
                 console.warn(`No matching Deezer result for: ${track.name}`);
             }
-            console.log("track name" , track.name);
-            const geniusLyrics = await this.geniusApiService.getSongLyrics(query, track.artists[0].name);
+            //console.log("track name" , track.name);
+            //const geniusLyrics = await this.geniusApiService.getSongLyrics(query, track.artists[0].name);
+            const ovhLyrics = await this.lyricsOvhApiService.getLyrics(track.name, track.artists[0].name);
+            //console.log("ovhLyrics: ", ovhLyrics);
             return await this.songsService.create({
                 title: track.name,
                 albumTitle: track.album.name,
                 imageUrl: track.album.images[0]?.url || null,
-                releasedDate: track.album.release_date?.length === 4 ? `${track.album.release_date}-01-01` : track.album.release_date,
+                releasedDate: track.album.release_date
+                ? track.album.release_date.length === 4
+                  ? `${track.album.release_date}-01-01`
+                  : track.album.release_date
+                : null,
                 duration: track.duration_ms,
                 youtubeUrl: "", // update it later bc gonna search via youtube anyway !
                 audioUrl: track.preview_url || audioDeezer?.preview || "",
                 artistIds: artist.map(artist => artist.id),
                 playlistIds: [],
-                lyrics: geniusLyrics || "", // add lyrics via genius api later
+                lyrics: ovhLyrics || "", // add lyrics via genius api later
                 
             })
         }));

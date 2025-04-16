@@ -1,15 +1,15 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { GeniusApiService } from './genius-api.service';
+import { LyricsOvhApiService } from './lyrics.ovh-api.service';
 
-describe('GeniusApiService', () => {
-  let service: GeniusApiService;
+describe('LyricsOvhApiService', () => {
+  let service: LyricsOvhApiService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [GeniusApiService],
+      providers: [LyricsOvhApiService],
     }).compile();
 
-    service = module.get<GeniusApiService>(GeniusApiService);
+    service = module.get<LyricsOvhApiService>(LyricsOvhApiService);
   });
 
   it('should be defined', () => {

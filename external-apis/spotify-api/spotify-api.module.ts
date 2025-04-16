@@ -4,7 +4,7 @@ import { HttpModule } from '@nestjs/axios';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SongsModule } from 'src/songs/songs.module';
 import { ArtistsModule } from 'src/artists/artists.module';
-import { GeniusApiModule } from 'external-apis/genius-api/genius-api.module';
+import { LyricsOvhApiModule } from 'external-apis/lyrics.ovh-api/lyrics.ovh-api.module';
 
 @Module({
   providers: [SpotifyApiService],
@@ -21,7 +21,7 @@ import { GeniusApiModule } from 'external-apis/genius-api/genius-api.module';
     }),
     forwardRef(()=>SongsModule), // avoid circular dependency
     ArtistsModule,
-    GeniusApiModule,
+    LyricsOvhApiModule,
   ],
   exports: [SpotifyApiService],
 })

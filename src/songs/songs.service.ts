@@ -32,6 +32,7 @@ export class SongsService {
     song.duration = createSongDto.duration; 
     song.youtubeUrl = createSongDto.youtubeUrl; 
     song.audioUrl = createSongDto.audioUrl;
+    song.lyrics = createSongDto.lyrics ? createSongDto.lyrics : ""; // if not found in db, then search in lyrics.ovh-api
     
     if (createSongDto.artistIds && createSongDto.artistIds.length > 0) {
       const artists = await this.artistRepository.findBy({
