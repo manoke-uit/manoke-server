@@ -7,12 +7,7 @@ export class CreateFriendDto {
     @IsUUID('4')
     @IsNotEmpty()
     @ApiProperty({ description: 'ID of the user who sent the friend request' })
-    userId_1: string; // @IsUUID() in dto
-
-    @IsNotEmpty()
-    @IsUUID('4')
-    @ApiProperty({ description: 'ID of the user who received the friend request' })
-    userId_2: string; // @IsUUID() in dto
+    receiverId: string; // @IsUUID() in dto
 
     @IsNotEmpty()
     @IsEnum(FriendStatus)
