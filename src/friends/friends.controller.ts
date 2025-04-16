@@ -1,34 +1,79 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { 
+  Controller, 
+  Get, 
+  Post, 
+  Body, 
+  Patch, 
+  Param, 
+  Delete, 
+  Req, 
+  UseGuards 
+} from '@nestjs/common';
 import { FriendsService } from './friends.service';
 import { CreateFriendDto } from './dto/create-friend.dto';
 import { UpdateFriendDto } from './dto/update-friend.dto';
+import { Friend } from './entities/friend.entity';
+import { UpdateResult } from 'typeorm';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth-guard';
+import { RequestWithUser } from 'src/interfaces/request-with-user.interface';
+// import { Request } from 'express';
 
 @Controller('friends')
 export class FriendsController {
-  constructor(private readonly friendsService: FriendsService) {}
+  constructor(private readonly friendsService: FriendsService) { }
 
+  @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() createFriendDto: CreateFriendDto) {
-    return this.friendsService.create(createFriendDto);
+  create(
+    @Req() req: RequestWithUser,
+    @Body() createFriendDto: CreateFriendDto
+  ): Promise<Friend> {
+    const currentUserId = req.user.userId;
+    return this.friendsService.sendFriendRequest(currentUserId, createFriendDto);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get()
-  findAll() {
-    return this.friendsService.findAll();
+  getFriendList(@Req() req: RequestWithUser): Promise<Friend[]> {
+    const currentUserId = req.user.userId;
+    return this.friendsService.getFriendList(currentUserId);
+
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.friendsService.findOne(+id);
+  @UseGuards(JwtAuthGuard)
+  @Get('requests')
+  findAll(@Req() req: RequestWithUser): Promise<Friend[]> {
+    const currentUserId = req.user.userId;
+    return this.friendsService.getRequests(currentUserId);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateFriendDto: UpdateFriendDto) {
-    return this.friendsService.update(+id, updateFriendDto);
+  @UseGuards(JwtAuthGuard)
+  @Get(':idToFind')
+  findOne(
+    @Param('idToFind') idToFind: string,
+    @Req() req: RequestWithUser,
+  ): Promise<Friend | null> {
+    const currentUserId = req.user.userId;
+    return this.friendsService.findOne(currentUserId, idToFind);
   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.friendsService.remove(+id);
+  @UseGuards(JwtAuthGuard)
+  @Patch()
+  update(
+    @Req() req: RequestWithUser,
+    @Body() updateFriendDto: UpdateFriendDto
+  ): Promise<UpdateResult> {
+    const currentUserId = req.user.userId;
+    return this.friendsService.updateStatus(currentUserId, updateFriendDto);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Delete(':idToRemove')
+  remove(
+    @Req() req: RequestWithUser, 
+    @Param('idToRemove') idToRemove: string
+  ) {
+    const currentUserId = req.user.userId;
+    return this.friendsService.removeFriend(currentUserId, idToRemove);
   }
 }
