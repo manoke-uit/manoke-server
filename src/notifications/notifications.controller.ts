@@ -1,34 +1,37 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { NotificationsService } from './notifications.service';
-import { CreateNotificationDto } from './dto/create-notification.dto';
-import { UpdateNotificationDto } from './dto/update-notification.dto';
+import { SendNotificationDto } from './dto/send-notification.dto';
+import { ApiTags, ApiQuery } from '@nestjs/swagger';
 
+@ApiTags('Notifications')
 @Controller('notifications')
 export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}
 
   @Post()
-  create(@Body() createNotificationDto: CreateNotificationDto) {
-    return this.notificationsService.create(createNotificationDto);
+  sendNotification(@Body() sendNotificationDto: SendNotificationDto) {
+    return this.notificationsService.sendAndSave(sendNotificationDto);
   }
 
   @Get()
-  findAll() {
-    return this.notificationsService.findAll();
+  @ApiQuery({ name: 'userId', required: true })
+  getUserNotifications(@Query('userId') userId: string) {
+    return this.notificationsService.getAll(userId);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.notificationsService.findOne(+id);
+  @Get('unread-count')
+  @ApiQuery({ name: 'userId', required: true })
+  getUnreadCount(@Query('userId') userId: string) {
+    return this.notificationsService.countUnread(userId);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateNotificationDto: UpdateNotificationDto) {
-    return this.notificationsService.update(+id, updateNotificationDto);
+  @Patch(':id/read')
+  markAsRead(@Param('id') id: string) {
+    return this.notificationsService.markAsRead(id);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.notificationsService.remove(+id);
+    return this.notificationsService.remove(id);
   }
 }
