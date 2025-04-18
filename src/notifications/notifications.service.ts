@@ -1,26 +1,72 @@
 import { Injectable } from '@nestjs/common';
-import { CreateNotificationDto } from './dto/create-notification.dto';
-import { UpdateNotificationDto } from './dto/update-notification.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Notification } from './entities/notification.entity';
+import { Repository } from 'typeorm';
+import { SendNotificationDto } from './dto/send-notification.dto';
+import * as firebase from 'firebase-admin';
 
 @Injectable()
 export class NotificationsService {
-  create(createNotificationDto: CreateNotificationDto) {
-    return 'This action adds a new notification';
+  constructor(
+    @InjectRepository(Notification)
+    private notificationsRepository: Repository<Notification>,
+  ) { }
+
+  async sendAndSave(sendNotificationDto: SendNotificationDto) {
+    if (sendNotificationDto.deviceId) {
+      await firebase.messaging().send({
+        notification: {
+          title: sendNotificationDto.title,
+          body: sendNotificationDto.description || '',
+        },
+        token: sendNotificationDto.deviceId,
+        android: 
+        { 
+          priority: 'high', 
+          notification: { 
+            sound: 'default', 
+            channelId: 'default' 
+          } 
+        },
+        apns: {
+          headers: { 'apns-priority': '10' },
+          payload: {
+            aps: {
+              contentAvailable: true,
+              sound: 'default',
+            },
+          },
+        },
+      });
+    }
+
+    return this.notificationsRepository.save({
+      title: sendNotificationDto.title,
+      description: sendNotificationDto.description,
+      user: { id: sendNotificationDto.userId },
+      isRead: false,
+    });
   }
 
-  findAll() {
-    return `This action returns all notifications`;
+  async getAll(userId: string) {
+    return this.notificationsRepository.find({
+      where: { user: { id: userId } },
+      order: { createdAt: 'DESC' },
+    });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} notification`;
+  async markAsRead(id: string) {
+    await this.notificationsRepository.update(id, { isRead: true });
+    return this.notificationsRepository.findOne({ where: { id } });
   }
 
-  update(id: number, updateNotificationDto: UpdateNotificationDto) {
-    return `This action updates a #${id} notification`;
+  async countUnread(userId: string) {
+    return this.notificationsRepository.count({
+      where: { user: { id: userId }, isRead: false },
+    });
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} notification`;
+  async remove(id: string) {
+    return this.notificationsRepository.delete(id);
   }
 }
