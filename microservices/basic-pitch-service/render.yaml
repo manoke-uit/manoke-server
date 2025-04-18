@@ -1,8 +1,0 @@
-services:
-  - type: web
-    name: basic-pitch-api
-    env: docker
-    plan: free
-    autoDeploy: true
-    healthCheckPath: /
-    region: singapore
