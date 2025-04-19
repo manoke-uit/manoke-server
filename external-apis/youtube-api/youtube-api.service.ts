@@ -27,6 +27,7 @@ export class YoutubeApiService {
                 )
             );
             const data = response.data;
+            console.log('Youtube API response:', data);
             return {
                 nextPageToken: data.nextPageToken || null,
                 prevPageToken: data.prevPageToken || null,

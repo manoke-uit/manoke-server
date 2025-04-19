@@ -110,7 +110,7 @@ export class SpotifyApiService {
                     imageUrl: Array.isArray(artist.images) ? artist.images[0]?.url || null : null,
                     spotifyId: artist.id,
                     popularity: artist.popularity,
-                    songIds: [],
+                    songIds: [], // update it later
                 });
                 console.log("artist: ", newArtist);
                 return newArtist;
@@ -130,9 +130,9 @@ export class SpotifyApiService {
                 imageUrl: track.album.images[0]?.url || null,
                 releasedDate: track.album.release_date
                 ? track.album.release_date.length === 4
-                  ? `${track.album.release_date}-01-01`
+                  ? `${track.album.release_date}-01-01` // still need to check if the date is valid
                   : track.album.release_date
-                : null,
+                : "",
                 duration: track.duration_ms,
                 youtubeUrl: "", // update it later bc gonna search via youtube anyway !
                 audioUrl: track.preview_url || audioDeezer?.preview || "",
