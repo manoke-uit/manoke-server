@@ -1,25 +1,3 @@
-- Server .env
-``` env
-DB_HOST=localhost
-DB_PORT=5432
-DB_DATABASE=your-local-database-name
-DB_PASSWORD=your-local-database-password
-DB_USERNAME=postgres
-JWT_SECRET=2ad07d22-6753-43ff-9911-1495ea7bc352
-ADMIN_SECRET=34a027bc-cc18-4553-b475-a23a8180ae31
-
-GOOGLE_CLIENT_ID=436736632339-6mf0qnli3qjs7ibges6ftgahr7031r79.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=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
-GOOGLE_CALLBACK_URL=http://localhost:3000/auth/google/callback
-
-SPOTIFY_CLIENT_ID=adc90e947e7f43f88a557775065f189c
-SPOTIFY_CLIENT_SECRET=3ce9fb6ca1e44a008ef746499d442030
-SPOTIFY_BASE_URL=https://api.spotify.com/v1
-SPOTIFY_CALLBACK_URL=http://127.0.0.1:3000/callback
-
-YOUTUBE_API_KEY=AIzaSyAwcT0dVDCF6PGUz2RnbGSPimtZ0UTDGJk
-YOUTUBE_BASE_URL=https://www.googleapis.com/youtube/v3
-```
 
 - Swagger  
 

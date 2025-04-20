@@ -10,6 +10,11 @@ export class CreateSongDto {
 
     @IsOptional()
     @IsString()
+    @ApiProperty({ description: 'lyrics' })
+    lyrics?: string;
+
+    @IsOptional()
+    @IsString()
     @ApiProperty({ description: 'Song album title' })
     albumTitle?: string;
 
@@ -40,7 +45,7 @@ export class CreateSongDto {
     @IsUrl()
     @IsOptional() // if can't find api generate score base on ...?
     @ApiProperty({ required: false, description: 'Spotify URL' })
-    spotifyUrl: string; // @IsUrl() in dto
+    audioUrl: string; // @IsUrl() in dto
 
     @IsOptional()
     @IsUUID('4', { each: true })

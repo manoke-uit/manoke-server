@@ -11,6 +11,9 @@ export class Song {
     @Column({type: 'varchar', length: 255})
     title: string;
 
+    @Column({type: 'text', nullable: true})
+    lyrics: string; // @IsString() in dto
+
     @Column({type: 'varchar', length: 255})
     albumTitle?: string;
 
@@ -27,7 +30,7 @@ export class Song {
     youtubeUrl: string; // @IsUrl() in dto
     
     @Column({type: 'text'})
-    spotifyUrl: string; // @IsUrl() in dto
+    audioUrl: string; // @IsUrl() in dto
 
     @ManyToMany(() => Artist, (artist) => artist.songs, { cascade: true })
     artists: Artist[]; // @IsArray() in dto
