@@ -18,6 +18,12 @@ export class SongsController {
     return this.songsService.create(createSongDto);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Get('search')
+  searchSongs(@Query('q') query: string): Promise<Song[]> {
+    return this.songsService.search(query);
+  }
+
   @Get()
   findAll(
       @Query('page', new DefaultValuePipe(1), ParseIntPipe)
@@ -49,9 +55,5 @@ export class SongsController {
     return this.songsService.remove(id);
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Post('search')
-  searchSongs(@Body('query') query: string): Promise<Song[]> {
-    return this.songsService.search(query);
-  }
+
 }
