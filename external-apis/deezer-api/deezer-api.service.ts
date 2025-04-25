@@ -1,7 +1,11 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { v4 as uuidv4 } from 'uuid';
+import * as path from 'path';
 import { firstValueFrom, lastValueFrom } from 'rxjs';
+import * as fs from 'fs';
+import axios from 'axios';
 
 @Injectable()
 export class DeezerApiService {
@@ -38,5 +42,27 @@ export class DeezerApiService {
             throw new Error('Failed to fetch Deezer preview URL');
         }
         
+    }
+
+    async downloadDeezerPreview(deezerPreviewUrl: string) : Promise<string> {
+        // make sure the temp directory exists
+        const tempDir = path.join(__dirname, '..', '..', 'temp');
+        if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
+        const tempPath = path.join(tempDir, `${uuidv4()}.mp3`);
+        const response = await axios.get(deezerPreviewUrl, {
+            responseType: 'stream',
+        });
+
+        const writer = fs.createWriteStream(tempPath);
+        response.data.pipe(writer);
+
+        return new Promise((resolve, reject) => {
+            writer.on('finish', () => {
+                resolve(tempPath);
+            });
+            writer.on('error', (err) => {
+                reject(err);
+            });
+        });
     }
 }

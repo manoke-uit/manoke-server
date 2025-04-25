@@ -2,12 +2,16 @@
 import { Injectable, Inject } from '@nestjs/common';
 import * as admin from 'firebase-admin';
 
+
 @Injectable()
 export class FirebaseService {
   constructor(
     @Inject('FIREBASE_ADMIN') private readonly firebaseAdmin: typeof admin,
   ) {}
 
+
+
+  // auth related methods
   auth() {
     return this.firebaseAdmin.auth();
   }
@@ -22,5 +26,8 @@ export class FirebaseService {
   async addDocument(collection: string, data: Record<string, any>) {
     const docRef = await this.firebaseAdmin.firestore().collection(collection).add(data);
     return docRef.id;
+
+    
   }
+
 }

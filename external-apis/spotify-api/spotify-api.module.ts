@@ -6,6 +6,7 @@ import { SongsModule } from 'src/songs/songs.module';
 import { ArtistsModule } from 'src/artists/artists.module';
 import { LyricsOvhApiModule } from 'external-apis/lyrics.ovh-api/lyrics.ovh-api.module';
 import { DeezerApiModule } from 'external-apis/deezer-api/deezer-api.module';
+import { SupabaseStorageModule } from 'src/supabase-storage/supabase-storage.module';
 
 @Module({
   providers: [SpotifyApiService],
@@ -23,7 +24,8 @@ import { DeezerApiModule } from 'external-apis/deezer-api/deezer-api.module';
     forwardRef(()=>SongsModule), // avoid circular dependency
     ArtistsModule,
     LyricsOvhApiModule,
-    DeezerApiModule
+    DeezerApiModule,
+    SupabaseStorageModule
   ],
   exports: [SpotifyApiService],
 })

@@ -7,6 +7,7 @@ import { firstValueFrom, lastValueFrom } from 'rxjs';
 import { ArtistsService } from 'src/artists/artists.service';
 import { Song } from 'src/songs/entities/song.entity';
 import { SongsService } from 'src/songs/songs.service';
+import { SupabaseStorageService } from 'src/supabase-storage/supabase-storage.service';
 
 @Injectable()
 export class SpotifyApiService {
@@ -16,6 +17,7 @@ export class SpotifyApiService {
         private artistsService : ArtistsService,
         private lyricsOvhApiService : LyricsOvhApiService,
         private deezerApiService : DeezerApiService,
+        private supabaseStorageService : SupabaseStorageService,
     ){}
     // implemnt getToken
     private token = null;
@@ -85,8 +87,19 @@ export class SpotifyApiService {
         }
         
         return Promise.all(response.data.tracks.items.map(async track => {
-            
             const audioDeezer = await this.deezerApiService.getDeezerPreviewUrl(query, track.artists[0].name);
+
+            const safeName = track.name.replace(/[^a-zA-Z0-9]/gi, '_').toLowerCase(); // replace special characters with _
+
+            let tempPath = "";
+            let supabaseAudioUrl = "";
+            if (!audioDeezer?.preview) {
+                console.warn(`No Deezer preview for ${safeName}`);   
+            }
+            else {
+                tempPath = await this.deezerApiService.downloadDeezerPreview(audioDeezer?.preview || "");
+                supabaseAudioUrl = (await this.supabaseStorageService.uploadAudioFromFile(tempPath, safeName)) || "";
+            }
             const artist = await Promise.all(track.artists.map(async artist => {
                 const foundArtist = await this.artistsService.findOneBySpotifyId(artist.id);
                 if(foundArtist) return foundArtist; 
@@ -120,7 +133,7 @@ export class SpotifyApiService {
                 : "",
                 duration: track.duration_ms,
                 youtubeUrl: "", // update it later bc gonna search via youtube anyway !
-                audioUrl: track.preview_url || audioDeezer?.preview || "",
+                audioUrl: supabaseAudioUrl|| "",
                 artistIds: artist.map(artist => artist.id),
                 playlistIds: [],
                 lyrics: ovhLyrics || "", // add lyrics via genius api later
