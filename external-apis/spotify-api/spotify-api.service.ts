@@ -1,8 +1,9 @@
 import { HttpService } from '@nestjs/axios';
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { DeezerApiService } from 'external-apis/deezer-api/deezer-api.service';
 import { LyricsOvhApiService } from 'external-apis/lyrics.ovh-api/lyrics.ovh-api.service';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, lastValueFrom } from 'rxjs';
 import { ArtistsService } from 'src/artists/artists.service';
 import { Song } from 'src/songs/entities/song.entity';
 import { SongsService } from 'src/songs/songs.service';
@@ -14,6 +15,7 @@ export class SpotifyApiService {
         private songsService : SongsService, 
         private artistsService : ArtistsService,
         private lyricsOvhApiService : LyricsOvhApiService,
+        private deezerApiService : DeezerApiService,
     ){}
     // implemnt getToken
     private token = null;
@@ -56,24 +58,7 @@ export class SpotifyApiService {
         
     }
 
-    async getDeezerPreviewUrl(songTitle: string, artistName: string) : Promise<any>{
-        const query = `track:"${songTitle}" artist:"${artistName}"`;
-        const url = `${this.configService.get<string>("DEEZER_BASE_URL")}/search?q=${encodeURIComponent(query)}`;
-        console.log("deezer url: ", url);
-        try {
-            const response = await firstValueFrom(this.httpService.get(url));
-            const firstTrack = response.data?.data?.[0];
-            if (!firstTrack || !firstTrack.preview) {
-                console.error('No preview URL found in Deezer response:', response.data);
-                return null;
-            }
-            return firstTrack;
-        } catch(e){
-            console.error('Error fetching Deezer preview URL:', e?.response?.data || e.message || e);
-            throw new Error('Failed to fetch Deezer preview URL');
-        }
-        
-    }
+    
 
     async searchSongs(query: string) : Promise<Song[]>{
         const token = await this.getToken();
@@ -101,7 +86,80 @@ export class SpotifyApiService {
         
         return Promise.all(response.data.tracks.items.map(async track => {
             
-            const audioDeezer = await this.getDeezerPreviewUrl(query, track.artists[0].name);
+            const audioDeezer = await this.deezerApiService.getDeezerPreviewUrl(query, track.artists[0].name);
+            const artist = await Promise.all(track.artists.map(async artist => {
+                const foundArtist = await this.artistsService.findOneBySpotifyId(artist.id);
+                if(foundArtist) return foundArtist; 
+                const newArtist = this.artistsService.create({
+                    name: artist.name,
+                    imageUrl: Array.isArray(artist.images) ? artist.images[0]?.url || null : null,
+                    spotifyId: artist.id,
+                    popularity: artist.popularity,
+                    songIds: [],
+                });
+                console.log("artist: ", newArtist);
+                return newArtist;
+            }));
+            if (audioDeezer) {
+                console.log(`deezer title: ${audioDeezer.title}\naudio: ${audioDeezer.preview}`);
+            } else {
+                console.warn(`No matching Deezer result for: ${track.name}`);
+            }
+            //console.log("track name" , track.name);
+            //const geniusLyrics = await this.geniusApiService.getSongLyrics(query, track.artists[0].name);
+            const ovhLyrics = await this.lyricsOvhApiService.getLyrics(track.name, track.artists[0].name);
+            //console.log("ovhLyrics: ", ovhLyrics);
+            return await this.songsService.create({
+                title: track.name,
+                albumTitle: track.album.name,
+                imageUrl: track.album.images[0]?.url || null,
+                releasedDate: track.album.release_date
+                ? track.album.release_date.length === 4
+                  ? `${track.album.release_date}-01-01` // still need to check if the date is valid
+                  : track.album.release_date
+                : "",
+                duration: track.duration_ms,
+                youtubeUrl: "", // update it later bc gonna search via youtube anyway !
+                audioUrl: track.preview_url || audioDeezer?.preview || "",
+                artistIds: artist.map(artist => artist.id),
+                playlistIds: [],
+                lyrics: ovhLyrics || "", // add lyrics via genius api later
+                
+            })
+        }));
+
+
+        
+    }
+
+    // TODO: get the query from youtube url
+    async searchSongsWithYoutube(youtubeUrl: string) : Promise<Song[]>{
+        const token = await this.getToken();
+        const baseUrl = this.configService.get<string>('SPOTIFY_BASE_URL') || 'https://api.spotify.com/v1';
+        const url = `${baseUrl}/search`;
+        const response = await firstValueFrom(
+            this.httpService.get(
+                url,
+                {
+                    headers: {
+                        "Authorization": `Bearer ${token}`,
+                    },
+                    params: {
+                        q: "some youtube title", // TODO: get the query from youtube url
+                        type: 'track',
+                        limit: 5,
+                    }
+                }
+            )
+        )
+        if (!response || !response.data || !response.data.tracks || !response.data.tracks.items) {
+            console.error('Error fetching Spotify search results:', response?.data || 'No data returned');
+            throw new Error('Failed to fetch Spotify search results');
+        }
+        
+        return Promise.all(response.data.tracks.items.map(async track => {
+            
+            const audioDeezer = await this.deezerApiService.getDeezerPreviewUrl("some youtube title", track.artists[0].name);  // TODO: get the query from youtube url
             const artist = await Promise.all(track.artists.map(async artist => {
                 const foundArtist = await this.artistsService.findOneBySpotifyId(artist.id);
                 if(foundArtist) return foundArtist;
@@ -134,7 +192,7 @@ export class SpotifyApiService {
                   : track.album.release_date
                 : "",
                 duration: track.duration_ms,
-                youtubeUrl: "", // update it later bc gonna search via youtube anyway !
+                youtubeUrl: youtubeUrl,
                 audioUrl: track.preview_url || audioDeezer?.preview || "",
                 artistIds: artist.map(artist => artist.id),
                 playlistIds: [],
@@ -142,5 +200,8 @@ export class SpotifyApiService {
                 
             })
         }));
+
+
+        
     }
 }

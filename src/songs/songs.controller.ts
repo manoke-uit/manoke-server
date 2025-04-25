@@ -24,6 +24,12 @@ export class SongsController {
     return this.songsService.search(query);
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Get('search/youtube')
+  searchSongsWithYoutube(@Query('y') youtubeUrl: string): Promise<Song[]> {
+    return this.songsService.searchWithYoutube(youtubeUrl);
+  }
+
   @Get()
   findAll(
       @Query('page', new DefaultValuePipe(1), ParseIntPipe)
