@@ -34,7 +34,7 @@ export class AuthController {
     async confirmEmail(newUserDto: CreateUserDto = this.newUserDto) {    
         newUserDto = this.newUserDto;
         console.log(newUserDto)
-        return this.authService.applyEmailVerification(newUserDto);
+        return await this.authService.applyEmailVerification(newUserDto);
     }
 
     @Get('google/login')
