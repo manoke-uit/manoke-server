@@ -8,6 +8,7 @@ import { UsersModule } from 'src/users/users.module';
 import { HttpModule } from '@nestjs/axios';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SupabaseStorageModule } from 'src/supabase-storage/supabase-storage.module';
+import { AudioModule } from 'helpers/audio/audio.module';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Score]), SongsModule, UsersModule,
@@ -17,7 +18,7 @@ HttpModule.registerAsync({
   useFactory: (configService: ConfigService) => ({
     baseURL: configService.get<string>('HUGGING_FACE_WHISPER_URL') || 'https://hankhongg-manoke-whisper-server.hf.space/transcribe',
   }),
-}), SupabaseStorageModule],
+}), SupabaseStorageModule, AudioModule],
   controllers: [ScoresController],
   providers: [ScoresService],
   exports: [ScoresService], //export the service so it can be used in other modules

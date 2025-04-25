@@ -42,16 +42,16 @@ export class ScoresController {
     const fileName = file.originalname; // get the original file name
     const fileBuffer = file.buffer; // get the file buffer
 
-    const calculatedScore =  await this.scoresService.calculateScore(fileBuffer,fileName);
+    const calculatedScore =  await this.scoresService.calculateScore(fileBuffer,fileName, createScoreDto.songId);
     createScoreDto.finalScore = calculatedScore; // set the score in the DTO
+    
     try {
-      await this.scoresService.create(createScoreDto, file.buffer); // create the score in the database
+      const savedScore =  await this.scoresService.create(createScoreDto, file.buffer); // create the score in the database
+      return savedScore.finalScore.toString(); // return the id of the saved score
     }
     catch (error) {
       console.error('Error creating score:', error);
       throw new Error('Failed to create score');
     }
-
-    return ""; // TODO
   }
 }
