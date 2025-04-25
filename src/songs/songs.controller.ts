@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query, DefaultValuePipe, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query, DefaultValuePipe, ParseIntPipe, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { SongsService } from './songs.service';
 import { CreateSongDto } from './dto/create-song.dto';
 import { UpdateSongDto } from './dto/update-song.dto';
@@ -7,6 +7,8 @@ import { Pagination } from 'nestjs-typeorm-paginate';
 import { Song } from './entities/song.entity';
 import { DeleteResult, UpdateResult } from 'typeorm';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth-guard';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ScoresService } from 'src/scores/scores.service';
 
 @Controller('songs')
 export class SongsController {
@@ -30,6 +32,12 @@ export class SongsController {
     return this.songsService.searchWithYoutube(youtubeUrl);
   }
 
+  @Get('find-one')
+  findOnePrecisely(@Query('title') title: string, @Query('artistName') artistName : string): Promise<Song | null> {
+    return this.songsService.findOnePrecisely(title, artistName);
+  }
+
+
   @Get()
   findAll(
       @Query('page', new DefaultValuePipe(1), ParseIntPipe)
@@ -49,6 +57,8 @@ export class SongsController {
     return this.songsService.findOne(id);
   }
 
+  
+
   @UseGuards(JwtAdminGuard)
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateSongDto: UpdateSongDto): Promise<UpdateResult> {
@@ -60,6 +70,8 @@ export class SongsController {
   remove(@Param('id') id: string): Promise<DeleteResult> {
     return this.songsService.remove(id);
   }
+
+
 
 
 }

@@ -39,12 +39,12 @@ export class AuthService {
             url: `${process.env.APP_URL}/auth/confirm-email`,
             handleCodeInApp: false,
         };
-
+        console.log(createUserDto.displayName);
         try {
             await this.firebaseService.auth().createUser({
                     email: createUserDto.email, 
                     password: createUserDto.password, 
-                    displayName: createUserDto.displayName
+                    displayName: createUserDto.displayName,
                 }
             )
 
@@ -87,6 +87,7 @@ export class AuthService {
             console.error('Error verifying email:', err);
             throw new BadRequestException('Cannot verify your email: ' + err.message);
         }
+        //return { success: true, message: 'Email verified successfully.' };
     }
 
 

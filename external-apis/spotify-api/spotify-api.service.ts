@@ -8,6 +8,7 @@ import { ArtistsService } from 'src/artists/artists.service';
 import { Song } from 'src/songs/entities/song.entity';
 import { SongsService } from 'src/songs/songs.service';
 import { SupabaseStorageService } from 'src/supabase-storage/supabase-storage.service';
+import { v4 as uuid4 } from 'uuid';
 
 @Injectable()
 export class SpotifyApiService {
@@ -94,11 +95,11 @@ export class SpotifyApiService {
             let tempPath = "";
             let supabaseAudioUrl = "";
             if (!audioDeezer?.preview) {
-                console.warn(`No Deezer preview for ${safeName}`);   
+                console.warn(`No Deezer preview for ${safeName + uuid4()}`);   
             }
             else {
                 tempPath = await this.deezerApiService.downloadDeezerPreview(audioDeezer?.preview || "");
-                supabaseAudioUrl = (await this.supabaseStorageService.uploadAudioFromFile(tempPath, safeName)) || "";
+                supabaseAudioUrl = (await this.supabaseStorageService.uploadSnippetFromFile(tempPath, safeName + uuid4())) || "";
             }
             const artist = await Promise.all(track.artists.map(async artist => {
                 const foundArtist = await this.artistsService.findOneBySpotifyId(artist.id);
@@ -133,7 +134,7 @@ export class SpotifyApiService {
                 : "",
                 duration: track.duration_ms,
                 youtubeUrl: "", // update it later bc gonna search via youtube anyway !
-                audioUrl: supabaseAudioUrl|| "",
+                audioUrl: supabaseAudioUrl || "",
                 artistIds: artist.map(artist => artist.id),
                 playlistIds: [],
                 lyrics: ovhLyrics || "", // add lyrics via genius api later

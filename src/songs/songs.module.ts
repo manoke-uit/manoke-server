@@ -8,6 +8,7 @@ import { Artist } from 'src/artists/entities/artist.entity';
 import { Score } from 'src/scores/entities/score.entity';
 import { SpotifyApiModule } from 'external-apis/spotify-api/spotify-api.module';
 import { DeezerApiModule } from 'external-apis/deezer-api/deezer-api.module';
+import { ScoresModule } from 'src/scores/scores.module';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Song, Playlist, Artist, Score]), 

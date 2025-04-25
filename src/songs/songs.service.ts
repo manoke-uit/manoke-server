@@ -66,6 +66,16 @@ export class SongsService {
     return this.songRepository.findOneBy({ id })
   }
 
+  findOnePrecisely(title: string, artistName: string): Promise<Song | null> {
+    return this.songRepository.findOne({
+      where: {
+        title: ILike(`%${title}%`),
+        artists: { name: ILike(artistName) },
+      },
+      relations: { artists: true, playlists: true },
+    });
+  }
+
   update(id: string, updateSongDto: UpdateSongDto): Promise<UpdateResult> {
     return this.songRepository.update(id, updateSongDto);
   }
@@ -89,28 +99,6 @@ export class SongsService {
       },
       relations: {artists: true, playlists: true},
     });
-    for(const song of songs) {
-      if(!song.audioUrl) continue;
-      // check if deezer preview is valid
-      const isValid = await this.deezerApiService.isDeezerPreviewValid(song.audioUrl);
-      if(!isValid && song.artists.length > 0){
-        const deezerPreview = await this.deezerApiService.getDeezerPreviewUrl(
-          song.title,
-          song.artists[0].name,
-        );
-        
-        const newUrl = deezerPreview?.preview_url || deezerPreview?.url;
-        // check if newUrl is valid
-
-        if (newUrl) {
-          song.audioUrl = newUrl;
-          console.log(`Updated preview for ${song.title}: ${newUrl}`);
-          await this.songRepository.save(song);
-        } else {
-          console.warn(`Failed to get preview URL for: ${song.title}`);
-        }
-      }
-    }
 
     if (songs.length > 0) return songs;
     return await this.spotifyApiService.searchSongs(query);

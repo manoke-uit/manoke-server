@@ -1,7 +1,10 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { ScoresService } from './scores.service';
 import { CreateScoreDto } from './dto/create-score.dto';
 import { UpdateScoreDto } from './dto/update-score.dto';
+import { JwtAdminGuard } from 'src/auth/guards/jwt-admin-guard';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth-guard';
 
 @Controller('scores')
 export class ScoresController {
@@ -9,7 +12,7 @@ export class ScoresController {
 
   @Post()
   create(@Body() createScoreDto: CreateScoreDto) {
-    return this.scoresService.create(createScoreDto);
+    //return this.scoresService.create(createScoreDto);
   }
 
   @Get()
@@ -30,5 +33,25 @@ export class ScoresController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.scoresService.remove(+id);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('score')
+  @UseInterceptors(FileInterceptor('file'))
+  async score(@UploadedFile() file: Express.Multer.File, @Body() createScoreDto : CreateScoreDto): Promise<string> {
+    const fileName = file.originalname; // get the original file name
+    const fileBuffer = file.buffer; // get the file buffer
+
+    const calculatedScore =  await this.scoresService.calculateScore(fileBuffer,fileName);
+    createScoreDto.finalScore = calculatedScore; // set the score in the DTO
+    try {
+      await this.scoresService.create(createScoreDto, file.buffer); // create the score in the database
+    }
+    catch (error) {
+      console.error('Error creating score:', error);
+      throw new Error('Failed to create score');
+    }
+
+    return ""; // TODO
   }
 }
