@@ -98,12 +98,14 @@ export class AudioService {
         const normalize = (text: string): string =>
             text.replace(/\r?\n|\r/g, ' ')   // Replace all newlines with space
                 .replace(/\s+/g, ' ')        // Collapse extra spaces
+                .replace(/[.?,!]/g, '')
                 .trim()
                 .toLowerCase();
         const normalizedUserLyrics = normalize(userLyrics);
         const normalizedChunkLyrics = normalize(chunkLyrics);
         const similarity = stringSimilarity.compareTwoStrings(normalizedUserLyrics, normalizedChunkLyrics);
-        return similarity > 0.8 ? similarity : similarity + 0.2; // similarity score between 0 and 1
+        return similarity ; // similarity score between 0 and 1
+        //> 0.8 ? similarity : similarity + 0.2
     }
 
     async comparePitch(userPitch: BasicPitchDto[], chunkPitch: BasicPitchDto[]): Promise<number> {
