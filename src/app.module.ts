@@ -21,6 +21,7 @@ import { SpotifyApiModule } from 'external-apis/spotify-api/spotify-api.module';
 import { FirebaseAdminModule } from './firebase-admin/firebase-admin.module';
 import { FirebaseService } from './firebase-admin/firebase.service';
 import { FirebaseAdminProvider } from './firebase-admin/firebase-admin.provider';
+import { SupabaseStorageModule } from './supabase-storage/supabase-storage.module';
 
 @Module({
   imports: [ConfigModule.forRoot({ // these are for joi validation
@@ -49,7 +50,8 @@ import { FirebaseAdminProvider } from './firebase-admin/firebase-admin.provider'
   AuthModule,
   YoutubeApiModule,
   SpotifyApiModule,
-  FirebaseAdminModule
+  FirebaseAdminModule,
+  SupabaseStorageModule
 ],
   controllers: [AppController],
   providers: [AppService, JwtStrategy], // REMEMBER TO register JwtStrategy as provider whenever you use it in the module

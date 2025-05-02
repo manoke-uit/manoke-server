@@ -56,4 +56,5 @@ pids
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 # Firebase Admin SDK
+manoke-firebase-admin.json
 manoke-6cf37-firebase-adminsdk-fbsvc-5aedab15b4.json

@@ -3,11 +3,14 @@ import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
+import { PlaylistsService } from 'src/playlists/playlists.service';
+import { Playlist } from 'src/playlists/entities/playlist.entity';
+import { Song } from 'src/songs/entities/song.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User])], // Import the TypeOrmModule and specify the User entity
+  imports: [TypeOrmModule.forFeature([User, Playlist, Song])], // Import the TypeOrmModule and specify the User entity
   controllers: [UsersController],
-  providers: [UsersService],
+  providers: [UsersService, PlaylistsService],
   exports: [UsersService], // Export the UsersService so it can be used in other modules
 })
 export class UsersModule {}

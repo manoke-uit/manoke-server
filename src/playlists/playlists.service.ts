@@ -43,6 +43,22 @@ export class PlaylistsService {
     return this.playlistRepository.save(playlist);
   }
 
+  async createFavouritePlaylist(email: string): Promise<Playlist> {
+    const user = await this.userRepository.findOneBy({email});
+
+    if (!user)
+      throw new Error("User not found");
+    
+    const favPlaylist = new Playlist();
+    favPlaylist.title = "Favourite Playlist";
+    favPlaylist.user = user;
+    favPlaylist.imageUrl = "", 
+    favPlaylist.description = "",
+    favPlaylist.songs = [];
+
+    return this.playlistRepository.save(favPlaylist);
+  }
+
   findAll() {
     return this.playlistRepository.find();
   }

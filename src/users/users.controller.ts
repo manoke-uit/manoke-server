@@ -18,6 +18,12 @@ export class UsersController {
   }
 
   @Get()
+  findOneEmail() : Promise<User | null> {
+    return this.usersService.findByEmail("test"); // TODO: remove this line and implement the actual logic
+
+  }
+
+  @Get()
   @UseGuards(JwtAdminGuard)
   @HttpCode(200)
   findAll(

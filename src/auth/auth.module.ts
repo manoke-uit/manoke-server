@@ -12,6 +12,8 @@ import { FirebaseAdminProvider } from 'src/firebase-admin/firebase-admin.provide
 import { FirebaseAdminModule } from 'src/firebase-admin/firebase-admin.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from 'src/users/entities/user.entity';
+import { Playlist } from 'src/playlists/entities/playlist.entity';
+import { Song } from 'src/songs/entities/song.entity';
 
 @Module({
   imports: [

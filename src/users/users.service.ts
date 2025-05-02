@@ -7,13 +7,19 @@ import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcryptjs';
 import { ConfigService } from '@nestjs/config';
 import { paginate, Pagination, IPaginationOptions } from 'nestjs-typeorm-paginate'
+import { Playlist } from 'src/playlists/entities/playlist.entity';
+import { PlaylistsService } from 'src/playlists/playlists.service';
 
 @Injectable()
 export class UsersService {
-  constructor(private readonly configService: ConfigService) {} // Inject the ConfigService if needed
+  constructor(
+    private readonly configService: ConfigService,
+    private readonly playlistsService: PlaylistsService
+  ) {} // Inject the ConfigService if needed
   @InjectRepository(User) // Inject the User repository
   private readonly usersRepository: Repository<User>; // Replace 'any' with your User entity type
   
+
   async create(createUserDto: CreateUserDto) : Promise<User>{
     const user = new User();
     user.displayName = createUserDto.displayName;
@@ -28,6 +34,9 @@ export class UsersService {
     }
 
     const savedUser = await this.usersRepository.save(user); // Save the user to the database
+    console.log(this.playlistsService.createFavouritePlaylist(createUserDto.email));
+
+
     savedUser.password = ""; // Remove the password from the saved user object
     savedUser.adminSecret = ""; // Remove the adminSecret from the saved user object
     return savedUser; // Return the saved user object
