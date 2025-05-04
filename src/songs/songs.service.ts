@@ -11,6 +11,7 @@ import { IPaginationOptions, paginate, Pagination } from 'nestjs-typeorm-paginat
 import { SpotifyApiService } from 'external-apis/spotify-api/spotify-api.service';
 import { title } from 'process';
 import { DeezerApiService } from 'external-apis/deezer-api/deezer-api.service';
+import * as ytdl from 'ytdl-core';
 
 @Injectable()
 export class SongsService {
@@ -106,30 +107,63 @@ export class SongsService {
 
   // TODO: add search with youtube url
   async searchWithYoutube(youtubeUrl: string): Promise<Song[]> {
-    if (!youtubeUrl) return [];
-    // search for songs in database
+    try {
+      if (!youtubeUrl || !ytdl.validateURL(youtubeUrl)) return [];
+      // search for songs in database
+      const videoInfo = await ytdl.getBasicInfo(youtubeUrl);
 
-    const query = "some youtube title";
-    const queryLower = query.toLowerCase();
-    const songs = await this.songRepository.find({
-      where: {
-        title: ILike(`%${queryLower}%`),
-      },
-      relations: {artists: true, playlists: true},
-    });
-    for(const song of songs) {
-      if(!song.audioUrl) continue;
-      // check if deezer preview is valid
-      const isValid = await this.deezerApiService.isDeezerPreviewValid(song.audioUrl);
-      if(!isValid && song.artists.length > 0){
-        song.audioUrl = await this.deezerApiService.getDeezerPreviewUrl(song.title, song.artists[0].name);
-        console.log(song.audioUrl);
-        await this.songRepository.save(song);
+      const query = `${await videoInfo.videoDetails.title}`;
+      const queryLower = query.toLowerCase();
+  
+      console.log(query);
+      const songs = await this.songRepository.find({
+        where: {
+          title: ILike(`%${queryLower}%`),
+        },
+        relations: {artists: true, playlists: true},
+      });
+      for(const song of songs) {
+        if(!song.audioUrl) continue;
+        // check if deezer preview is valid
+        const isValid = await this.deezerApiService.isDeezerPreviewValid(song.audioUrl);
+        if(!isValid && song.artists.length > 0){
+          song.audioUrl = await this.deezerApiService.getDeezerPreviewUrl(song.title, song.artists[0].name);
+          console.log(song.audioUrl);
+          await this.songRepository.save(song);
+        }
       }
+  
+      if (songs.length > 0) return songs;
+      return await this.spotifyApiService.searchSongsWithYoutube(youtubeUrl, query);
+    } catch (error) {
+      console.error("Error fetching video info:", error.message);
+      throw new Error("Failed to extract video information");
     }
-
-    if (songs.length > 0) return songs;
-    return await this.spotifyApiService.searchSongs(query);
   }
 
+  // async extractTitle(originalTitle: string) {
+  //   const unwantedKeywords = [
+  //     /\bkaraoke\b/gi,
+  //     /\btone\b/gi,
+  //     /\bnữ\b/gi,
+  //     /\bnam\b/gi,
+  //     /\bnhạc sống\b/gi,
+  //     /\bbeat\b/gi,
+  //     /\bgốc\b/gi,
+  //     /\bhay\b/gi,
+  //     /\[.*?\]/g, 
+  //     /\(.*?\)/g, 
+  //     /\|/g
+  //   ];
+
+  //   let cleaned = originalTitle;
+
+  //   for (const keyword of unwantedKeywords) {
+  //     cleaned = cleaned.replace(keyword, '');
+  //   }
+
+  //   cleaned = cleaned.replace('/\s+/g', ' ').trim();
+
+  //   return cleaned;
+  // }
 }

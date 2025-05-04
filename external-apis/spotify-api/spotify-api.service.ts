@@ -9,24 +9,25 @@ import { Song } from 'src/songs/entities/song.entity';
 import { SongsService } from 'src/songs/songs.service';
 import { SupabaseStorageService } from 'src/supabase-storage/supabase-storage.service';
 import { v4 as uuid4 } from 'uuid';
+import * as ytdl from 'ytdl-core';
 
 @Injectable()
 export class SpotifyApiService {
-    constructor(private httpService : HttpService, private configService : ConfigService,
+    constructor(private httpService: HttpService, private configService: ConfigService,
         @Inject(forwardRef(() => SongsService)) // avoid circular dependency
-        private songsService : SongsService, 
-        private artistsService : ArtistsService,
-        private lyricsOvhApiService : LyricsOvhApiService,
-        private deezerApiService : DeezerApiService,
-        private supabaseStorageService : SupabaseStorageService,
-    ){}
+        private songsService: SongsService,
+        private artistsService: ArtistsService,
+        private lyricsOvhApiService: LyricsOvhApiService,
+        private deezerApiService: DeezerApiService,
+        private supabaseStorageService: SupabaseStorageService,
+    ) { }
     // implemnt getToken
     private token = null;
     private expireTime = 0;
 
     async getToken(): Promise<string> {
         // if token still accessible
-        if(this.token && this.expireTime - (Date.now() / 1000) > 0){
+        if (this.token && this.expireTime - (Date.now() / 1000) > 0) {
             return this.token;
         }
         // else => get a new token
@@ -44,7 +45,7 @@ export class SpotifyApiService {
                 this.httpService.post(
                     baseUrl,
                     data,
-                    {headers}
+                    { headers }
                 )
             );
             this.token = response.data.access_token;
@@ -54,16 +55,16 @@ export class SpotifyApiService {
             }
             return this.token;
         }
-        catch(e){
+        catch (e) {
             console.error('Error fetching Spotify token:', e?.response?.data || e.message || e);
             throw new Error('Failed to fetch Spotify token');
         }
-        
+
     }
 
-    
 
-    async searchSongs(query: string) : Promise<Song[]>{
+
+    async searchSongs(query: string): Promise<Song[]> {
         const token = await this.getToken();
         const baseUrl = this.configService.get<string>('SPOTIFY_BASE_URL') || 'https://api.spotify.com/v1';
         const url = `${baseUrl}/search`;
@@ -86,7 +87,7 @@ export class SpotifyApiService {
             console.error('Error fetching Spotify search results:', response?.data || 'No data returned');
             throw new Error('Failed to fetch Spotify search results');
         }
-        
+
         return Promise.all(response.data.tracks.items.map(async track => {
             const audioDeezer = await this.deezerApiService.getDeezerPreviewUrl(query, track.artists[0].name);
 
@@ -95,7 +96,7 @@ export class SpotifyApiService {
             let tempPath = "";
             let supabaseAudioUrl = "";
             if (!audioDeezer?.preview) {
-                console.warn(`No Deezer preview for ${safeName + uuid4()}`);   
+                console.warn(`No Deezer preview for ${safeName + uuid4()}`);
             }
             else {
                 tempPath = await this.deezerApiService.downloadDeezerPreview(audioDeezer?.preview || "");
@@ -103,7 +104,7 @@ export class SpotifyApiService {
             }
             const artist = await Promise.all(track.artists.map(async artist => {
                 const foundArtist = await this.artistsService.findOneBySpotifyId(artist.id);
-                if(foundArtist) return foundArtist; 
+                if (foundArtist) return foundArtist;
                 const newArtist = this.artistsService.create({
                     name: artist.name,
                     imageUrl: Array.isArray(artist.images) ? artist.images[0]?.url || null : null,
@@ -128,26 +129,29 @@ export class SpotifyApiService {
                 albumTitle: track.album.name,
                 imageUrl: track.album.images[0]?.url || null,
                 releasedDate: track.album.release_date
-                ? track.album.release_date.length === 4
-                  ? `${track.album.release_date}-01-01` // still need to check if the date is valid
-                  : track.album.release_date
-                : "",
+                    ? track.album.release_date.length === 4
+                        ? `${track.album.release_date}-01-01` // still need to check if the date is valid
+                        : track.album.release_date
+                    : "",
                 duration: track.duration_ms,
                 youtubeUrl: "", // update it later bc gonna search via youtube anyway !
                 audioUrl: supabaseAudioUrl || "",
                 artistIds: artist.map(artist => artist.id),
                 playlistIds: [],
                 lyrics: ovhLyrics || "", // add lyrics via genius api later
-                
+
             })
         }));
-
-
-        
     }
 
     // TODO: get the query from youtube url
-    async searchSongsWithYoutube(youtubeUrl: string) : Promise<Song[]>{
+    async searchSongsWithYoutube(youtubeUrl: string, query: string): Promise<Song[]> {
+        // if (!ytdl.validateURL(youtubeUrl)) {
+        //     throw new Error('Invalid YouTube URL');
+        // }
+
+        // const videoInfo = await ytdl.getBasicInfo(youtubeUrl);
+        // const queryYt = videoInfo.videoDetails.title;
         const token = await this.getToken();
         const baseUrl = this.configService.get<string>('SPOTIFY_BASE_URL') || 'https://api.spotify.com/v1';
         const url = `${baseUrl}/search`;
@@ -159,7 +163,7 @@ export class SpotifyApiService {
                         "Authorization": `Bearer ${token}`,
                     },
                     params: {
-                        q: "some youtube title", // TODO: get the query from youtube url
+                        q: query, // TODO: get the query from youtube url
                         type: 'track',
                         limit: 5,
                     }
@@ -170,13 +174,13 @@ export class SpotifyApiService {
             console.error('Error fetching Spotify search results:', response?.data || 'No data returned');
             throw new Error('Failed to fetch Spotify search results');
         }
-        
+
         return Promise.all(response.data.tracks.items.map(async track => {
-            
-            const audioDeezer = await this.deezerApiService.getDeezerPreviewUrl("some youtube title", track.artists[0].name);  // TODO: get the query from youtube url
+
+            const audioDeezer = await this.deezerApiService.getDeezerPreviewUrl(query, track.artists[0].name);  // TODO: get the query from youtube url
             const artist = await Promise.all(track.artists.map(async artist => {
                 const foundArtist = await this.artistsService.findOneBySpotifyId(artist.id);
-                if(foundArtist) return foundArtist;
+                if (foundArtist) return foundArtist;
                 const newArtist = this.artistsService.create({
                     name: artist.name,
                     imageUrl: Array.isArray(artist.images) ? artist.images[0]?.url || null : null,
@@ -201,21 +205,28 @@ export class SpotifyApiService {
                 albumTitle: track.album.name,
                 imageUrl: track.album.images[0]?.url || null,
                 releasedDate: track.album.release_date
-                ? track.album.release_date.length === 4
-                  ? `${track.album.release_date}-01-01` // still need to check if the date is valid
-                  : track.album.release_date
-                : "",
+                    ? track.album.release_date.length === 4
+                        ? `${track.album.release_date}-01-01` // still need to check if the date is valid
+                        : track.album.release_date
+                    : "",
                 duration: track.duration_ms,
-                youtubeUrl: youtubeUrl,
+                youtubeUrl: await this.titleFilter(track.name, query) ? youtubeUrl : "",
                 audioUrl: track.preview_url || audioDeezer?.preview || "",
                 artistIds: artist.map(artist => artist.id),
                 playlistIds: [],
                 lyrics: ovhLyrics || "", // add lyrics via genius api later
-                
+
             })
         }));
+    }
 
+    async titleFilter(trackName: string, query: string) {
+        const trackWords = trackName.toLowerCase().split(' ');
+        const queryWords = query.toLowerCase().split(' ');
 
-        
+        console.log(trackName)
+        console.log(query)
+
+        return trackWords.every(trackWord => queryWords.includes(trackWord));
     }
 }
