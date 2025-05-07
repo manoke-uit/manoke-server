@@ -58,15 +58,15 @@ export class AudioService {
         return Buffer.from(response.data);
     }
 
-    async compareOnePitch(userPitch: BasicPitchDto, chunkPitch: BasicPitchDto): Promise<number> {
-        const userPitchValue = userPitch.pitch;
+    async compareOnePitch(songPitch: BasicPitchDto, chunkPitch: BasicPitchDto): Promise<number> {
+        const songPitchValue = songPitch.pitch;
         const chunkPitchValue = chunkPitch.pitch;
 
         if (chunkPitchValue === 0) return 0; // avoid division by zero
-        if (userPitchValue === 0) return 0;  // avoid scoring silent sections
+        if (songPitchValue === 0) return 0;  // avoid scoring silent sections
 
         // 1. Pitch difference
-        const pitchDifference = Math.abs(userPitchValue - chunkPitchValue);
+        const pitchDifference = Math.abs(songPitchValue - chunkPitchValue);
 
         // 2. Pitch tolerance (you allow ±1 semitone "mistake")
         const pitchTolerance = 1;
@@ -75,18 +75,18 @@ export class AudioService {
         // 3. Raw pitch score
         let pitchScore = 1 - (normalizedDifference / 12); 
         // 12 because 12 semitones = 1 octave, normalize over 12 instead of using chunkPitchValue
-        // so even if user sings one octave wrong it's still considered "far"
+        // so even if song sings one octave wrong it's still considered "far"
 
         // 4. Compare confidence levels
         // get max of confidence levels OR similarity of the two pitches
-        const confidenceDifference = Math.abs(userPitch.confidence - chunkPitch.confidence);
+        const confidenceDifference = Math.abs(songPitch.confidence - chunkPitch.confidence);
         const confidenceTolerance = 0.1; // 10% tolerance
         const normalizedConfidenceDifference = Math.max(0, confidenceDifference - confidenceTolerance);
         const confidenceScore = 1 - (normalizedConfidenceDifference / 1); // normalize over 1 (0-1 range)
 
-        const maxConfidenceScore = Math.max(confidenceScore, userPitch.confidence)
+        const maxConfidenceScore = Math.max(confidenceScore, songPitch.confidence)
 
-        // const averageConfidence = (userPitch.confidence + chunkPitch.confidence) / 2;
+        // const averageConfidence = (songPitch.confidence + chunkPitch.confidence) / 2;
         // pitchScore *= averageConfidence;
         // 5. Combine scores
         const pitchConfidenceScore = (pitchScore + maxConfidenceScore) / 2; // average of pitch score and confidence score
@@ -94,30 +94,30 @@ export class AudioService {
         return Math.max(0, Math.min(1, pitchConfidenceScore));
     }
 
-    async compareLyrics(userLyrics: string, chunkLyrics: string): Promise<number> {
+    async compareLyrics(songLyrics: string, chunkLyrics: string): Promise<number> {
         const normalize = (text: string): string =>
             text.replace(/\r?\n|\r/g, ' ')   // Replace all newlines with space
                 .replace(/\s+/g, ' ')        // Collapse extra spaces
                 .replace(/[.?,!]/g, '')
                 .trim()
                 .toLowerCase();
-        const normalizedUserLyrics = normalize(userLyrics);
+        const normalizedsongLyrics = normalize(songLyrics);
         const normalizedChunkLyrics = normalize(chunkLyrics);
-        const similarity = stringSimilarity.compareTwoStrings(normalizedUserLyrics, normalizedChunkLyrics);
+        const similarity = stringSimilarity.compareTwoStrings(normalizedsongLyrics, normalizedChunkLyrics);
         return similarity ; // similarity score between 0 and 1
         //> 0.8 ? similarity : similarity + 0.2
     }
 
-    async comparePitch(userPitch: BasicPitchDto[], chunkPitch: BasicPitchDto[]): Promise<number> {
-        if (userPitch.length === 0 || chunkPitch.length === 0) return 0; // avoid empty arrays
+    async comparePitch(songPitch: BasicPitchDto[], chunkPitch: BasicPitchDto[]): Promise<number> {
+        if (songPitch.length === 0 || chunkPitch.length === 0) return 0; // avoid empty arrays
 
-        userPitch.sort((a, b) => a.start - b.start); // sort by start time
+        songPitch.sort((a, b) => a.start - b.start); // sort by start time
         chunkPitch.sort((a, b) => a.start - b.start); // sort by start time
 
         let maxScore = 0;
 
-        for (let i = 0; i < Math.min(userPitch.length, chunkPitch.length); i++) {
-            const score = await this.compareOnePitch(userPitch[i], chunkPitch[i]);
+        for (let i = 0; i < Math.min(songPitch.length, chunkPitch.length); i++) {
+            const score = await this.compareOnePitch(songPitch[i], chunkPitch[i]);
             if(score > maxScore) {
                 maxScore = score; // get the maximum score
             }

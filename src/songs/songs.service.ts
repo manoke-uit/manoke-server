@@ -112,10 +112,11 @@ export class SongsService {
       // search for songs in database
       const videoInfo = await ytdl.getBasicInfo(youtubeUrl);
 
-      const query = `${await videoInfo.videoDetails.title}`;
+      const title = `${await videoInfo.videoDetails.title}`;
+      const query = await this.extractTitle(title);
       const queryLower = query.toLowerCase();
   
-      console.log(query);
+      console.log("query:  ", queryLower);
       const songs = await this.songRepository.find({
         where: {
           title: ILike(`%${queryLower}%`),
@@ -141,29 +142,29 @@ export class SongsService {
     }
   }
 
-  // async extractTitle(originalTitle: string) {
-  //   const unwantedKeywords = [
-  //     /\bkaraoke\b/gi,
-  //     /\btone\b/gi,
-  //     /\bnữ\b/gi,
-  //     /\bnam\b/gi,
-  //     /\bnhạc sống\b/gi,
-  //     /\bbeat\b/gi,
-  //     /\bgốc\b/gi,
-  //     /\bhay\b/gi,
-  //     /\[.*?\]/g, 
-  //     /\(.*?\)/g, 
-  //     /\|/g
-  //   ];
+  async extractTitle(originalTitle: string) {
+    const unwantedKeywords = [
+      /\bkaraoke\b/gi,
+      /\btone\b/gi,
+      /\bnữ\b/gi,
+      /\bnam\b/gi,
+      /\bnhạc sống\b/gi,
+      /\bbeat\b/gi,
+      /\bgốc\b/gi,
+      /\bhay\b/gi,
+      /\[.*?\]/g, 
+      /\(.*?\)/g, 
+      /\|/g
+    ];
 
-  //   let cleaned = originalTitle;
+    let cleaned = originalTitle;
 
-  //   for (const keyword of unwantedKeywords) {
-  //     cleaned = cleaned.replace(keyword, '');
-  //   }
+    for (const keyword of unwantedKeywords) {
+      cleaned = cleaned.replace(keyword, '');
+    }
 
-  //   cleaned = cleaned.replace('/\s+/g', ' ').trim();
+    cleaned = cleaned.replace('/\s+/g', ' ').trim();
 
-  //   return cleaned;
-  // }
+    return cleaned;
+  }
 }
