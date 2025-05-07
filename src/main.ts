@@ -9,7 +9,7 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe());
 
   app.enableCors({
-    origin: 'http://localhost:3000', // change to frontend URL in production
+    origin: 'http://localhost:8081', // change to frontend URL in production
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true // if using cookies or auth
   });
