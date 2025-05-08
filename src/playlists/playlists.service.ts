@@ -21,6 +21,14 @@ export class PlaylistsService {
 
   
   async create(createPlaylistDto: CreatePlaylistDto): Promise<Playlist> {
+    const existingPlaylist = await this.playlistRepository.findOne({
+      where: { title: createPlaylistDto.title, user: { id: createPlaylistDto.userId } },
+      relations: ['user'],
+    });
+    if (existingPlaylist) {
+      throw new ConflictException("Playlist title already exists!");
+    }
+
     const playlist = new Playlist();
     playlist.title = createPlaylistDto.title; 
     playlist.imageUrl = createPlaylistDto.imageUrl; 
