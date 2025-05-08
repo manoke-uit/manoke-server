@@ -82,6 +82,8 @@ export class ScoresService {
     const songLyrics = await this.getLyricsFromRecording(songBuffer, songFileName); // get the lyrics from the recording
     const songPitch = await this.getPitchFromRecording(songBuffer, songFileName); 
    
+    console.log("songLyrics", songLyrics); // log the song lyrics for debugging
+
     // const chunks = await this.audioService.splitAudioFile(songBuffer, songFileName); // split the audio file into chunks
     const audioFileName = `${Date.now()}-${fileName}.wav`; // create a unique file name
     const chunks = await this.audioService.splitAudioFile(buffer, audioFileName); // split the audio file into chunks
@@ -103,7 +105,6 @@ export class ScoresService {
       const finalScore = (pitchScore + lyricsScore) / 2; // calculate the final score
 
       scores.push(finalScore); // add the score to the array
-      console.log('Chunk Lyrics:', chunkLyrics);
     }
 
     if (scores.length === 0) {
