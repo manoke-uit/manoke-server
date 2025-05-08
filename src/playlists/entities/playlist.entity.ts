@@ -1,7 +1,8 @@
 import { Song } from "src/songs/entities/song.entity";
 import { User } from "src/users/entities/user.entity";
-import { Column, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, Index, JoinColumn, JoinTable, ManyToMany, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 
+@Index(['user', 'title'], { unique: true })
 @Entity('playlists')
 export class Playlist {
     @PrimaryGeneratedColumn('uuid')
