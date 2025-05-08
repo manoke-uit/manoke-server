@@ -200,27 +200,29 @@ export class SpotifyApiService {
             //const geniusLyrics = await this.geniusApiService.getSongLyrics(query, track.artists[0].name);
             const ovhLyrics = await this.lyricsOvhApiService.getLyrics(track.name, track.artists[0].name);
             //console.log("ovhLyrics: ", ovhLyrics);
-            return await this.songsService.create({
-                title: track.name,
-                albumTitle: track.album.name,
-                imageUrl: track.album.images[0]?.url || null,
-                releasedDate: track.album.release_date
-                    ? track.album.release_date.length === 4
-                        ? `${track.album.release_date}-01-01` // still need to check if the date is valid
-                        : track.album.release_date
-                    : "",
-                duration: track.duration_ms,
-                youtubeUrl: await this.titleFilter(track.name, query) ? youtubeUrl : "",
-                audioUrl: track.preview_url || audioDeezer?.preview || "",
-                artistIds: artist.map(artist => artist.id),
-                playlistIds: [],
-                lyrics: ovhLyrics || "", // add lyrics via genius api later
-
-            })
+            if (await this.queryFilter(track.name, query)) {
+                return await this.songsService.create({
+                    title: track.name,
+                    albumTitle: track.album.name,
+                    imageUrl: track.album.images[0]?.url || null,
+                    releasedDate: track.album.release_date
+                        ? track.album.release_date.length === 4
+                            ? `${track.album.release_date}-01-01` // still need to check if the date is valid
+                            : track.album.release_date
+                        : "",
+                    duration: track.duration_ms,
+                    youtubeUrl: youtubeUrl,
+                    audioUrl: track.preview_url || audioDeezer?.preview || "",
+                    artistIds: artist.map(artist => artist.id),
+                    playlistIds: [],
+                    lyrics: ovhLyrics || "", // add lyrics via genius api later
+    
+                })
+            }
         }));
     }
 
-    async titleFilter(trackName: string, query: string) {
+    async queryFilter(trackName: string, query: string) {
         const trackWords = trackName.toLowerCase().split(' ');
         const queryWords = query.toLowerCase().split(' ');
 
