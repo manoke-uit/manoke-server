@@ -69,42 +69,42 @@ export class ScoresService {
   }
 
   async calculateScore(buffer: Buffer, fileName: string, songId: string): Promise<number> {
-    // get lyrics from the recording
-    const userLyrics = await this.getLyricsFromRecording(buffer, fileName); // get the lyrics from the recording
-    // get the pitch information from the recording
-    const userPitch = await this.getPitchFromRecording(buffer, fileName); // get the pitch information from the recording
-    // get the pitch information in an array from the found song
-    const foundSong = await this.songsService.findOne(songId); // find the song by id
+   const foundSong = await this.songsService.findOne(songId); // find the song by id
     if(!foundSong) {
       throw new Error("Song not found");
     }
-    const songLyrics = foundSong.lyrics; // get the lyrics from the song
-    const songBuffer = await this.audioService.fetchAudioBufferFromUrl(foundSong.audioUrl); // get the audio buffer from the song
-   
-    const songFileName = `${Date.now()}-${songId}.wav`; // create a unique file name
-    const chunks = await this.audioService.splitAudioFile(songBuffer, songFileName); // split the audio file into chunks
-   
+
     console.log("foundSong", foundSong); // log the found song for debugging
 
-    console.log('User Lyrics:', userLyrics); // log the user lyrics for debugging
-    console.log('User Pitch:', userPitch); // log the user pitch for debugging
+
+    const songFileName = `${Date.now()}-${songId}.wav`; // create a unique file name
+    const songBuffer = await this.audioService.fetchAudioBufferFromUrl(foundSong.audioUrl); // get the audio buffer from the song
+    const songLyrics = await this.getLyricsFromRecording(songBuffer, songFileName); // get the lyrics from the recording
+    const songPitch = await this.getPitchFromRecording(songBuffer, songFileName); 
+   
+    console.log("songLyrics", songLyrics); // log the song lyrics for debugging
+
+    // const chunks = await this.audioService.splitAudioFile(songBuffer, songFileName); // split the audio file into chunks
+    const audioFileName = `${Date.now()}-${fileName}.wav`; // create a unique file name
+    const chunks = await this.audioService.splitAudioFile(buffer, audioFileName); // split the audio file into chunks
+    
 
     const scores : number[] = []; // array to hold the scores for each chunk 
     for (const [index, chunk] of chunks.entries()) {
       const chunkFileName = `${Date.now()}-${songId}-${index}.wav`;
+      await sleep(3000); 
       const chunkLyrics = await this.getLyricsFromRecording(chunk, chunkFileName);
       const chunkPitch = await this.getPitchFromRecording(chunk, chunkFileName);
       console.log('Chunk Pitch:', chunkPitch);
       console.log('Chunk Lyrics:', chunkLyrics);
       // compare to the user pitch and lyrics then give out the score 0.5 for pitch and 0.5 for lyrics
-      const pitchScore = await this.audioService.comparePitch(userPitch, chunkPitch); // compare the pitch information
-      const lyricsScore = await this.audioService.compareLyrics(userLyrics, chunkLyrics); // compare the lyrics
+      const pitchScore = await this.audioService.comparePitch(songPitch, chunkPitch); // compare the pitch information
+      const lyricsScore = await this.audioService.compareLyrics(songLyrics, chunkLyrics); // compare the lyrics
       console.log('Pitch Score:', pitchScore); // log the pitch score for debugging
       console.log('Lyrics Score:', lyricsScore); // log the lyrics score for debugging
       const finalScore = (pitchScore + lyricsScore) / 2; // calculate the final score
 
       scores.push(finalScore); // add the score to the array
-      console.log('Chunk Lyrics:', chunkLyrics);
     }
 
     if (scores.length === 0) {
@@ -146,7 +146,7 @@ export class ScoresService {
     const stream = Readable.from(buffer); // create a readable stream from the buffer
     form.append('file', stream, fileName); // append the file to the form data
 
-    const basicPitchApiUrl = this.configService.get<string>('RENDER_BASIC_PITCH_URLL') || "https://manoke-basic-pitch-server.onrender.com/analyze-pitch";
+    const basicPitchApiUrl = this.configService.get<string>('RENDER_BASIC_PITCH_URL') || "https://manoke-basic-pitch-server.onrender.com/analyze-pitch";
     //console.log('Starting basicPitch call');
     try {
       
@@ -172,4 +172,8 @@ export class ScoresService {
       throw new Error('File upload failed');
     }
   }
+}
+
+function sleep(ms: number) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
