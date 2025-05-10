@@ -14,4 +14,8 @@ export class CreateScoreDto {
 
   @IsUUID()
   songId: string;
+
+  @IsOptional()
+  @IsUUID()
+  postId?: string;
 }

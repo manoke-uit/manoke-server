@@ -22,8 +22,6 @@ export class ArtistsService {
 
     artist.name = createArtistDto.name; 
     artist.imageUrl = createArtistDto.imageUrl;
-    artist.popularity = createArtistDto.popularity;
-    artist.spotifyId = createArtistDto.spotifyId; // add this line to set the spotifyId
     
     if (createArtistDto.songIds && createArtistDto.songIds.length > 0) {
       const songs = await this.songRepository.findBy({
@@ -45,9 +43,9 @@ export class ArtistsService {
     return this.artistRepository.findOneBy({ id });
   }
 
-  async findOneBySpotifyId(spotifyId: string): Promise<Artist | null> {
-    return this.artistRepository.findOneBy({ spotifyId });
-  }
+  // async findOneBySpotifyId(spotifyId: string): Promise<Artist | null> {
+  //   return this.artistRepository.findOneBy({ spotifyId });
+  // }
 
   update(id: string, updateArtistDto: UpdateArtistDto): Promise<UpdateResult> {
     return this.artistRepository.update(id, updateArtistDto);

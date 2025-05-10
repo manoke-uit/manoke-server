@@ -22,6 +22,10 @@ import { FirebaseAdminModule } from './firebase-admin/firebase-admin.module';
 import { FirebaseService } from './firebase-admin/firebase.service';
 import { FirebaseAdminProvider } from './firebase-admin/firebase-admin.provider';
 import { SupabaseStorageModule } from './supabase-storage/supabase-storage.module';
+import { KaraokesModule } from './karaokes/karaokes.module';
+import { GenresModule } from './genres/genres.module';
+import { PostsModule } from './posts/posts.module';
+import { CommentsModule } from './comments/comments.module';
 
 @Module({
   imports: [ConfigModule.forRoot({ // these are for joi validation
@@ -51,7 +55,11 @@ import { SupabaseStorageModule } from './supabase-storage/supabase-storage.modul
   YoutubeApiModule,
   SpotifyApiModule,
   FirebaseAdminModule,
-  SupabaseStorageModule
+  SupabaseStorageModule,
+  KaraokesModule,
+  GenresModule,
+  PostsModule,
+  CommentsModule,
 ],
   controllers: [AppController],
   providers: [AppService, JwtStrategy], // REMEMBER TO register JwtStrategy as provider whenever you use it in the module

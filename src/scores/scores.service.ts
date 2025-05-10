@@ -78,7 +78,7 @@ export class ScoresService {
 
 
     const songFileName = `${Date.now()}-${songId}.wav`; // create a unique file name
-    const songBuffer = await this.audioService.fetchAudioBufferFromUrl(foundSong.audioUrl); // get the audio buffer from the song
+    const songBuffer = await this.audioService.fetchAudioBufferFromUrl(foundSong.songUrl); // get the audio buffer from the song
     const songLyrics = await this.getLyricsFromRecording(songBuffer, songFileName); // get the lyrics from the recording
     const songPitch = await this.getPitchFromRecording(songBuffer, songFileName); 
    

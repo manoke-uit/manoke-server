@@ -26,11 +26,11 @@ export class SongsController {
     return this.songsService.search(query);
   }
 
-  @UseGuards(JwtAuthGuard)
-  @Get('search/youtube')
-  searchSongsWithYoutube(@Query('y') youtubeUrl: string): Promise<Song[]> {
-    return this.songsService.searchWithYoutube(youtubeUrl);
-  }
+  // @UseGuards(JwtAuthGuard)
+  // @Get('search/youtube')
+  // searchSongsWithYoutube(@Query('y') youtubeUrl: string): Promise<Song[]> {
+  //   return this.songsService.searchWithYoutube(youtubeUrl);
+  // }
 
   @Get('find-one')
   findOnePrecisely(@Query('title') title: string, @Query('artistName') artistName : string): Promise<Song | null> {

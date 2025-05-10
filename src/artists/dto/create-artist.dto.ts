@@ -2,10 +2,6 @@ import { IsArray, IsNotEmpty, IsNumber, IsOptional, IsString, IsUrl, IsUUID, Val
 import { ApiProperty } from "@nestjs/swagger";
 
 export class CreateArtistDto {
-    @IsOptional()
-    @IsString()
-    spotifyId: string;
-
     @IsNotEmpty()
     @IsString()
     @ApiProperty({ description: 'Artist name' })
@@ -17,11 +13,6 @@ export class CreateArtistDto {
     @ApiProperty({ required: false, description: 'Artist image URL' })
     imageUrl?: string;
 
-    @IsNumber()
-    @IsOptional()
-    @ApiProperty({ required: false, description: 'Artist popularity point' })
-    popularity?: number;  
-    
     @IsArray()
     @IsUUID('4', { each: true })
     @IsOptional()
