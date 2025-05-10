@@ -17,6 +17,11 @@ export class CreatePlaylistDto {
     @ApiProperty({ required: false, description: 'Playlist description' })
     description?: string;
 
+    @IsOptional()
+    @IsString()
+    @ApiProperty({ required: false, description: 'Playlist publicity' })
+    isPublic?: boolean;
+
     @IsNotEmpty()
     @IsUUID('4')
     @IsOptional()

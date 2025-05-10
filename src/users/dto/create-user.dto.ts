@@ -54,4 +54,10 @@ export class CreateUserDto {
     @IsArray()
     @ApiProperty({ required: false, description: 'User scores' })
     scoreIds?: string[]; // @IsArray() in dto
+
+    @IsOptional()
+    @IsUUID('4', { each: true })
+    @IsArray()
+    @ApiProperty({ required: false, description: 'User karaokes' })
+    karaokeIds?: string[]; // @IsArray() in dto
 }

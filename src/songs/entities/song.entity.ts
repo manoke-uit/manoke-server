@@ -1,7 +1,9 @@
 import { Artist } from "src/artists/entities/artist.entity";
+import { Genre } from "src/genres/entities/genre.entity";
+import { Karaoke } from "src/karaokes/entities/karaoke.entity";
 import { Playlist } from "src/playlists/entities/playlist.entity";
 import { Score } from "src/scores/entities/score.entity";
-import { Column, Entity, ManyToMany, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity('songs')
 export class Song {
@@ -13,24 +15,9 @@ export class Song {
 
     @Column({type: 'text', nullable: true})
     lyrics: string; // @IsString() in dto
-
-    @Column({type: 'varchar', length: 255})
-    albumTitle?: string;
-
-    @Column({type: 'text', nullable: true})
-    imageUrl?: string;
-
-    @Column({type: 'date'}) // remember to transform to vn format in dto
-    releasedDate?: Date;
-
-    @Column({type: 'int', default: 0})
-    duration?: number; // @IsNumber() in dto
-
-    @Column({type: 'text'})
-    youtubeUrl: string; // @IsUrl() in dto
     
     @Column({type: 'text'})
-    audioUrl: string; // @IsUrl() in dto
+    songUrl: string; // @IsUrl() in dto
 
     @ManyToMany(() => Artist, (artist) => artist.songs, { cascade: true })
     artists: Artist[]; // @IsArray() in dto
@@ -40,4 +27,10 @@ export class Song {
 
     @OneToMany(() => Score, (score) => score.song, { cascade: true })
     scores: Score[]; // @IsArray() in dto
+
+    @OneToMany(() => Karaoke, (karaoke) => karaoke.song, { onDelete: 'SET NULL', nullable: true })
+    karaokes: Karaoke[]; // @IsString() in dto
+
+    @ManyToMany(() => Genre, (genre) => genre.songs, { onDelete: 'SET NULL', nullable: true })
+    genres: Genre[]; // @IsArray() in dto
 }

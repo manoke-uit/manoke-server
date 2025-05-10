@@ -17,6 +17,9 @@ export class Playlist {
     @Column({type: 'text'})
     description?: string;
 
+    @Column({type: 'boolean', default: false})
+    isPublic: boolean; // @IsBoolean() in dto
+
     @ManyToOne(() => User, (user) => user.playlists, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'userId' })
     user: User; // @IsUUID() in dto
