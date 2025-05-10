@@ -1,6 +1,6 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { YoutubeApiService } from './youtube-api.service';
-import { YoutubeSearchResponseDto } from 'external-apis/dto/youtube-response.dto';
+import { YoutubeSearchResponseDto } from 'src/external-apis/dto/youtube-response.dto';
 
 @Controller('youtube')
 export class YoutubeApiController {

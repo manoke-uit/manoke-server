@@ -6,8 +6,8 @@ import { Song } from './entities/song.entity';
 import { Playlist } from 'src/playlists/entities/playlist.entity';
 import { Artist } from 'src/artists/entities/artist.entity';
 import { Score } from 'src/scores/entities/score.entity';
-import { SpotifyApiModule } from 'external-apis/spotify-api/spotify-api.module';
-import { DeezerApiModule } from 'external-apis/deezer-api/deezer-api.module';
+import { SpotifyApiModule } from 'src/external-apis/spotify-api/spotify-api.module';
+import { DeezerApiModule } from 'src/external-apis/deezer-api/deezer-api.module';
 import { ScoresModule } from 'src/scores/scores.module';
 
 @Module({

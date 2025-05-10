@@ -8,7 +8,7 @@ import { UsersModule } from 'src/users/users.module';
 import { HttpModule } from '@nestjs/axios';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SupabaseStorageModule } from 'src/supabase-storage/supabase-storage.module';
-import { AudioModule } from 'helpers/audio/audio.module';
+import { AudioModule } from 'src/helpers/audio/audio.module';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Score]), SongsModule, UsersModule,

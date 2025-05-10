@@ -5,7 +5,7 @@ import { JwtAuthGuard } from './guards/jwt-auth-guard';
 import { LoginDto } from './dto/login.dto';
 import { User } from 'src/users/entities/user.entity';
 import { GoogleGuard } from './guards/google-guard';
-import { responseHelper } from 'helpers/response.helper';
+import { responseHelper } from 'src/helpers/response.helper';
 import * as nodemailer from 'nodemailer'
 import SMTPTransport from 'nodemailer/lib/smtp-transport';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
