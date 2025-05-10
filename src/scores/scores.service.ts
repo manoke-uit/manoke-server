@@ -13,8 +13,8 @@ import { HttpService } from '@nestjs/axios';
 import { SupabaseStorageService } from 'src/supabase-storage/supabase-storage.service';
 import { firstValueFrom, timeout } from 'rxjs';
 import { Readable } from 'stream';
-import { AudioService } from 'helpers/audio/audio.service';
-import { BasicPitchDto } from 'helpers/audio/dto/basic-pitch.dto';
+import { AudioService } from 'src/helpers/audio/audio.service';
+import { BasicPitchDto } from 'src/helpers/audio/dto/basic-pitch.dto';
 
 @Injectable()
 export class ScoresService {

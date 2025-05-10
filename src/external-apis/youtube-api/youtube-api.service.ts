@@ -1,7 +1,7 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { YoutubeSearchResponseDto } from 'external-apis/dto/youtube-response.dto';
+import { YoutubeSearchResponseDto } from 'src/external-apis/dto/youtube-response.dto';
 import { lastValueFrom } from 'rxjs';
 
 @Injectable()

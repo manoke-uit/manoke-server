@@ -17,7 +17,7 @@ import { UpdateArtistDto } from './dto/update-artist.dto';
 import { JwtAdminGuard } from 'src/auth/guards/jwt-admin-guard';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { Artist } from './entities/artist.entity';
-import { responseHelper } from 'helpers/response.helper';
+import { responseHelper } from 'src/helpers/response.helper';
 
 @Controller('artists')
 export class ArtistsController {

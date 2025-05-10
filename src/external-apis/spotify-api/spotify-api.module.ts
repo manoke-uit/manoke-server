@@ -4,8 +4,8 @@ import { HttpModule } from '@nestjs/axios';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SongsModule } from 'src/songs/songs.module';
 import { ArtistsModule } from 'src/artists/artists.module';
-import { LyricsOvhApiModule } from 'external-apis/lyrics.ovh-api/lyrics.ovh-api.module';
-import { DeezerApiModule } from 'external-apis/deezer-api/deezer-api.module';
+import { LyricsOvhApiModule } from 'src/external-apis/lyrics.ovh-api/lyrics.ovh-api.module';
+import { DeezerApiModule } from 'src/external-apis/deezer-api/deezer-api.module';
 import { SupabaseStorageModule } from 'src/supabase-storage/supabase-storage.module';
 
 @Module({
