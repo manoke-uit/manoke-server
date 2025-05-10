@@ -60,4 +60,16 @@ export class CreateUserDto {
     @IsArray()
     @ApiProperty({ required: false, description: 'User karaokes' })
     karaokeIds?: string[]; // @IsArray() in dto
+
+    @IsOptional()
+    @IsUUID('4', { each: true })
+    @IsArray()
+    @ApiProperty({ required: false, description: 'User posts' })
+    postIds?: string[]; // @IsArray() in dto
+
+    @IsOptional()
+    @IsUUID('4', { each: true })
+    @IsArray()
+    @ApiProperty({ required: false, description: 'User comments' })
+    commentIds?: string[]; // @IsArray() in dto
 }

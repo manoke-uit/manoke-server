@@ -5,6 +5,8 @@ import { Score } from 'src/scores/entities/score.entity';
 import { Exclude } from 'class-transformer';
 import { IsOptional, IsString } from 'class-validator';
 import { Karaoke } from 'src/karaokes/entities/karaoke.entity';
+import { Post } from 'src/posts/entities/post.entity';
+import { Comment } from 'src/comments/entities/comment.entity';
 
 @Entity('users')
 export class User {
@@ -42,4 +44,10 @@ export class User {
 
     @OneToMany(() => Karaoke, (karaoke) => karaoke.user, {onDelete: 'SET NULL', nullable: true})
     karaokes: Karaoke[]; // @IsArray() in dto
+
+    @OneToMany(() => Post, (post) => post.user, { cascade: true })
+    posts: Post[]; // @IsArray() in dto
+
+    @OneToMany(() => Comment, (comment) => comment.user, { cascade: true })
+    comments: Comment[]; // @IsArray() in dto
 }

@@ -3,7 +3,11 @@ import { Transform } from "class-transformer";
 import { IsArray, IsDateString, IsNotEmpty, IsOptional, IsString, IsUUID } from "class-validator";
 
 export class CreatePostDto {
-
+    @IsNotEmpty()
+    @IsUUID('4')
+    @ApiProperty({ description: 'User ID' })
+    userId: string; // @IsUUID() in dto
+    
     @IsString()
     @IsNotEmpty()
     @ApiProperty({ description: 'Post content' })

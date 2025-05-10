@@ -1,5 +1,6 @@
 import { Post } from "src/posts/entities/post.entity";
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { User } from "src/users/entities/user.entity";
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity('comments')
 export class Comment {
@@ -14,4 +15,8 @@ export class Comment {
 
     @ManyToOne(() => Post, (post) => post.comments, { onDelete: 'CASCADE' })
     post: Post; // @IsUUID() in dto
+
+    @ManyToOne(() => User, (user) => user.comments, { onDelete: 'CASCADE' })
+    @JoinColumn({ name: 'userId' })
+    user: User; // @IsUUID() in dto
 }

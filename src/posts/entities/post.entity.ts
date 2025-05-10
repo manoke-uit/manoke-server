@@ -1,6 +1,7 @@
 import { Score } from "src/scores/entities/score.entity";
-import { Column, Entity, JoinColumn, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn } from "typeorm";
 import { Comment } from "src/comments/entities/comment.entity";
+import { User } from "src/users/entities/user.entity";
 
 @Entity('posts')
 export class Post {
@@ -19,4 +20,8 @@ export class Post {
 
     @OneToMany(() => Comment, (comment) => comment.post, { cascade: true })
     comments: Comment[]; // @IsArray() in dto
+
+    @ManyToOne(() => User, (user) => user.posts, { onDelete: 'CASCADE' })
+    @JoinColumn({ name: 'userId' })
+    user: User; // @IsUUID() in dto
 }
