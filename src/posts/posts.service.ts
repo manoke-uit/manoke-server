@@ -17,7 +17,6 @@ export class PostsService {
     private scoreRepository: Repository<Score>, 
     @InjectRepository(User)
     private userRepository: Repository<User>, 
-    private postsService: PostsService
   ) {}
 
   async createPost(createPostDto: CreatePostDto): Promise<Post> {
