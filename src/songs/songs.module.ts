@@ -9,11 +9,15 @@ import { Score } from 'src/scores/entities/score.entity';
 import { SpotifyApiModule } from 'src/external-apis/spotify-api/spotify-api.module';
 import { DeezerApiModule } from 'src/external-apis/deezer-api/deezer-api.module';
 import { ScoresModule } from 'src/scores/scores.module';
+import { AudioModule } from 'src/helpers/audio/audio.module';
+import { SupabaseStorageModule } from 'src/supabase-storage/supabase-storage.module';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Song, Playlist, Artist, Score]), 
   forwardRef(()=>SpotifyApiModule), // avoid circular dependency
-  DeezerApiModule
+  DeezerApiModule,
+  AudioModule,
+  SupabaseStorageModule
 ],
   controllers: [SongsController],
   providers: [SongsService],

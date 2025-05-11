@@ -6,6 +6,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { DeleteResult, Repository, UpdateResult } from 'typeorm';
 import { User } from 'src/users/entities/user.entity';
 import { Song } from 'src/songs/entities/song.entity';
+import { SupabaseStorageService } from 'src/supabase-storage/supabase-storage.service';
 
 @Injectable()
 export class KaraokesService {
@@ -15,11 +16,15 @@ export class KaraokesService {
   private userRepository: Repository<User>;
   @InjectRepository(Song)
   private songRepository: Repository<Song>;
+  constructor(private readonly supabaseStorageService: SupabaseStorageService) {}
 
-  async createByUser(createKaraokeDto: CreateKaraokeDto) : Promise<Karaoke | null> {
+  async createByUser(fileBuffer : Buffer, fileName: string, createKaraokeDto: CreateKaraokeDto) : Promise<Karaoke | null> {
     const karaoke = new Karaoke();
     karaoke.description = createKaraokeDto.description;
-    karaoke.videoUrl = createKaraokeDto.videoUrl;
+
+    const uploadedVideo = await this.supabaseStorageService.uploadVideoFromBuffer(fileBuffer, fileName);
+    karaoke.videoUrl = uploadedVideo || ""; // set the videoUrl in the karaoke
+
     if (createKaraokeDto.createdAt) {
       karaoke.createdAt = new Date(createKaraokeDto.createdAt);
     }
@@ -47,10 +52,13 @@ export class KaraokesService {
     }
   }
 
-  async createByAdmin(createKaraokeDto: CreateKaraokeDto) : Promise<Karaoke | null> {
+  async createByAdmin(fileBuffer : Buffer, fileName: string, createKaraokeDto: CreateKaraokeDto) : Promise<Karaoke | null> {
     const karaoke = new Karaoke();
     karaoke.description = createKaraokeDto.description;
-    karaoke.videoUrl = createKaraokeDto.videoUrl;
+
+    const uploadedVideo = await this.supabaseStorageService.uploadVideoFromBuffer(fileBuffer, fileName);
+    karaoke.videoUrl = uploadedVideo || ""; // set the videoUrl in the karaoke
+    
     if (createKaraokeDto.createdAt) {
       karaoke.createdAt = new Date(createKaraokeDto.createdAt);
     }

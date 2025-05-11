@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { KaraokesService } from './karaokes.service';
 import { CreateKaraokeDto } from './dto/create-karaoke.dto';
 import { UpdateKaraokeDto } from './dto/update-karaoke.dto';
@@ -6,6 +6,7 @@ import { responseHelper } from 'src/helpers/response.helper';
 import { ApiProperty } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth-guard';
 import { JwtAdminGuard } from 'src/auth/guards/jwt-admin-guard';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('karaokes')
 export class KaraokesController {
@@ -16,8 +17,11 @@ export class KaraokesController {
   })
   @Post('users')
   @UseGuards(JwtAuthGuard)
-  createByUser(@Body() createKaraokeDto: CreateKaraokeDto) {
-    const createdKaraoke = this.karaokesService.createByUser(createKaraokeDto);
+  @UseInterceptors(FileInterceptor('file'))
+  createByUser(@UploadedFile() file: Express.Multer.File ,@Body() createKaraokeDto: CreateKaraokeDto) {
+    const fileName = file.originalname; // get the original file name
+    const fileBuffer = file.buffer; // get the file buffer
+    const createdKaraoke = this.karaokesService.createByUser(fileBuffer, fileName,createKaraokeDto);
     if (!createdKaraoke) {
       return responseHelper({
         message: 'Karaoke creation failed',
@@ -30,13 +34,18 @@ export class KaraokesController {
       statusCode: 201,
     });
   }
+
+
   @ApiProperty({
     description: 'crete a new karaoke by user, default is private, if admin need to user another route',
   })
   @Post('users')
   @UseGuards(JwtAdminGuard)
-  createByAdmin(@Body() createKaraokeDto: CreateKaraokeDto) {
-    const createdKaraoke = this.karaokesService.createByAdmin(createKaraokeDto);
+  @UseInterceptors(FileInterceptor('file'))
+  createByAdmin(@UploadedFile() file: Express.Multer.File,@Body() createKaraokeDto: CreateKaraokeDto) {
+    const fileName = file.originalname; // get the original file name
+    const fileBuffer = file.buffer; // get the file buffer
+    const createdKaraoke = this.karaokesService.createByAdmin(fileBuffer, fileName,createKaraokeDto);
     if (!createdKaraoke) {
       return responseHelper({
         message: 'Karaoke creation failed',

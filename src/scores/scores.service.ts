@@ -78,8 +78,8 @@ export class ScoresService {
 
 
     const songFileName = `${Date.now()}-${songId}.wav`; // create a unique file name
-    const songBuffer = await this.audioService.fetchAudioBufferFromUrl(foundSong.songUrl); // get the audio buffer from the song
-    const songLyrics = await this.getLyricsFromRecording(songBuffer, songFileName); // get the lyrics from the recording
+    const songBuffer = await this.audioService.fetchBufferFromUrl(foundSong.songUrl); // made sure to be 30s
+    const songLyrics = foundSong.lyrics; // get the lyrics from the song
     const songPitch = await this.getPitchFromRecording(songBuffer, songFileName); 
    
     console.log("songLyrics", songLyrics); // log the song lyrics for debugging

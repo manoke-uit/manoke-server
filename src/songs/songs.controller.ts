@@ -18,8 +18,11 @@ export class SongsController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() createSongDto: CreateSongDto) {
-    const createdSong = this.songsService.create(createSongDto);
+  @UseInterceptors(FileInterceptor('file'))
+  create(@UploadedFile() file: Express.Multer.File,@Body() createSongDto: CreateSongDto) {
+    const fileName = file.originalname; // get the original file name
+    const fileBuffer = file.buffer; // get the file buffer
+    const createdSong = this.songsService.create(fileBuffer, fileName,createSongDto);
     if(!createdSong) {
       return responseHelper({
         message: 'Song creation failed',

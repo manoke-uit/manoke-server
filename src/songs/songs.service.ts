@@ -12,6 +12,8 @@ import { SpotifyApiService } from 'src/external-apis/spotify-api/spotify-api.ser
 import { title } from 'process';
 import { DeezerApiService } from 'src/external-apis/deezer-api/deezer-api.service';
 import * as ytdl from 'ytdl-core';
+import { AudioService } from 'src/helpers/audio/audio.service';
+import { SupabaseStorageService } from 'src/supabase-storage/supabase-storage.service';
 
 @Injectable()
 export class SongsService {
@@ -25,13 +27,35 @@ export class SongsService {
 
     private spotifyApiService: SpotifyApiService,
     private deezerApiService: DeezerApiService,
+    private audioService: AudioService,
+    private supabaseStorageService: SupabaseStorageService,
   ) {}
-  async create(createSongDto: CreateSongDto): Promise<Song> {
+  async create(fileBuffer: Buffer, fileName: string, createSongDto: CreateSongDto): Promise<Song> {
     const song = new Song()
     
     song.title = createSongDto.title;
-    song.songUrl = createSongDto.songUrl;
     song.lyrics = createSongDto.lyrics;
+
+    const songBuffer = fileBuffer;
+    const songLength = await this.audioService.getDurationFromBuffer(songBuffer);
+    const audioFileName = `${createSongDto.title}-${Date.now()}.mp3`;
+
+    if (songLength < 30) {
+      throw new Error("Audio length must be at least 30 seconds.");
+    }
+
+    if (songLength > 30) {
+      const chunks = await this.audioService.splitAudioFile(songBuffer, audioFileName);
+      if (chunks.length > 0) {
+        const chosenIndex = Math.floor(Math.random() * chunks.length);
+        const chunk = chunks[chosenIndex];
+        const uploadedAudio = await this.supabaseStorageService.uploadSnippetFromBuffer(chunk, audioFileName);
+        song.songUrl = uploadedAudio || "";
+      }
+    } else {
+      const uploadedAudio = await this.supabaseStorageService.uploadSnippetFromBuffer(songBuffer, audioFileName);
+      song.songUrl = uploadedAudio || "";
+    }
     
     if (createSongDto.artistIds && createSongDto.artistIds.length > 0) {
       const artists = await this.artistRepository.findBy({
