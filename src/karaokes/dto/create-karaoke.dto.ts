@@ -14,11 +14,6 @@ export class CreateKaraokeDto {
     @IsNotEmpty()
     videoUrl: string; // @IsUrl() in dto
 
-    @ApiProperty({ description: 'Karaoke status' })
-    @IsEnum(KaraokeStatus)
-    @IsOptional()
-    status?: KaraokeStatus; // @IsEnum() in dto
-
     @IsOptional()
     @IsDateString()
     @Transform(({ value }) => {
