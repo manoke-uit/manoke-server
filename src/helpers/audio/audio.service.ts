@@ -94,18 +94,45 @@ export class AudioService {
         return Math.max(0, Math.min(1, pitchConfidenceScore));
     }
 
+    // async compareLyrics(songLyrics: string, chunkLyrics: string): Promise<number> {
+    //     const normalize = (text: string): string =>
+    //         text.replace(/\r?\n|\r/g, ' ')   // Replace all newlines with space
+    //             .replace(/\s+/g, ' ')        // Collapse extra spaces
+    //             .replace(/[.?,!]/g, '')
+    //             .trim()
+    //             .toLowerCase();
+    //     const normalizedsongLyrics = normalize(songLyrics);
+    //     const normalizedChunkLyrics = normalize(chunkLyrics);
+    //     const similarity = stringSimilarity.compareTwoStrings(normalizedsongLyrics, normalizedChunkLyrics);
+    //     return similarity ; // similarity score between 0 and 1
+    //     //> 0.8 ? similarity : similarity + 0.2
+    // }
+
     async compareLyrics(songLyrics: string, chunkLyrics: string): Promise<number> {
         const normalize = (text: string): string =>
-            text.replace(/\r?\n|\r/g, ' ')   // Replace all newlines with space
-                .replace(/\s+/g, ' ')        // Collapse extra spaces
-                .replace(/[.?,!]/g, '')
-                .trim()
-                .toLowerCase();
-        const normalizedsongLyrics = normalize(songLyrics);
-        const normalizedChunkLyrics = normalize(chunkLyrics);
-        const similarity = stringSimilarity.compareTwoStrings(normalizedsongLyrics, normalizedChunkLyrics);
-        return similarity ; // similarity score between 0 and 1
-        //> 0.8 ? similarity : similarity + 0.2
+            text
+            .normalize('NFD')                           // separate accents
+            .replace(/[\u0300-\u036f]/g, '')            // remove accents
+            .replace(/[.,!?"]/g, '')                    // remove punctuation
+            .replace(/\s+/g, ' ')                       // collapse whitespace
+            .trim()
+            .toLowerCase();
+
+        const tokenize = (text: string): Set<string> =>
+            new Set(normalize(text).split(' '));          // convert to unique word set
+
+        const songTokens = tokenize(songLyrics);
+        const chunkTokens = tokenize(chunkLyrics);
+
+        if (chunkTokens.size === 0) return 0;
+
+        let matched = 0;
+        for (const word of chunkTokens) {
+            if (songTokens.has(word)) matched++;
+        }
+
+        const score = matched / chunkTokens.size;       // how many chunk words exist in song
+        return Number(score.toFixed(4));                // return clean 0.xxx
     }
 
     async comparePitch(songPitch: BasicPitchDto[], chunkPitch: BasicPitchDto[]): Promise<number> {

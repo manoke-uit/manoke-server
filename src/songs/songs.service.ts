@@ -37,7 +37,15 @@ export class SongsService {
     const song = new Song()
     
     song.title = createSongDto.title;
-    song.lyrics = createSongDto.lyrics;
+    const sanitizedLyrics = (text: string): string =>
+    text
+      .normalize('NFD')                           // separate accents
+      .replace(/[\u0300-\u036f]/g, '')            // remove accents
+      .replace(/[.,!?"]/g, '')                    // remove punctuation
+      .replace(/\s+/g, ' ')                       // collapse whitespace
+      .trim()
+      .toLowerCase();
+    song.lyrics = sanitizedLyrics(createSongDto.lyrics.trim());
 
     const songBuffer = fileBuffer;
     const songLength = await this.audioService.getDurationFromBuffer(songBuffer);
