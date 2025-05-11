@@ -12,8 +12,8 @@ export class GenresController {
 
   @UseGuards(JwtAdminGuard)
   @Post()
-  create(@Body() createGenreDto: CreateGenreDto) {
-    const createdGenre = this.genresService.create(createGenreDto);
+  async create(@Body() createGenreDto: CreateGenreDto) {
+    const createdGenre = await this.genresService.create(createGenreDto);
     if(!createdGenre) {
       return responseHelper({
         message: 'Genre creation failed',
@@ -30,8 +30,8 @@ export class GenresController {
 
   @UseGuards(JwtAuthGuard)
   @Get()
-  findAll() {
-    const genres = this.genresService.findAll();
+  async findAll() {
+    const genres = await this.genresService.findAll();
     if(!genres) {
       return responseHelper({
         message: 'No genres found',
@@ -47,8 +47,8 @@ export class GenresController {
 
   @UseGuards(JwtAuthGuard)
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    const genre =  this.genresService.findOne(id);
+  async findOne(@Param('id') id: string) {
+    const genre = await this.genresService.findOne(id);
     if(!genre) {
       return responseHelper({
         message: 'Genre not found',
@@ -64,8 +64,8 @@ export class GenresController {
 
   @UseGuards(JwtAdminGuard)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateGenreDto: UpdateGenreDto) {
-    const updatedGenre = this.genresService.update(id, updateGenreDto);
+  async update(@Param('id') id: string, @Body() updateGenreDto: UpdateGenreDto) {
+    const updatedGenre = await this.genresService.update(id, updateGenreDto);
     if(!updatedGenre) {
       return responseHelper({
         message: 'Genre update failed',
@@ -81,8 +81,8 @@ export class GenresController {
 
   @UseGuards(JwtAdminGuard)
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    const deletedGenre = this.genresService.remove(id);
+  async remove(@Param('id') id: string) {
+    const deletedGenre = await this.genresService.remove(id);
     if(!deletedGenre) {
       return responseHelper({
         message: 'Genre deletion failed',

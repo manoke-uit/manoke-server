@@ -22,7 +22,10 @@ export class KaraokesService {
     const karaoke = new Karaoke();
     karaoke.description = createKaraokeDto.description;
 
-    const uploadedVideo = await this.supabaseStorageService.uploadVideoFromBuffer(fileBuffer, fileName);
+    const uploadedVideo = await this.supabaseStorageService.uploadVideoFromBuffer(fileBuffer, sanitizeFileName(fileName));
+    if (!uploadedVideo) {
+      throw new Error('Video upload failed');
+    }
     karaoke.videoUrl = uploadedVideo || ""; // set the videoUrl in the karaoke
 
     if (createKaraokeDto.createdAt) {
@@ -56,7 +59,10 @@ export class KaraokesService {
     const karaoke = new Karaoke();
     karaoke.description = createKaraokeDto.description;
 
-    const uploadedVideo = await this.supabaseStorageService.uploadVideoFromBuffer(fileBuffer, fileName);
+    const uploadedVideo = await this.supabaseStorageService.uploadVideoFromBuffer(fileBuffer, sanitizeFileName(fileName));
+    if (!uploadedVideo) {
+      throw new Error('Video upload failed');
+    }
     karaoke.videoUrl = uploadedVideo || ""; // set the videoUrl in the karaoke
     
     if (createKaraokeDto.createdAt) {
@@ -148,4 +154,13 @@ export class KaraokesService {
       return null;
     });
   }
+}
+
+function sanitizeFileName(title: string): string {
+  return title
+    .normalize('NFD')                     // Convert to base letters + accents
+    .replace(/[\u0300-\u036f]/g, '')     // Remove accents
+    .replace(/[^a-zA-Z0-9-_ ]/g, '')     // Remove special characters
+    .replace(/\s+/g, '-')                // Replace spaces with hyphens
+    .toLowerCase();                      // Optional: lowercase everything
 }

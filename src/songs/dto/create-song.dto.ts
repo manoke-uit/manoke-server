@@ -15,7 +15,7 @@ export class CreateSongDto {
 
     @IsUrl()
     @IsOptional() // if can't find api generate score base on ...?
-    @ApiProperty({ required: false, description: 'Song Audio URL' })
+    @ApiProperty({ description: 'Song Audio URL' })
     songUrl: string; // @IsUrl() in dto
 
     @IsOptional()
