@@ -11,13 +11,8 @@ export class CreateKaraokeDto {
 
     @ApiProperty({ description: 'Karaoke video URL' })
     @IsUrl()
-    @IsNotEmpty()
-    videoUrl: string; // @IsUrl() in dto
-
-    @ApiProperty({ description: 'Karaoke status' })
-    @IsEnum(KaraokeStatus)
     @IsOptional()
-    status?: KaraokeStatus; // @IsEnum() in dto
+    videoUrl: string; // @IsUrl() in dto
 
     @IsOptional()
     @IsDateString()
@@ -34,7 +29,7 @@ export class CreateKaraokeDto {
     songId: string; // @IsArray() in dto
 
     @IsString()
-    @IsNotEmpty()
-    @ApiProperty({ description: 'ID of the karaoke instance owner' })
+    @IsOptional()
+    @ApiProperty({ description: 'ID of the karaoke instance\'s owner, id can be taken from auth so OPTIONAL' })
     userId: string; // @IsString() in dto
 }

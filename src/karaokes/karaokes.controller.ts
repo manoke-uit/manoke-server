@@ -1,34 +1,201 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, UseInterceptors, UploadedFile, Req } from '@nestjs/common';
 import { KaraokesService } from './karaokes.service';
 import { CreateKaraokeDto } from './dto/create-karaoke.dto';
 import { UpdateKaraokeDto } from './dto/update-karaoke.dto';
+import { responseHelper } from 'src/helpers/response.helper';
+import { ApiOperation, ApiProperty, ApiResponse } from '@nestjs/swagger';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth-guard';
+import { JwtAdminGuard } from 'src/auth/guards/jwt-admin-guard';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('karaokes')
 export class KaraokesController {
   constructor(private readonly karaokesService: KaraokesService) {}
 
-  @Post()
-  create(@Body() createKaraokeDto: CreateKaraokeDto) {
-    return this.karaokesService.create(createKaraokeDto);
+  @ApiOperation({ summary: 'create a new karaoke by user, default is private, if admin need to user another route' })
+  @Post('user')
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FileInterceptor('file'))
+  async createByUser(@UploadedFile() file: Express.Multer.File ,@Body() createKaraokeDto: CreateKaraokeDto, @Req() req: any) {
+    createKaraokeDto.userId = req.user['userId']; // set the userId in the createKaraokeDto
+    const fileName = file.originalname; // get the original file name
+    const fileBuffer = file.buffer; // get the file buffer
+    const createdKaraoke = await this.karaokesService.createByUser(fileBuffer, fileName,createKaraokeDto);
+    if (!createdKaraoke) {
+      return responseHelper({
+        message: 'Karaoke creation failed',
+        statusCode: 400,
+      });
+    }
+    return responseHelper({
+      message: 'Karaoke created successfully',
+      data: createdKaraoke,
+      statusCode: 201,
+    });
   }
 
+
+  @ApiOperation({ summary: 'create a new karaoke by admin => Public' })
+  @Post('admin')
+  @UseGuards(JwtAdminGuard)
+  @UseInterceptors(FileInterceptor('file'))
+  async createByAdmin(@UploadedFile() file: Express.Multer.File,@Body() createKaraokeDto: CreateKaraokeDto, @Req() req: any) {
+    createKaraokeDto.userId = req.user['userId'];
+    const fileName = file.originalname; // get the original file name
+    const fileBuffer = file.buffer; // get the file buffer
+    const createdKaraoke = await this.karaokesService.createByAdmin(fileBuffer, fileName,createKaraokeDto);
+    if (!createdKaraoke) {
+      return responseHelper({
+        message: 'Karaoke creation failed',
+        statusCode: 400,
+      });
+    }
+    return responseHelper({
+      message: 'Karaoke created successfully',
+      data: createdKaraoke,
+      statusCode: 201,
+    });
+  }
+
+  @UseGuards(JwtAuthGuard)
   @Get()
-  findAll() {
-    return this.karaokesService.findAll();
+  async findAll() {
+    const karaokes = await this.karaokesService.findAll();
+    if (!karaokes) {
+      return responseHelper({
+        message: 'No karaokes found',
+        statusCode: 404,
+      });
+    }
+    return responseHelper({
+      message: 'Karaokes retrieved successfully',
+      data: karaokes,
+      statusCode: 200,
+    });
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.karaokesService.findOne(+id);
+  async findOne(@Param('id') id: string) {
+    const karaoke= await this.karaokesService.findOne(id);
+    if (!karaoke) {
+      return responseHelper({
+        message: 'Karaoke not found',
+        statusCode: 404,
+      });
+    }
+    return responseHelper({
+      message: 'Karaoke retrieved successfully',
+      data: karaoke,
+      statusCode: 200,
+    });
+  }
+
+  @ApiOperation({ summary: 'when a user want to make their karaoke public' })
+  @UseGuards(JwtAuthGuard)
+  @Get('public/:id')
+  async findKaraokeAndChangeStatusToPending(@Param('id') id: string) {
+    const karaoke = await this.karaokesService.findKaraokeAndChangeStatusToPending(id);
+    if (!karaoke) {
+      return responseHelper({
+        message: 'Karaoke not found',
+        statusCode: 404,
+      });
+    }
+    return responseHelper({
+      message: 'Karaoke retrieved successfully',
+      data: karaoke,
+      statusCode: 200,
+    });
+  }
+
+  @ApiOperation({ summary: 'when admin approve their karaoke to be public' })
+  @Get('approve/:id')
+  @UseGuards(JwtAdminGuard)
+  async findKaraokeAndChangeStatusToPublic(@Param('id') id: string) {
+    const karaoke = await this.karaokesService.findKaraokeAndChangeStatusToPublic(id);
+    if (!karaoke) {
+      return responseHelper({
+        message: 'sth wrong',
+        statusCode: 404,
+      });
+    }
+    return responseHelper({
+      message: 'Karaoke updated successfully',
+      data: karaoke,
+      statusCode: 200,
+    });
+  }
+
+  @ApiOperation({ summary: 'Get all related karaoke of a song' })
+  @ApiResponse({ status: 200, description: 'Karaoke retrieved successfully' })
+  @ApiResponse({ status: 404, description: 'Karaoke not found' })
+  @UseGuards(JwtAuthGuard)
+  @Get('song/:id')
+  async findAllBySongId(@Param('id') id: string) {
+    const karaoke = await this.karaokesService.findAllBySongId(id);
+    if (!karaoke) {
+      return responseHelper({
+        message: 'Karaoke not found',
+        statusCode: 404,
+      });
+    }
+    return responseHelper({
+      message: 'Karaoke retrieved successfully',
+      data: karaoke,
+      statusCode: 200,
+    });
+  }
+
+  @ApiOperation({ summary: 'Get all related karaoke of an user' })
+  @ApiResponse({ status: 200, description: 'Karaoke retrieved successfully' })
+  @ApiResponse({ status: 404, description: 'Karaoke not found' })
+  @UseGuards(JwtAuthGuard)
+  @Get('user/:id')
+  async findAllByUserId(@Param('id') id: string) {
+    const karaoke = await this.karaokesService.findAllByUserId(id);
+    if (!karaoke) {
+      return responseHelper({
+        message: 'Karaoke not found',
+        statusCode: 404,
+      });
+    }
+    return responseHelper({
+      message: 'Karaoke retrieved successfully',
+      data: karaoke,
+      statusCode: 200,
+    });
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateKaraokeDto: UpdateKaraokeDto) {
-    return this.karaokesService.update(+id, updateKaraokeDto);
+  async update(@Param('id') id: string, @Body() updateKaraokeDto: UpdateKaraokeDto) {
+    const updatedKaraoke = await this.karaokesService.update(id, updateKaraokeDto);
+    if (!updatedKaraoke) {
+      return responseHelper({
+        message: 'Karaoke update failed',
+        statusCode: 400,
+      });
+    }
+    return responseHelper({
+      message: 'Karaoke updated successfully',
+      data: updatedKaraoke,
+      statusCode: 200,
+    });
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.karaokesService.remove(+id);
+  async remove(@Param('id') id: string) {
+    const deletedKaraoke = await this.karaokesService.remove(id);
+    if (!deletedKaraoke) {
+      return responseHelper({
+        message: 'Karaoke deletion failed',
+        statusCode: 400,
+      });
+    }
+    return responseHelper({
+      message: 'Karaoke deleted successfully',
+      data: deletedKaraoke,
+      statusCode: 200,
+    });
   }
 }

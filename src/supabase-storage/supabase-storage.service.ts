@@ -8,6 +8,7 @@ export class SupabaseStorageService {
     private supabase: SupabaseClient;
     private readonly snippetBucketName: string = process.env.SUPABASE_BUCKET_NAME || 'snippets';
     private readonly recordingBucketName: string = process.env.SUPABASE_BUCKET_NAME || 'recordings';
+    private readonly videoBucketName: string = process.env.SUPABASE_BUCKET_NAME || 'videos';
 
     constructor(private configService: ConfigService) {
         const supabaseUrl = this.configService.get<string>('SUPABASE_URL') ?? "";
@@ -63,5 +64,31 @@ export class SupabaseStorageService {
         const buffer = fs.readFileSync(filePath);
         fs.unlinkSync(filePath); // or use fs.promises.unlink(tempPath)
         return await this.uploadRecordingFromBuffer(buffer, fileName);
+    }
+
+
+    // upload videos to Supabase Storage
+    async uploadVideoFromBuffer(buffer: Buffer, fileName: string): Promise<string | null> {
+        const { data, error } = await this.supabase.storage
+            .from(this.videoBucketName)
+            .upload(fileName, buffer, {
+                contentType: 'video/mp4',
+                upsert: true, // Overwrite if file already exists
+            });
+
+        if (error) {
+            console.error('Upload failed:', error.message);
+             return null;
+        }
+
+        const { data: publicUrlData } = this.supabase.storage.from(this.videoBucketName).getPublicUrl(fileName);
+
+        return publicUrlData?.publicUrl || '';
+    }
+
+    async uploadVideoFromFile(filePath: string, fileName: string): Promise<string | null> {
+        const buffer = fs.readFileSync(filePath);
+        fs.unlinkSync(filePath); // or use fs.promises.unlink(tempPath)
+        return await this.uploadVideoFromBuffer(buffer, fileName);
     }
 }

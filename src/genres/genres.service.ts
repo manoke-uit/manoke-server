@@ -1,26 +1,47 @@
 import { Injectable } from '@nestjs/common';
 import { CreateGenreDto } from './dto/create-genre.dto';
 import { UpdateGenreDto } from './dto/update-genre.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Genre } from './entities/genre.entity';
+import { DeleteResult, In, Repository, UpdateResult } from 'typeorm';
+import { Song } from 'src/songs/entities/song.entity';
 
 @Injectable()
 export class GenresService {
-  create(createGenreDto: CreateGenreDto) {
-    return 'This action adds a new genre';
+  @InjectRepository(Genre)
+  private readonly genreRepository: Repository<Genre>;
+  @InjectRepository(Song)
+  private readonly songRepository: Repository<Song>;
+  async create(createGenreDto: CreateGenreDto) : Promise<Genre> {
+    const genre = new Genre();
+    genre.name = createGenreDto.name;
+    if (createGenreDto.songIds && createGenreDto.songIds.length > 0) {
+      const songs = await this.songRepository.findBy({
+        id: In(createGenreDto.songIds),
+      });
+      genre.songs = songs;
+    }
+    else genre.songs = [];
+    return this.genreRepository.save(genre);
   }
 
-  findAll() {
-    return `This action returns all genres`;
+  async findAll() : Promise<Genre[]> {
+    return this.genreRepository.find();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} genre`;
+  async findOne(id: string) : Promise<Genre | null> {
+    return this.genreRepository.findOne({
+      where: { id },
+      relations: ['songs'],
+    });
   }
 
-  update(id: number, updateGenreDto: UpdateGenreDto) {
-    return `This action updates a #${id} genre`;
+  async update(id: string, updateGenreDto: UpdateGenreDto) : Promise<UpdateResult> {
+    return this.genreRepository.update(id, updateGenreDto);
+
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} genre`;
+  async remove(id: string) : Promise<DeleteResult> {
+    return this.genreRepository.delete(id);
   }
 }

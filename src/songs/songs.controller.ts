@@ -9,21 +9,171 @@ import { DeleteResult, UpdateResult } from 'typeorm';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth-guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ScoresService } from 'src/scores/scores.service';
+import { response } from 'express';
+import { responseHelper } from 'src/helpers/response.helper';
+import { ApiOperation } from '@nestjs/swagger';
 
 @Controller('songs')
 export class SongsController {
   constructor(private readonly songsService: SongsService) {}
 
-  @UseGuards(JwtAdminGuard)
+  @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() createSongDto: CreateSongDto) {
-    return this.songsService.create(createSongDto);
+  @UseInterceptors(FileInterceptor('file'))
+  async create(@UploadedFile() file: Express.Multer.File,@Body() createSongDto: CreateSongDto) {
+    const fileName = file.originalname; // get the original file name
+    const fileBuffer = file.buffer; // get the file buffer
+    const createdSong = await this.songsService.create(fileBuffer, fileName,createSongDto);
+    if(!createdSong) {
+      return responseHelper({
+        message: 'Song creation failed',
+        statusCode: 400,
+      });
+    }
+    return responseHelper({
+      message: 'Song created successfully',
+      data: createdSong,
+      statusCode: 201,
+    });
+  }
+
+  @ApiOperation({ summary: 'Add an artist id to the song'})
+  @UseGuards(JwtAuthGuard)
+  @Get('artists/:id')
+  async addArtistToSong(@Param('id') id: string, @Query('artistId') artistId: string) {
+    const updatedSong = await this.songsService.addArtistToSong(id, artistId);
+    if(!updatedSong) {
+      return responseHelper({
+        message: 'Artist connection failed',
+        statusCode: 400,
+      });
+    }
+    return responseHelper({
+      message: 'Artist connection added successfully',
+      data: updatedSong,
+      statusCode: 200,
+    });
+  }
+
+  @ApiOperation({ summary: 'Add a genre id to the song'})
+  @UseGuards(JwtAuthGuard)
+  @Get('genres/:id')
+  async addGenreToSong(@Param('id') id: string, @Query('genreId') genreId: string) {
+    const updatedSong = await this.songsService.addGenreToSong(id, genreId);
+    if(!updatedSong) {
+      return responseHelper({
+        message: 'Genre connection failed',
+        statusCode: 400,
+      });
+    }
+    return responseHelper({
+      message: 'Genre connection added successfully',
+      data: updatedSong,
+      statusCode: 200,
+    });
+  }
+
+  @ApiOperation({ summary: 'Remove an artist id from the song'})
+  @UseGuards(JwtAuthGuard)
+  @Delete('artists/:id')
+  async deleteArtistFromSong(@Param('id') id: string, @Query('artistId') artistId: string) {
+    const updatedSong = await this.songsService.removeArtistFromSong(id, artistId);
+    if(!updatedSong) {
+      return responseHelper({
+        message: 'Artist deletion failed',
+        statusCode: 400,
+      });
+    }
+    return responseHelper({
+      message: 'Artist deeltion successfully',
+      data: updatedSong,
+      statusCode: 200,
+    });
+  }
+
+  @ApiOperation({ summary: 'Remove a genre id from the song'})
+  @UseGuards(JwtAuthGuard)
+  @Delete('genres/:id')
+  async deleteGenreFromSong(@Param('id') id: string, @Query('genreId')genreId: string) {
+    const updatedSong = await this.songsService.removeGenreFromSong(id,genreId);
+    if(!updatedSong) {
+      return responseHelper({
+        message: 'Genre deletion failed',
+        statusCode: 400,
+      });
+    }
+    return responseHelper({
+      message: 'Genre deletion successfully',
+      data: updatedSong,
+      statusCode: 200,
+    });
+  }
+
+
+
+  @UseGuards(JwtAuthGuard)
+  @Get('search/title')
+  async searchSongs(@Query('q') query: string){
+    if (!query) {
+      return this.songsService.findAll();
+    }
+    if (query.length < 3) {
+      return responseHelper({
+        message: 'Query must be at least 3 characters long',
+        statusCode: 400,
+      });
+    }
+    if (query.length > 20) {
+      return responseHelper({
+        message: 'Query must be less than 20 characters long',
+        statusCode: 400,
+      });
+    }
+    const foundSongs = await this.songsService.search(query);
+    if (!foundSongs || foundSongs.length === 0) {
+      return responseHelper({
+        message: 'No songs found',
+        statusCode: 404,
+      });
+    }
+    return responseHelper({
+      message: 'Songs retrieved successfully',
+      data: foundSongs,
+      statusCode: 200,
+    });
+
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get('search')
-  searchSongs(@Query('q') query: string): Promise<Song[]> {
-    return this.songsService.search(query);
+  @Get('search/artist')
+  async searchSongsByArtist(@Query('q') artist: string) {
+    if (!artist) {
+      return this.songsService.findAll();
+    }
+    if (artist.length < 1) {
+      return responseHelper({
+        message: 'Query must be at least 1 characters long',
+        statusCode: 400,
+      });
+    }
+    if (artist.length > 20) {
+      return responseHelper({
+        message: 'Query must be less than 20 characters long',
+        statusCode: 400,
+      });
+    }
+    const foundSongs = await this.songsService.searchByArtist(artist);
+    if (!foundSongs) {
+      return responseHelper({
+        message: 'No songs found',
+        statusCode: 404,
+      });
+    }
+    return responseHelper({
+      message: 'Songs retrieved successfully',
+      data: foundSongs,
+      statusCode: 200,
+    });
   }
 
   // @UseGuards(JwtAuthGuard)
@@ -32,40 +182,108 @@ export class SongsController {
   //   return this.songsService.searchWithYoutube(youtubeUrl);
   // }
 
-  @Get('find-one')
-  findOnePrecisely(@Query('title') title: string, @Query('artistName') artistName : string): Promise<Song | null> {
-    return this.songsService.findOnePrecisely(title, artistName);
-  }
+  // @Get('find-one')
+  // findOnePrecisely(@Query('title') title: string, @Query('artistName') artistName : string): Promise<Song | null> {
+  //   return this.songsService.findOnePrecisely(title, artistName);
+  // }
 
+  // @UseGuards(JwtAuthGuard)
+  // @Get('find-one')
+  // async findOneByName(@Query('title') title: string) {
+  //   const foundSong = await this.songsService.findOneByName(title);
+  //   if(!foundSong) {
+  //     return responseHelper({
+  //       message: 'Song not found',
+  //       statusCode: 404,
+  //     });
+  //   }
+  //   return responseHelper({
+  //     message: 'Song retrieved successfully',
+  //     data: foundSong,
+  //     statusCode: 200,
+  //   });
+  // }
 
+  @UseGuards(JwtAuthGuard)
   @Get()
-  findAll(
+  async findAll(
       @Query('page', new DefaultValuePipe(1), ParseIntPipe)
       page: number = 1, 
       @Query('limit', new  DefaultValuePipe(10), ParseIntPipe)
       limit = 10 
     ) : Promise<Pagination<Song>> {
       limit = limit > 100 ? 100 : limit;
-      return this.songsService.paginate( {
+      return await this.songsService.paginate( {
           page, limit
         } 
       );
     }
 
+  // @UseGuards(JwtAuthGuard)
+  // @Get()
+  // async findAll(){
+  //   const songs = await this.songsService.findAll();
+  //   if(!songs) {
+  //     return responseHelper({
+  //       message: 'No songs found',
+  //       statusCode: 404,
+  //     });
+  //   }
+  //   return responseHelper({
+  //     message: 'Songs retrieved successfully',
+  //     data: songs,
+  //     statusCode: 200,
+  //   });
+  // }
+
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
-  findOne(@Param('id') id: string): Promise<Song | null> {
-    return this.songsService.findOne(id);
+  async findOne(@Param('id') id: string){
+    const foundSong = await this.songsService.findOne(id);
+    if(!foundSong) {
+      return responseHelper({
+        message: 'Song not found',
+        statusCode: 404,
+      });
+    }
+    return responseHelper({
+      message: 'Song retrieved successfully',
+      data: foundSong,
+      statusCode: 200,
+    });
   }
 
   @UseGuards(JwtAdminGuard)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateSongDto: UpdateSongDto): Promise<UpdateResult> {
-    return this.songsService.update(id, updateSongDto);
+  async update(@Param('id') id: string, @Body() updateSongDto: UpdateSongDto){
+    const updatedSong = await this.songsService.update(id, updateSongDto);
+    if(!updatedSong) {
+      return responseHelper({
+        message: 'Song update failed',
+        statusCode: 400,
+      });
+    }
+    return responseHelper({
+      message: 'Song updated successfully',
+      data: updatedSong,
+      statusCode: 200,
+    });
   }
 
   @UseGuards(JwtAdminGuard)
   @Delete(':id')
-  remove(@Param('id') id: string): Promise<DeleteResult> {
-    return this.songsService.remove(id);
+  async remove(@Param('id') id: string){
+    const deleteSong = await this.songsService.remove(id);
+    if(!deleteSong) {
+      return responseHelper({
+        message: 'Song deletion failed',
+        statusCode: 400,
+      });
+    }
+    return responseHelper({
+      message: 'Song deleted successfully',
+      data: deleteSong,
+      statusCode: 200,
+    });
   }
 }

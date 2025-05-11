@@ -53,7 +53,7 @@ export class AudioService {
         });
     }
 
-    async fetchAudioBufferFromUrl(url: string): Promise<Buffer> {
+    async fetchBufferFromUrl(url: string): Promise<Buffer> {
         const response = await axios.default.get(url, { responseType: 'arraybuffer' });
         return Buffer.from(response.data);
     }
@@ -124,5 +124,22 @@ export class AudioService {
         }
 
         return maxScore; // max score
+    }
+
+    async getDurationFromBuffer(buffer: Buffer): Promise<number> {
+        const tempFilePath = join(tmpdir(), `${Date.now()}-temp.wav`);
+        writeFileSync(tempFilePath, buffer);
+        return new Promise((resolve, reject) => {
+            ffmpeg.ffprobe(tempFilePath, (err, metadata) => {
+                if (err) {
+                    console.error('Error getting duration:', err);
+                    reject(err);
+                } else {
+                    const duration = metadata.format.duration;
+                    unlinkSync(tempFilePath); // cleanup
+                    resolve(duration);
+                }
+            });
+        });
     }
 }
