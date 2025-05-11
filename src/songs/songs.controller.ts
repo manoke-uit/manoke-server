@@ -253,8 +253,6 @@ export class SongsController {
     });
   }
 
-  
-
   @UseGuards(JwtAdminGuard)
   @Patch(':id')
   async update(@Param('id') id: string, @Body() updateSongDto: UpdateSongDto){
@@ -288,8 +286,4 @@ export class SongsController {
       statusCode: 200,
     });
   }
-
-
-
-
 }
