@@ -18,15 +18,16 @@ import { JwtAdminGuard } from 'src/auth/guards/jwt-admin-guard';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { Artist } from './entities/artist.entity';
 import { responseHelper } from 'src/helpers/response.helper';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth-guard';
 
 @Controller('artists')
 export class ArtistsController {
   constructor(private readonly artistsService: ArtistsService) {}
 
-  @UseGuards(JwtAdminGuard)  
+  @UseGuards(JwtAuthGuard)  
   @Post()
-  create(@Body() createArtistDto: CreateArtistDto) {
-    const createdArtist = this.artistsService.create(createArtistDto);
+  async create(@Body() createArtistDto: CreateArtistDto) {
+    const createdArtist = await this.artistsService.create(createArtistDto);
     if(!createdArtist) {
       return responseHelper({
         message: 'Artist creation failed',
@@ -40,23 +41,25 @@ export class ArtistsController {
     });
   }
 
+  @UseGuards(JwtAuthGuard) 
   @Get()
-  findAll(
+  async findAll(
       @Query('page', new DefaultValuePipe(1), ParseIntPipe)
       page: number = 1, 
       @Query('limit', new  DefaultValuePipe(10), ParseIntPipe)
       limit = 10 
     ) : Promise<Pagination<Artist>> {
     limit = limit > 100 ? 100 : limit;
-      return this.artistsService.paginate( {
+      return await this.artistsService.paginate( {
           page, limit
         } 
       );
     }
   
+  @UseGuards(JwtAuthGuard) 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    const foundArtist = this.artistsService.findOne(id);
+  async findOne(@Param('id') id: string) {
+    const foundArtist = await this.artistsService.findOne(id);
     if(!foundArtist) {
       return responseHelper({
         message: 'Artist not found',
@@ -72,8 +75,8 @@ export class ArtistsController {
 
   @UseGuards(JwtAdminGuard)  
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateArtistDto: UpdateArtistDto) {
-    const updatedArtist = this.artistsService.update(id, updateArtistDto);
+  async update(@Param('id') id: string, @Body() updateArtistDto: UpdateArtistDto) {
+    const updatedArtist = await this.artistsService.update(id, updateArtistDto);
     if(!updatedArtist) {
       return responseHelper({
         message: 'Artist update failed',
@@ -89,8 +92,8 @@ export class ArtistsController {
 
   @UseGuards(JwtAdminGuard)  
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    const deletedArtist = this.artistsService.remove(id);
+  async remove(@Param('id') id: string) {
+    const deletedArtist = await this.artistsService.remove(id);
     if(!deletedArtist) {
       return responseHelper({
         message: 'Artist deletion failed',

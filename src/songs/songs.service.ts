@@ -12,6 +12,9 @@ import { SpotifyApiService } from 'src/external-apis/spotify-api/spotify-api.ser
 import { title } from 'process';
 import { DeezerApiService } from 'src/external-apis/deezer-api/deezer-api.service';
 import * as ytdl from 'ytdl-core';
+import { AudioService } from 'src/helpers/audio/audio.service';
+import { SupabaseStorageService } from 'src/supabase-storage/supabase-storage.service';
+import { Genre } from 'src/genres/entities/genre.entity';
 
 @Injectable()
 export class SongsService {
@@ -22,16 +25,57 @@ export class SongsService {
     private artistRepository: Repository<Artist>,
     @InjectRepository(Playlist) 
     private playlistRepository: Repository<Playlist>,
+    @InjectRepository(Genre)
+    private genreRepository: Repository<Genre>,
 
     private spotifyApiService: SpotifyApiService,
     private deezerApiService: DeezerApiService,
+    private audioService: AudioService,
+    private supabaseStorageService: SupabaseStorageService,
   ) {}
-  async create(createSongDto: CreateSongDto): Promise<Song> {
+  async create(fileBuffer: Buffer, fileName: string, createSongDto: CreateSongDto): Promise<Song> {
     const song = new Song()
     
     song.title = createSongDto.title;
-    song.songUrl = createSongDto.songUrl;
-    song.lyrics = createSongDto.lyrics ? createSongDto.lyrics : ""; // if not found in db, then search in lyrics.ovh-api
+    song.lyrics = createSongDto.lyrics;
+
+    const songBuffer = fileBuffer;
+    const songLength = await this.audioService.getDurationFromBuffer(songBuffer);
+    const audioFileName = `${sanitizeFileName(createSongDto.title)}-${Date.now()}.mp3`;
+
+    if (songLength < 30) {
+      throw new Error("Audio length must be at least 30 seconds.");
+    }
+
+    if (songLength > 30) {
+      const chunks = await this.audioService.splitAudioFile(songBuffer, audioFileName);
+      if (chunks.length > 0) {
+        if(chunks.length > 3){
+          const chunk = chunks[Math.ceil(chunks.length/2)];
+          const uploadedAudio = await this.supabaseStorageService.uploadSnippetFromBuffer(chunk, audioFileName);
+          if (!uploadedAudio) {
+            throw new Error("Failed to upload audio chunk");
+          }
+          song.songUrl = uploadedAudio || "";
+        }
+        else {
+          const chosenIndex = Math.floor(Math.random() * chunks.length);
+          const chunk = chunks[chosenIndex];
+          const uploadedAudio = await this.supabaseStorageService.uploadSnippetFromBuffer(chunk, audioFileName);
+          if (!uploadedAudio) {
+            throw new Error("Failed to upload audio chunk");
+          }
+          song.songUrl = uploadedAudio || "";
+        }
+        
+      }
+    } else {
+      const uploadedAudio = await this.supabaseStorageService.uploadSnippetFromBuffer(songBuffer, audioFileName);
+      if (!uploadedAudio) {
+        throw new Error("Failed to upload audio");
+      }
+      song.songUrl = uploadedAudio || "";
+    }
     
     if (createSongDto.artistIds && createSongDto.artistIds.length > 0) {
       const artists = await this.artistRepository.findBy({
@@ -55,7 +99,9 @@ export class SongsService {
   }
 
   findAll(): Promise<Song[]> {
-    return this.songRepository.find();
+    return this.songRepository.find({
+      relations: { artists: true, playlists: true },
+    });
   }
 
   findOne(id: string): Promise<Song | null> {
@@ -101,13 +147,116 @@ export class SongsService {
   // }
 
   // modify later!!
-  async search(query: string): Promise<Song[]> {
-    return this.songRepository.find({
+  async search(query: string): Promise<Song[] | null> {
+    const sanitizedQuery = normalizeString(query);
+
+    const allSongs = await this.findAll();
+    const filteredSongs = allSongs.filter((song) => {
+      const normalizedTitle = normalizeString(song.title);
+      return normalizedTitle.includes(sanitizedQuery);
+    });
+    if (filteredSongs.length > 0) return filteredSongs;
+    else return null;
+
+  }
+
+  async searchByArtist(artist: string): Promise<Song[] | null> {
+    if (!artist) return [];
+    // search for songs in database
+    const queryLower = artist.toLowerCase();
+    const sanitizedQuery = normalizeString(queryLower);
+    const allSongs = await this.findAll();
+    const filteredSongs = allSongs.filter((song) => {
+      const normalizedArtist = normalizeString(song.artists[0].name);
+      return normalizedArtist.includes(sanitizedQuery);
+    });
+    if (filteredSongs.length > 0) return filteredSongs;
+    else return null;
+  }
+
+  async findOneByName(title: string): Promise<Song | null> {
+    return this.songRepository.findOne({
       where: {
-        title: ILike(`%${query}%`),
+        title
       },
       relations: { artists: true, playlists: true },
     });
+  }
+
+  async addArtistToSong(songId: string, artistId: string): Promise<Song | null> {
+    const song = await this.songRepository.findOne({
+      where: { id: songId },
+      relations: { artists: true },
+    });
+
+    if (!song) {
+      throw new Error("Song not found");
+    }
+
+    const artist = await this.artistRepository.findOneBy({ id: artistId });
+     if (!artist) {
+      throw new Error("Artist not found");
+    }
+
+    song.artists.push(artist);
+    return this.songRepository.save(song);
+  }
+
+  async addGenreToSong(songId: string, genreId: string): Promise<Song | null> {
+    const song = await this.songRepository.findOne({
+      where: { id: songId },
+      relations: { genres: true },
+    });
+
+    if (!song) {
+      throw new Error("Song not found");
+    }
+
+    const genre = await this.genreRepository.findOneBy({ id: genreId });
+    if (!genre) {
+      throw new Error("Genre not found");
+    }
+
+    song.genres.push(genre);
+    return this.songRepository.save(song);
+  }
+
+  async removeArtistFromSong(songId: string, artistId: string): Promise<Song | null> {
+    const song = await this.songRepository.findOne({
+      where: { id: songId },
+      relations: { artists: true },
+    });
+
+    if (!song) {
+      throw new Error("Song not found");
+    }
+
+    const artist = await this.artistRepository.findOneBy({ id: artistId });
+    if (!artist) {
+      throw new Error("Artist not found");
+    }
+
+    song.artists = song.artists.filter((a) => a.id !== artist.id);
+    return this.songRepository.save(song);
+  }
+
+  async removeGenreFromSong(songId: string, genreId: string): Promise<Song | null> {
+    const song = await this.songRepository.findOne({
+      where: { id: songId },
+      relations: { genres: true },
+    });
+
+    if (!song) {
+      throw new Error("Song not found");
+    }
+
+    const genre = await this.genreRepository.findOneBy({ id: genreId });
+    if (!genre) {
+      throw new Error("Genre not found");
+    }
+
+    song.genres = song.genres.filter((g) => g.id !== genre.id);
+    return this.songRepository.save(song);
   }
 
   // TODO: add search with youtube url
@@ -175,4 +324,22 @@ export class SongsService {
 
     return cleaned.trim();
   }
+
+  
 }
+function sanitizeFileName(title: string): string {
+  return title
+    .normalize('NFD')                     // Convert to base letters + accents
+    .replace(/[\u0300-\u036f]/g, '')     // Remove accents
+    .replace(/[^a-zA-Z0-9-_ ]/g, '')     // Remove special characters
+    .replace(/\s+/g, '-')                // Replace spaces with hyphens
+    .toLowerCase();                      // Optional: lowercase everything
+}
+
+function normalizeString(str: string): string {
+  return str
+    .normalize('NFD')                     // Split letters and accents
+    .replace(/[\u0300-\u036f]/g, '')     // Remove accents
+    .toLowerCase();                      // Convert to lowercase
+}
+

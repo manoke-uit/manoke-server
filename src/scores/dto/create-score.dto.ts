@@ -10,6 +10,7 @@ export class CreateScoreDto {
   finalScore?: number;
 
   @IsUUID()
+  @IsOptional()
   userId: string;
 
   @IsUUID()

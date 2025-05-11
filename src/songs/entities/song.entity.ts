@@ -13,7 +13,7 @@ export class Song {
     @Column({type: 'varchar', length: 255})
     title: string;
 
-    @Column({type: 'text', nullable: true})
+    @Column({type: 'text'})
     lyrics: string; // @IsString() in dto
     
     @Column({type: 'text'})
