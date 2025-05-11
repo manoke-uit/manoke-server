@@ -3,7 +3,7 @@ import { CreatePlaylistDto } from './dto/create-playlist.dto';
 import { UpdatePlaylistDto } from './dto/update-playlist.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Playlist } from './entities/playlist.entity';
-import { DeleteResult, In, Repository, UpdateResult } from 'typeorm';
+import { DeleteResult, ILike, In, Repository, UpdateResult } from 'typeorm';
 import { Song } from 'src/songs/entities/song.entity';
 import { User } from 'src/users/entities/user.entity';
 import { IPaginationOptions, paginate, Pagination } from 'nestjs-typeorm-paginate';
@@ -181,6 +181,40 @@ export class PlaylistsService {
     favPlaylist.songs.splice(songIndex, 1);
   
     return this.playlistRepository.save(favPlaylist);
+  }
+
+  async clonePlaylist(userId: string, playlistId: string) {
+    const playlistToClone = await this.playlistRepository.findOne({
+      where: { id: playlistId },
+      relations: ['user']
+    });
+
+    const userWantToClone = await this.userRepository.findOneBy({id: userId});
+    
+    if (!playlistToClone) {
+      throw new NotFoundException('Cannot get playlist')
+    }
+
+    if (!userWantToClone) {
+      throw new NotFoundException('Cannot find user!');
+    }
+
+    const clonedPlaylist = this.playlistRepository.create({
+      ...playlistToClone, 
+      id: undefined, 
+      user: userWantToClone, 
+      title: `${playlistToClone.title} (Copy)`, 
+    });
+
+    return this.playlistRepository.save(clonedPlaylist);
+  }
+
+  async searchPlaylist(titleSearch: string) {
+    const playlists = await this.playlistRepository.find({
+      where: {title: ILike(`%${titleSearch}%`)}
+    });
+    
+    return playlists;
   }
   
 

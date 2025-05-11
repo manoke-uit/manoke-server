@@ -57,8 +57,6 @@ export class SongsController {
     return this.songsService.findOne(id);
   }
 
-  
-
   @UseGuards(JwtAdminGuard)
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateSongDto: UpdateSongDto): Promise<UpdateResult> {
@@ -70,8 +68,4 @@ export class SongsController {
   remove(@Param('id') id: string): Promise<DeleteResult> {
     return this.songsService.remove(id);
   }
-
-
-
-
 }

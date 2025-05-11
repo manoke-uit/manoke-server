@@ -65,6 +65,15 @@ export class PlaylistsController {
     return this.playlistsService.removeSongFromFavouritePlaylist("Favourite Playlist", songId);
   }
 
+  @Get(':searchTitle')
+  async searchPlaylist(@Param('searchTitle') searchTitle: string) {
+    const playlists = await this.playlistsService.searchPlaylist(searchTitle);
+    if (playlists.length === 0) {
+      return { message: 'No playlists found matching the search criteria.' };
+    }
+    return playlists;
+  }
+
 
   @Get()
   findAll(

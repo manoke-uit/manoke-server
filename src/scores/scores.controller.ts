@@ -47,6 +47,8 @@ export class ScoresController {
     
     try {
       const savedScore =  await this.scoresService.create(createScoreDto, file.buffer); // create the score in the database
+
+      
       return savedScore.finalScore.toString(); // return the id of the saved score
     }
     catch (error) {
