@@ -81,6 +81,8 @@ export class ScoresService {
     const songBuffer = await this.audioService.fetchBufferFromUrl(foundSong.songUrl); // made sure to be 30s
     const songLyrics = foundSong.lyrics; // get the lyrics from the song
     const songPitch = await this.getPitchFromRecording(songBuffer, songFileName); 
+
+    console.log('Song Pitch:', songPitch); // log the song pitch for debugging
    
     console.log("songLyrics", songLyrics); // log the song lyrics for debugging
 
