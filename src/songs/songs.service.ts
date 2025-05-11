@@ -31,7 +31,7 @@ export class SongsService {
     
     song.title = createSongDto.title;
     song.songUrl = createSongDto.songUrl;
-    song.lyrics = createSongDto.lyrics ? createSongDto.lyrics : ""; // if not found in db, then search in lyrics.ovh-api
+    song.lyrics = createSongDto.lyrics;
     
     if (createSongDto.artistIds && createSongDto.artistIds.length > 0) {
       const artists = await this.artistRepository.findBy({
@@ -105,6 +105,30 @@ export class SongsService {
     return this.songRepository.find({
       where: {
         title: ILike(`%${query}%`),
+      },
+      relations: { artists: true, playlists: true },
+    });
+  }
+
+  async searchByArtist(artist: string): Promise<Song[]> {
+    if (!artist) return [];
+    // search for songs in database
+    const queryLower = artist.toLowerCase();
+    const songs = await this.songRepository.find({
+      where: {
+        artists: { name: ILike(`%${queryLower}%`) },
+      },
+      relations: { artists: true, playlists: true },
+    });
+
+    if (songs.length > 0) return songs;
+    else return [];
+  }
+
+  async findOneByName(title: string): Promise<Song | null> {
+    return this.songRepository.findOne({
+      where: {
+        title
       },
       relations: { artists: true, playlists: true },
     });

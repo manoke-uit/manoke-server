@@ -9,21 +9,93 @@ import { DeleteResult, UpdateResult } from 'typeorm';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth-guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ScoresService } from 'src/scores/scores.service';
+import { response } from 'express';
+import { responseHelper } from 'src/helpers/response.helper';
 
 @Controller('songs')
 export class SongsController {
   constructor(private readonly songsService: SongsService) {}
 
-  @UseGuards(JwtAdminGuard)
+  @UseGuards(JwtAuthGuard)
   @Post()
   create(@Body() createSongDto: CreateSongDto) {
-    return this.songsService.create(createSongDto);
+    const createdSong = this.songsService.create(createSongDto);
+    if(!createdSong) {
+      return responseHelper({
+        message: 'Song creation failed',
+        statusCode: 400,
+      });
+    }
+    return responseHelper({
+      message: 'Song created successfully',
+      data: createdSong,
+      statusCode: 201,
+    });
   }
 
   @UseGuards(JwtAuthGuard)
-  @Get('search')
-  searchSongs(@Query('q') query: string): Promise<Song[]> {
-    return this.songsService.search(query);
+  @Get('search/title')
+  async searchSongs(@Query('q') query: string){
+    if (!query) {
+      return this.songsService.findAll();
+    }
+    if (query.length < 3) {
+      return responseHelper({
+        message: 'Query must be at least 3 characters long',
+        statusCode: 400,
+      });
+    }
+    if (query.length > 20) {
+      return responseHelper({
+        message: 'Query must be less than 20 characters long',
+        statusCode: 400,
+      });
+    }
+    const foundSongs = await this.songsService.search(query);
+    if (!foundSongs || foundSongs.length === 0) {
+      return responseHelper({
+        message: 'No songs found',
+        statusCode: 404,
+      });
+    }
+    return responseHelper({
+      message: 'Songs retrieved successfully',
+      data: foundSongs,
+      statusCode: 200,
+    });
+
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('search/artist')
+  async searchSongsByArtist(@Query('q') artist: string) {
+    if (!artist) {
+      return this.songsService.findAll();
+    }
+    if (artist.length < 3) {
+      return responseHelper({
+        message: 'Query must be at least 3 characters long',
+        statusCode: 400,
+      });
+    }
+    if (artist.length > 20) {
+      return responseHelper({
+        message: 'Query must be less than 20 characters long',
+        statusCode: 400,
+      });
+    }
+    const foundSongs = await this.songsService.searchByArtist(artist);
+    if (!foundSongs) {
+      return responseHelper({
+        message: 'No songs found',
+        statusCode: 404,
+      });
+    }
+    return responseHelper({
+      message: 'Songs retrieved successfully',
+      data: foundSongs,
+      statusCode: 200,
+    });
   }
 
   // @UseGuards(JwtAuthGuard)
@@ -32,12 +104,29 @@ export class SongsController {
   //   return this.songsService.searchWithYoutube(youtubeUrl);
   // }
 
+  // @Get('find-one')
+  // findOnePrecisely(@Query('title') title: string, @Query('artistName') artistName : string): Promise<Song | null> {
+  //   return this.songsService.findOnePrecisely(title, artistName);
+  // }
+
+  @UseGuards(JwtAuthGuard)
   @Get('find-one')
-  findOnePrecisely(@Query('title') title: string, @Query('artistName') artistName : string): Promise<Song | null> {
-    return this.songsService.findOnePrecisely(title, artistName);
+  findOneByName(@Query('title') title: string) {
+    const foundSong = this.songsService.findOneByName(title);
+    if(!foundSong) {
+      return responseHelper({
+        message: 'Song not found',
+        statusCode: 404,
+      });
+    }
+    return responseHelper({
+      message: 'Song retrieved successfully',
+      data: foundSong,
+      statusCode: 200,
+    });
   }
 
-
+  @UseGuards(JwtAuthGuard)
   @Get()
   findAll(
       @Query('page', new DefaultValuePipe(1), ParseIntPipe)
@@ -52,23 +141,57 @@ export class SongsController {
       );
     }
 
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
-  findOne(@Param('id') id: string): Promise<Song | null> {
-    return this.songsService.findOne(id);
+  findOne(@Param('id') id: string){
+    const foundSong = this.songsService.findOne(id);
+    if(!foundSong) {
+      return responseHelper({
+        message: 'Song not found',
+        statusCode: 404,
+      });
+    }
+    return responseHelper({
+      message: 'Song retrieved successfully',
+      data: foundSong,
+      statusCode: 200,
+    });
   }
 
   
 
   @UseGuards(JwtAdminGuard)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateSongDto: UpdateSongDto): Promise<UpdateResult> {
-    return this.songsService.update(id, updateSongDto);
+  update(@Param('id') id: string, @Body() updateSongDto: UpdateSongDto){
+    const updatedSong =  this.songsService.update(id, updateSongDto);
+    if(!updatedSong) {
+      return responseHelper({
+        message: 'Song update failed',
+        statusCode: 400,
+      });
+    }
+    return responseHelper({
+      message: 'Song updated successfully',
+      data: updatedSong,
+      statusCode: 200,
+    });
   }
 
   @UseGuards(JwtAdminGuard)
   @Delete(':id')
-  remove(@Param('id') id: string): Promise<DeleteResult> {
-    return this.songsService.remove(id);
+  remove(@Param('id') id: string){
+    const deleteSong = this.songsService.remove(id);
+    if(!deleteSong) {
+      return responseHelper({
+        message: 'Song deletion failed',
+        statusCode: 400,
+      });
+    }
+    return responseHelper({
+      message: 'Song deleted successfully',
+      data: deleteSong,
+      statusCode: 200,
+    });
   }
 
 

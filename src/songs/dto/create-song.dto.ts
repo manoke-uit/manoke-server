@@ -8,10 +8,10 @@ export class CreateSongDto {
     @ApiProperty({ description: 'Song title' })
     title: string;
 
-    @IsOptional()
+    @IsNotEmpty()
     @IsString()
     @ApiProperty({ description: 'lyrics' })
-    lyrics?: string;
+    lyrics: string;
 
     @IsUrl()
     @IsOptional() // if can't find api generate score base on ...?
