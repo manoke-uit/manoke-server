@@ -22,11 +22,11 @@ export class CreatePlaylistDto {
     @ApiProperty({ required: false, description: 'Playlist publicity' })
     isPublic?: boolean;
 
-    @IsNotEmpty()
+    @IsOptional()
     @IsUUID('4')
     @IsOptional()
     @ApiProperty({ description: 'ID of the user who created the playlist' })
-    userId: string; // @IsUUID() in dto
+    userId?: string; // @IsUUID() in dto
 
     @IsArray()
     @IsUUID('4', { each: true })

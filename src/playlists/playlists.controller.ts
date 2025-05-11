@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Query, DefaultValuePipe, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Query, DefaultValuePipe, UseGuards, Req } from '@nestjs/common';
 import { PlaylistsService } from './playlists.service';
 import { CreatePlaylistDto } from './dto/create-playlist.dto';
 import { UpdatePlaylistDto } from './dto/update-playlist.dto';
@@ -13,58 +13,70 @@ export class PlaylistsController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() createPlaylistDto: CreatePlaylistDto): Promise<Playlist> {
+  async create(@Body() createPlaylistDto: CreatePlaylistDto, @Req() req:any): Promise<Playlist> {
+    createPlaylistDto.userId = req.user['userId']; // set the userId from the request
     return this.playlistsService.create(createPlaylistDto);
   }
 
   @UseGuards(JwtAuthGuard)
   @Patch(':playlistID/songs/:songId')
-  addSongToPlaylist(
+  async addSongToPlaylist(
     @Param('playlistId') playlistId: string,
     @Param('songId') songId: string
   ): Promise<Playlist> {
-    return this.playlistsService.addSongToPlaylist(playlistId, songId)
+    return await this.playlistsService.addSongToPlaylist(playlistId, songId)
   }
 
   @UseGuards(JwtAuthGuard)
   @Patch('favPlaylist/songs/:songId')
-  addSongToFavouritePlaylist(
+  async addSongToFavouritePlaylist(
     @Param('songId') songId: string
   ): Promise<Playlist> {
-    return this.playlistsService.addSongToFavouritePlaylist("Favourite Playlist", songId)
+    return await this.playlistsService.addSongToFavouritePlaylist("Favourite Playlist", songId)
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('favPlaylist/songs')
-  getFavSongs() {
-    return this.playlistsService.getFavouriteSongs("Favourite Playlist");
+  async getFavSongs() {
+    return await this.playlistsService.getFavouriteSongs("Favourite Playlist");
   }
 
   @UseGuards(JwtAuthGuard)
   @Get(':playlistId/songs')
-  getSongsInPlaylist(
+  async getSongsInPlaylist(
     @Param('playlistId') playlistId: string
   ) {
-    return this.playlistsService.getSongsInPlaylist(playlistId);
+    return await this.playlistsService.getSongsInPlaylist(playlistId);
   }
 
   @UseGuards(JwtAuthGuard)
-  @Delete(':playlistID/songs/:songId')
-  removeSongFromPlaylist(
+  @Delete(':playlistId/songs/:songId')
+  async removeSongFromPlaylist(
     @Param('playlistId') playlistId: string,
-    @Param('songId') songId: string
+    @Param('songId') songId: string,
+    @Req() req: any
   ): Promise<Playlist> {
-    return this.playlistsService.removeSongFromPlaylist(playlistId, songId);
+    const playlist = await this.playlistsService.findOne(playlistId);
+    if(playlist?.user.id !== req.user['userId']) {
+      throw new Error("You are not authorized to remove this song from the playlist");
+    }
+    return await this.playlistsService.removeSongFromPlaylist(playlistId, songId);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete('favPlaylist/songs/:songId')
-  removeSongFromFavouritePlaylist(
-    @Param('songId') songId: string
+  async removeSongFromFavouritePlaylist(
+    @Param('songId') songId: string,
+    @Req() req: any
   ): Promise<Playlist> {
-    return this.playlistsService.removeSongFromFavouritePlaylist("Favourite Playlist", songId);
+    const playlist = await this.playlistsService.findByTitle("Favourite Playlist");
+    if(playlist?.user.id !== req.user['userId']) {
+      throw new Error("You are not authorized to remove this song from the favourite playlist");
+    }
+    return await this.playlistsService.removeSongFromFavouritePlaylist("Favourite Playlist", songId);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get(':searchTitle')
   async searchPlaylist(@Param('searchTitle') searchTitle: string) {
     const playlists = await this.playlistsService.searchPlaylist(searchTitle);
@@ -75,35 +87,50 @@ export class PlaylistsController {
   }
 
 
+
+  // get all the PUBLIC playlists
+  @UseGuards(JwtAuthGuard)
   @Get()
-  findAll(
+  async findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe)
     page: number = 1,
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe)
     limit = 10
   ): Promise<Pagination<Playlist>> {
     limit = limit > 100 ? 100 : limit;
-    return this.playlistsService.paginate({
+    return await this.playlistsService.paginate({
       page, limit
     }
     );
   }
 
+  // if the playlist is private and the user is not the owner, can't see the playlist right?
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
-  findOne(@Param('id') id: string): Promise<Playlist | null> {
-    return this.playlistsService.findOne(id);
+  async findOne(@Param('id') id: string): Promise<Playlist | null> {
+    return await this.playlistsService.findOne(id);
   }
 
+  // TODO: check if the user is the owner of the playlist before getting the playlist
+  // also where is the fetch playlist function...
+
+  // only the owner of the playlist can update it
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updatePlaylistDto: UpdatePlaylistDto): Promise<UpdateResult> {
-    return this.playlistsService.update(id, updatePlaylistDto);
+  async update(@Param('id') id: string, @Body() updatePlaylistDto: UpdatePlaylistDto, @Req() req : any): Promise<UpdateResult> {
+    if(req.user['userId'] !== id) {
+      throw new Error("You are not authorized to update this playlist");
+    }
+    return await this.playlistsService.update(id, updatePlaylistDto);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  remove(@Param('id') id: string): Promise<DeleteResult> {
-    return this.playlistsService.remove(id);
+  async remove(@Param('id') id: string, @Req() req : any): Promise<DeleteResult> {
+    if(req.user['userId'] !== id) {
+      throw new Error("You are not authorized to delete this playlist");
+    }
+    return await this.playlistsService.remove(id);
   }
 }
 

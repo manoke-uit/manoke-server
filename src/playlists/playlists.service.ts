@@ -218,20 +218,27 @@ export class PlaylistsService {
   }
   
 
-  findAll() {
-    return this.playlistRepository.find();
+  async findAll() {
+    return await this.playlistRepository.find();
   }
 
-  findOne(id: string): Promise<Playlist | null> {
-    return this.playlistRepository.findOneBy({ id });
+  async findOne(id: string): Promise<Playlist | null> {
+    return await this.playlistRepository.findOneBy({ id });
   }
 
   async update(id: string, updatePlaylistDto: UpdatePlaylistDto) : Promise<UpdateResult> {
     return this.playlistRepository.update(id, updatePlaylistDto);
   }
 
-  remove(id: string): Promise<DeleteResult> {
-    return this.playlistRepository.delete(id);
+  async remove(id: string): Promise<DeleteResult> {
+    return await this.playlistRepository.delete(id);
+  }
+
+  async findByTitle(title: string): Promise<Playlist | null> {
+    return await this.playlistRepository.findOne({
+      where: { title },
+      relations: ['songs'],
+    });
   }
 
   paginate(options: IPaginationOptions): Promise<Pagination<Playlist>> {

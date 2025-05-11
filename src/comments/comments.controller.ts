@@ -1,34 +1,51 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req } from '@nestjs/common';
 import { CommentsService } from './comments.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth-guard';
+import { JwtAdminGuard } from 'src/auth/guards/jwt-admin-guard';
 
 @Controller('comments')
 export class CommentsController {
   constructor(private readonly commentsService: CommentsService) {}
 
+  @UseGuards(JwtAuthGuard)
   @Post()
-  create(@Body() createCommentDto: CreateCommentDto) {
-    return this.commentsService.createComment(createCommentDto);
+  async create(@Body() createCommentDto: CreateCommentDto, @Req() req: any) {
+    createCommentDto.userId = req.user['userId']; // set the userId from the request
+    return await this.commentsService.createComment(createCommentDto);
   }
 
+  // where is the function for getting all comments for a specific post?
+
+  @UseGuards(JwtAdminGuard)
   @Get()
-  findAll() {
-    return this.commentsService.findAll();
+  async findAll() {
+    return await this.commentsService.findAll();
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.commentsService.findOne(id);
+  async findOne(@Param('id') id: string) {
+    return await this.commentsService.findOne(id);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCommentDto: UpdateCommentDto) {
-    return this.commentsService.update(id, updateCommentDto);
+  async update(@Param('id') id: string, @Body() updateCommentDto: UpdateCommentDto, @Req() req: any) {
+    if (req.user['userId'] !== id) {
+      throw new Error("You are not authorized to update this comment");
+    }
+
+    return await this.commentsService.update(id, updateCommentDto);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.commentsService.remove(id);
+  async remove(@Param('id') id: string, @Req() req: any) {
+    if (req.user['userId'] !== id) {
+      throw new Error("You are not authorized to delete this comment");
+    }
+    return await this.commentsService.remove(id);
   }
 }
