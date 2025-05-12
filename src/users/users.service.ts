@@ -50,8 +50,8 @@ export class UsersService {
     return this.usersRepository.findOne({ where: { displayName } }); // Find a user by display name
   }
 
-  findAll(): Promise<User[]> {
-    return this.usersRepository.find(); // Find all users
+  async findAll(): Promise<User[]> {
+    return await this.usersRepository.find(); // Find all users
   }
 
   findOne(id: string): Promise<User | null> {

@@ -18,12 +18,6 @@ export class UsersController {
   }
 
   @Get()
-  async findOneEmail() : Promise<User | null> {
-    return await this.usersService.findByEmail("test"); // TODO: remove this line and implement the actual logic
-
-  }
-
-  @Get()
   @UseGuards(JwtAdminGuard)
   @HttpCode(200)
   async findAll(
@@ -38,6 +32,21 @@ export class UsersController {
       } 
     );
   }
+
+  @Get()
+  async findOneEmail() : Promise<User | null> {
+    return await this.usersService.findByEmail("test"); // TODO: remove this line and implement the actual logic
+
+  }
+
+
+
+  // @Get()
+  // @UseGuards(JwtAdminGuard)
+  // @HttpCode(200)
+  // async findAll() : Promise<User[]> {
+  //   return await this.usersService.findAll();
+  // }
 
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<User | null> {
