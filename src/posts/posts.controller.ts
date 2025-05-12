@@ -38,10 +38,10 @@ export class PostsController {
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  remove(@Param('id') id: string, @Req() req: any) {
+  async remove(@Param('id') id: string, @Req() req: any) {
     if(req.user['userId'] !== id) {
       throw new Error("You are not authorized to delete this post");
     }
-    return this.postsService.remove(id);
+    return await this.postsService.remove(id);
   }
 }
