@@ -9,8 +9,12 @@ import * as ffmpegInstaller from '@ffmpeg-installer/ffmpeg';
 import * as axios from 'axios';
 import { BasicPitchDto } from './dto/basic-pitch.dto';
 import * as stringSimilarity from 'string-similarity';
+import * as ffprobeStatic from 'ffprobe-static';
+
 
 ffmpeg.setFfmpegPath(ffmpegInstaller.path);
+ffmpeg.setFfprobePath(ffprobeStatic.path);
+
 
 @Injectable()
 export class AudioService {

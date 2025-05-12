@@ -12,6 +12,7 @@ import { ScoresService } from 'src/scores/scores.service';
 import { response } from 'express';
 import { responseHelper } from 'src/helpers/response.helper';
 import { ApiOperation } from '@nestjs/swagger';
+import { ar } from '@faker-js/faker/.';
 
 @Controller('songs')
 export class SongsController {
@@ -204,20 +205,67 @@ export class SongsController {
   //   });
   // }
 
+  // @UseGuards(JwtAuthGuard)
+  // @Get()
+  // async findAll(
+  //     @Query('page', new DefaultValuePipe(1), ParseIntPipe)
+  //     page: number = 1, 
+  //     @Query('limit', new  DefaultValuePipe(10), ParseIntPipe)
+  //     limit = 10 
+  //   ) : Promise<Pagination<Song>> {
+  //     limit = limit > 100 ? 100 : limit;
+  //     return await this.songsService.paginate( {
+  //         page, limit
+  //       } 
+  //     );
+  //   }
+
   @UseGuards(JwtAuthGuard)
   @Get()
-  async findAll(
-      @Query('page', new DefaultValuePipe(1), ParseIntPipe)
-      page: number = 1, 
-      @Query('limit', new  DefaultValuePipe(10), ParseIntPipe)
-      limit = 10 
-    ) : Promise<Pagination<Song>> {
-      limit = limit > 100 ? 100 : limit;
-      return await this.songsService.paginate( {
-          page, limit
-        } 
-      );
+  async findAll(@Query('genreId' ) genreId?: string, @Query('artistId') artistId?: string) {
+    if(!genreId && !artistId) {
+      const songs = await this.songsService.findAll();
+      if(!songs) {
+        return responseHelper({
+          message: 'No songs found',
+          statusCode: 404,
+        });
+      }
+      return responseHelper({
+        message: 'Songs retrieved successfully',
+        data: songs,
+        statusCode: 200,
+      });
     }
+    if(genreId) {
+      const songs = await this.songsService.findAllByGenre(genreId);
+      if(!songs) {
+        return responseHelper({
+          message: 'No songs found',
+          statusCode: 404,
+        });
+      }
+      return responseHelper({
+        message: 'Songs retrieved successfully',
+        data: songs,
+        statusCode: 200,
+      });
+    }
+    if(artistId) {
+      const songs = await this.songsService.findAllByArtist(artistId);
+      if(!songs) {
+        return responseHelper({
+          message: 'No songs found',
+          statusCode: 404,
+        });
+      }
+      return responseHelper({
+        message: 'Songs retrieved successfully',
+        data: songs,
+        statusCode: 200,
+      });
+    }
+  }
 
   // @UseGuards(JwtAuthGuard)
   // @Get()

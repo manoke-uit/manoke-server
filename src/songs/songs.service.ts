@@ -33,7 +33,7 @@ export class SongsService {
     private audioService: AudioService,
     private supabaseStorageService: SupabaseStorageService,
   ) {}
-  async create(fileBuffer: Buffer, fileName: string, createSongDto: CreateSongDto): Promise<Song> {
+  async create(fileBuffer: Buffer, fileName: string, createSongDto: CreateSongDto): Promise<Song | null> {
     const song = new Song()
     
     song.title = createSongDto.title;
@@ -103,7 +103,16 @@ export class SongsService {
       song.playlists = [];
     }
 
-    return this.songRepository.save(song);
+    const savedSong = await this.songRepository.save(song);
+    const result = await this.songRepository.findOne({
+      where: {id: savedSong.id},
+      relations: {
+        genres: true,
+        artists: true,
+        playlists: true
+      }
+    });
+    return result;
   }
 
   findAll(): Promise<Song[]> {
@@ -136,6 +145,23 @@ export class SongsService {
 
   paginate(options: IPaginationOptions): Promise<Pagination<Song>> {
       return paginate<Song>(this.songRepository, options);
+  }
+
+  findAllByArtist(artistId: string): Promise<Song[]> {
+    return this.songRepository.find({
+      where: {
+        artists: { id: artistId },
+      },
+      relations: { artists: true, playlists: true },
+    });
+  }
+  findAllByGenre(genreId: string): Promise<Song[]> {
+    return this.songRepository.find({
+      where: {
+        genres: { id: genreId },
+      },
+      relations: { artists: true, playlists: true },
+    });
   }
 
   // async search(query: string): Promise<Song[]> {
