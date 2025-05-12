@@ -14,6 +14,12 @@ async function bootstrap() {
     credentials: true // if using cookies or auth
   });
 
+  app.enableCors({
+    origin: 'http://localhost:3001', // change to frontend URL in production
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    credentials: true // if using cookies or auth
+  });
+
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Manoke API')
     .setDescription('API documentation for Manoke Karaoke')
