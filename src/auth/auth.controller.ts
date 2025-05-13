@@ -59,11 +59,12 @@ export class AuthController {
     return this.authService.resetPassword(body.token, body.newPassword, body.verifyNewPassword);
 }
 
-    @Get('confirm-email')
-    async confirmEmail(newUserDto: CreateUserDto = this.newUserDto) {
+    @Post('confirm-email')
+    @HttpCode(200)
+    async addUserToDatabase(newUserDto: CreateUserDto = this.newUserDto) {
         newUserDto = this.newUserDto;
         console.log(newUserDto)
-        return await this.authService.applyEmailVerification(newUserDto);
+        return await this.authService.addUserToDatabase(newUserDto);
     }
 
     @Get('google/login')

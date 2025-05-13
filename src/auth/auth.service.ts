@@ -42,16 +42,16 @@ export class AuthService {
     async generateLink(email: string, isReset?: boolean): Promise<String> {
         const actionCodeSettings = {
             url: `${process.env.APP_URL}/auth/confirm-email`,
-            handleCodeInApp: false,
+            handleCodeInApp: true,
         };
         // console.log(createUserDto.displayName);
         try {
             if (isReset) {
-                const user = this.userRepository.findOneBy({email})
+                const user = this.userRepository.findOneBy({ email })
                 if (!user) {
                     throw new NotFoundException('Cannot find user!')
                 }
-    
+
                 const secretKey = process.env.JWT_SECRET;
 
                 if (!secretKey) {
@@ -67,12 +67,12 @@ export class AuthService {
                 const link = `https://localhost:3000/reset-password?token=${resetToken}`;
                 return link;
             }
-            
+
             else {
                 await this.firebaseService.auth().getUserByEmail(email);
                 const link = await this.firebaseService
                     .auth()
-                    .generateEmailVerificationLink(email, actionCodeSettings);
+                    .generateEmailVerificationLink(email);
 
                 return link;
             }
@@ -82,49 +82,45 @@ export class AuthService {
     }
 
     async sendVerificationEmail(email: string, isReset?: boolean) {
-        // console.log(await this.firebaseService.auth().getUserByEmail(email));
-        // return
+        try {
 
-        if (isReset) {
-            const link = await this.generateLink(email, true);
-            await this.transporter.sendMail({
-                from: `${process.env.SMTP_FROM}`,
-                to: email,
-                subject: 'Verify your email',
-                html: `
+            const link = await this.generateLink(email, isReset);
+            const subject = isReset ? 'Reset your password' : 'Verify your email';
+            const body = isReset
+                ? `
                 <p>Hello,</p>
                 <p>Please press the link below to reset your password:</p>
                 <a href="${link}">${link}</a>
                 <p>If you did not request, please ignore this email.</p>
-              `,
-            });
-        }
-        else {
-            const link = await this.generateLink(email);
-            await this.transporter.sendMail({
-                from: `${process.env.SMTP_FROM}`,
-                to: email,
-                subject: 'Verify your email',
-                html: `
+              `
+                : `
                 <p>Hello,</p>
                 <p>Please press the link below to verify your email:</p>
                 <a href="${link}">${link}</a>
                 <p>If you did not request, please ignore this email.</p>
-              `,
+              `;
+
+            await this.transporter.sendMail({
+                from: `${process.env.SMTP_FROM}`,
+                to: email,
+                subject: subject,
+                html: body,
             });
+
+            return { message: "Verification sent, please check your email to continue" };
+        } catch (error) {
+            console.error('Error sending verification email:', error);
+            throw new Error('Unable to send verification email. Please try again later.');
         }
-
-        return { message: "Verification sent, please check your email to continue" }
-
     }
 
-    async applyEmailVerification(createUserDto: CreateUserDto): Promise<{ success: boolean; message: string }> {
+
+    async addUserToDatabase(createUserDto: CreateUserDto) {
         try {
             await this.usersService.create(createUserDto)
-            return { success: true, message: 'Email verified successfully.' };
+            // return { success: true, message: 'Email verified successfully.' };
         } catch (err) {
-            console.error('Error verifying email:', err);
-            throw new BadRequestException('Cannot verify your email: ' + err.message);
+            throw new BadRequestException('Cannot add user to database: ' + err.message);
         }
         //return { success: true, message: 'Email verified successfully.' };
     }
@@ -136,27 +132,22 @@ export class AuthService {
             throw new Error('User not found');
         }
 
-        // Kiểm tra mật khẩu cũ
         const isOldPasswordCorrect = await bcrypt.compare(oldPassword, user.password);
         if (!isOldPasswordCorrect) {
             throw new Error('Old password is incorrect');
         }
 
-        // Xác minh mật khẩu mới khớp với verifyPassword
         if (newPassword !== verifyPassword) {
             throw new Error('New password and verified password do not match');
         }
 
-        // Kiểm tra mật khẩu mới không trùng mật khẩu cũ
         if (await bcrypt.compare(newPassword, user.password)) {
             throw new Error('New password must be different from the old password');
         }
 
 
-        // Mã hóa mật khẩu mới
         const hashedNewPassword = await bcrypt.hash(newPassword, 10);
 
-        // Cập nhật mật khẩu mới vào DB
         user.password = hashedNewPassword;
         await this.userRepository.save(user);
 
@@ -165,13 +156,11 @@ export class AuthService {
 
     async resetPassword(token: string, newPassword: string, verifyNewPassword: string) {
         try {
-            // Xác minh JWT
             if (!process.env.JWT_SECRET) {
                 throw new Error("JWT_SECRET is not set")
             }
             const payload = jwt.verify(token, process.env.JWT_SECRET) as { email: string };
-    
-            // Lấy người dùng từ email trong JWT
+
             const user = await this.userRepository.findOne({ where: { email: payload.email } });
             if (!user) {
                 throw new Error('User not found');
@@ -180,43 +169,53 @@ export class AuthService {
             if (newPassword !== verifyNewPassword) {
                 throw new Error('New password and verified password do not match');
             }
-    
-            // Mã hóa mật khẩu mới
+
             const hashedNewPassword = await bcrypt.hash(newPassword, 10);
-    
-            // Cập nhật mật khẩu
+
             user.password = hashedNewPassword;
             await this.userRepository.save(user);
-    
+
             return { message: 'Password has been reset successfully' };
         } catch (err) {
             throw new Error('Invalid or expired token');
         }
-    }    
+    }
 
 
     // sign up
     async signup(createUserDto: CreateUserDto) {
+        try {
+            const existedUserInDb = await this.userRepository.findOne(
+                {
+                    where: { email: createUserDto.email }
+                }
+            )
 
-        const existedUser = await this.userRepository.findOne(
-            {
-                where: { email: createUserDto.email }
+            if (existedUserInDb !== null) {
+                throw new ForbiddenException("Email already existed")
             }
-        )
 
-        if (existedUser !== null) {
-            throw new ForbiddenException("Email already existed")
+            const newUser = createUserDto;
+
+            let existedUserInFb;
+            try {
+                existedUserInFb = await this.firebaseService.auth().getUserByEmail(newUser.email);
+            } catch (error) {
+                if (error.code === 'auth/user-not-found') {
+                    existedUserInFb = await this.firebaseService.auth().createUser({
+                        email: createUserDto.email,
+                        password: createUserDto.password,
+                        displayName: createUserDto.displayName,
+                    });
+                } else {
+                    throw error;
+                }
+            }
+
+            return this.sendVerificationEmail(newUser.email);
+        } catch (error) {
+            throw new Error(`Cannot sign up new user: ${error}`);
         }
-
-        const newUser = createUserDto;
-
-        await this.firebaseService.auth().createUser({
-            email: createUserDto.email,
-            password: createUserDto.password,
-            displayName: createUserDto.displayName
-        }
-        )
-        return this.sendVerificationEmail(newUser.email);
 
     }
     // login

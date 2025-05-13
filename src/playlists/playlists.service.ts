@@ -222,6 +222,24 @@ export class PlaylistsService {
     return await this.playlistRepository.find();
   }
 
+  async findPublicPlaylist() {
+    return await this.playlistRepository.find({
+      where: {isPublic: true}
+    });
+  }
+
+  async findUserPlaylist(userId: string) {
+    const user = await this.userRepository.findOneBy({id: userId});
+
+    if (!user) {
+      throw new NotFoundException('Cannot get user!')
+    }
+
+    return await this.playlistRepository.find({
+      where: {user}
+    })
+  }
+
   async findOne(id: string): Promise<Playlist | null> {
     return await this.playlistRepository.findOneBy({ id });
   }
