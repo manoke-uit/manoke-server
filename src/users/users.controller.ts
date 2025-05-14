@@ -33,10 +33,14 @@ export class UsersController {
     );
   }
 
-  @Get()
-  async findOneEmail() : Promise<User | null> {
-    return await this.usersService.findByEmail("test"); // TODO: remove this line and implement the actual logic
+  // @Get()
+  // async findOneEmail() : Promise<User | null> {
+  //   return await this.usersService.findByEmail("test"); // TODO: remove this line and implement the actual logic
 
+  // }
+  @Post('email')
+  async findOneEmail(@Body('email') email: string) : Promise<User | null> {
+    return await this.usersService.findByEmail(email);
   }
 
 

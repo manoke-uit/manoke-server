@@ -11,7 +11,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { ScoresService } from 'src/scores/scores.service';
 import { response } from 'express';
 import { responseHelper } from 'src/helpers/response.helper';
-import { ApiOperation } from '@nestjs/swagger';
+import { ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { ar } from '@faker-js/faker/.';
 
 @Controller('songs')
@@ -222,6 +222,8 @@ export class SongsController {
 
   @UseGuards(JwtAuthGuard)
   @Get()
+  @ApiQuery({ name: 'genreId', required: false })
+  @ApiQuery({ name: 'artistId', required: false })
   async findAll(@Query('genreId' ) genreId?: string, @Query('artistId') artistId?: string) {
     if(!genreId && !artistId) {
       const songs = await this.songsService.findAll();
