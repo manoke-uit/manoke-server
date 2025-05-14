@@ -9,9 +9,11 @@ import { HttpModule } from '@nestjs/axios';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { SupabaseStorageModule } from 'src/supabase-storage/supabase-storage.module';
 import { AudioModule } from 'src/helpers/audio/audio.module';
+import { NotificationsService } from 'src/notifications/notifications.service';
+import { Notification } from 'src/notifications/entities/notification.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Score]), SongsModule, UsersModule,
+  imports: [TypeOrmModule.forFeature([Score, Notification]), SongsModule, UsersModule,
 HttpModule.registerAsync({
   imports: [ConfigModule],
   inject: [ConfigService],
@@ -20,7 +22,7 @@ HttpModule.registerAsync({
   }),
 }), SupabaseStorageModule, AudioModule],
   controllers: [ScoresController],
-  providers: [ScoresService],
+  providers: [ScoresService, NotificationsService],
   exports: [ScoresService], //export the service so it can be used in other modules
 })
 export class ScoresModule {}

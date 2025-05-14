@@ -6,6 +6,7 @@ import { DeleteResult, UpdateResult } from 'typeorm';
 import { Playlist } from './entities/playlist.entity';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth-guard';
+import { JwtAdminGuard } from 'src/auth/guards/jwt-admin-guard';
 
 @Controller('playlists')
 export class PlaylistsController {
@@ -86,22 +87,20 @@ export class PlaylistsController {
     return playlists;
   }
 
-
-
-  // get all the PUBLIC playlists
   @UseGuards(JwtAuthGuard)
+  @Post() 
+  async clonePlaylist(
+    @Req() req: any, 
+    @Query('q') playlistId: string
+  ) {
+    return await this.playlistsService.clonePlaylist(req.user['userId'], playlistId)
+  }
+
+  @UseGuards(JwtAdminGuard)
   @Get()
   async findAll(
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe)
-    page: number = 1,
-    @Query('limit', new DefaultValuePipe(10), ParseIntPipe)
-    limit = 10
-  ): Promise<Pagination<Playlist>> {
-    limit = limit > 100 ? 100 : limit;
-    return await this.playlistsService.paginate({
-      page, limit
-    }
-    );
+  ): Promise<Playlist[]> {
+    return await this.playlistsService.findAll();
   }
 
   // if the playlist is private and the user is not the owner, can't see the playlist right?
@@ -110,6 +109,22 @@ export class PlaylistsController {
   async findOne(@Param('id') id: string): Promise<Playlist | null> {
     return await this.playlistsService.findOne(id);
   }
+
+  // get all the PUBLIC playlists
+  @Get('publicPlaylist')
+  @UseGuards(JwtAuthGuard)
+  async findPublicPlaylist(): Promise<Playlist[]> {
+    return await this.playlistsService.findPublicPlaylist();
+  }
+
+  @Get('userPlaylist')
+  @UseGuards(JwtAuthGuard)
+  async findUserPlaylist(
+    @Req() req: any
+  ): Promise<Playlist[]> {
+    return await this.playlistsService.findUserPlaylist(req.user['userId']);
+  }
+
 
   // TODO: check if the user is the owner of the playlist before getting the playlist
   // also where is the fetch playlist function...

@@ -5,10 +5,16 @@ import { UpdateScoreDto } from './dto/update-score.dto';
 import { JwtAdminGuard } from 'src/auth/guards/jwt-admin-guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth-guard';
+import { NotificationsService } from 'src/notifications/notifications.service';
+import { SendNotificationDto } from 'src/notifications/dto/send-notification.dto';
 
 @Controller('scores')
 export class ScoresController {
-  constructor(private readonly scoresService: ScoresService) {}
+  constructor(
+    private readonly scoresService: ScoresService,
+    private readonly notificationService: NotificationsService, 
+    // private sendNotificationDto: SendNotificationDto
+  ) {}
 
   @Post()
   create(@Body() createScoreDto: CreateScoreDto) {
@@ -38,7 +44,7 @@ export class ScoresController {
   @UseGuards(JwtAuthGuard)
   @Post('score')
   @UseInterceptors(FileInterceptor('file'))
-  async score(@UploadedFile() file: Express.Multer.File, @Body() createScoreDto : CreateScoreDto, @Req() req: any): Promise<string> {
+  async score(@UploadedFile() file: Express.Multer.File, @Body() createScoreDto : CreateScoreDto, @Req() req: any, sendNotificationDto: SendNotificationDto): Promise<string> {
     createScoreDto.userId = req.user['userId']; // set the userId in the createScoreDto
     
     const fileName = file.originalname; // get the original file name
@@ -49,6 +55,9 @@ export class ScoresController {
     
     try {
       const savedScore =  await this.scoresService.create(createScoreDto, file.buffer); // create the score in the database
+
+      // await this.notificationService.sendAndSave()
+
       return savedScore.finalScore.toString(); // return the id of the saved score
     }
     catch (error) {
