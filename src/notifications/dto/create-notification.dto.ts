@@ -16,20 +16,25 @@ export class CreateNotificationDto {
     @IsDateString()
     @IsOptional() // default value is Date.now()
     @Transform(({ value }) => {
-            const [day, month, year] = value.split('/');
-            return `${year}-${month}-${day}`;
+        const [day, month, year] = value.split('/');
+        return `${year}-${month}-${day}`;
     })
     @ApiProperty({ required: false, description: 'Notification creation date' })
-    createdAt?: string; 
+    createdAt?: string;
 
     @IsBoolean()
     @IsOptional() // default value is false
     @ApiProperty({ required: false, description: 'Notification read status' })
-    isRead?: boolean; 
+    isRead?: boolean;
 
     @IsNotEmpty()
     @IsUUID('4')
     @IsOptional()
     @ApiProperty({ description: 'ID of the user who got the notification' })
     userId: string;
+
+    @ApiProperty({ example: 'fcm_device_token_123', required: false })
+    @IsString()
+    @IsOptional()
+    deviceId?: string; // Chỉ dùng nếu cần gửi push
 }

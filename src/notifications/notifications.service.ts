@@ -2,8 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Notification } from './entities/notification.entity';
 import { Repository } from 'typeorm';
-import { SendNotificationDto } from './dto/send-notification.dto';
 import * as firebase from 'firebase-admin';
+import { CreateNotificationDto } from './dto/create-notification.dto';
 
 @Injectable()
 export class NotificationsService {
@@ -12,14 +12,14 @@ export class NotificationsService {
     private notificationsRepository: Repository<Notification>,
   ) { }
 
-  async sendAndSave(sendNotificationDto: SendNotificationDto) {
-    if (sendNotificationDto.deviceId) {
+  async sendAndSave(createNotificationDto: CreateNotificationDto) {
+    if (createNotificationDto.deviceId) {
       await firebase.messaging().send({
         notification: {
-          title: sendNotificationDto.title,
-          body: sendNotificationDto.description || '',
+          title: createNotificationDto.title,
+          body: createNotificationDto.description || '',
         },
-        token: sendNotificationDto.deviceId,
+        token: createNotificationDto.deviceId,
         android: 
         { 
           priority: 'high', 
@@ -41,9 +41,9 @@ export class NotificationsService {
     }
 
     return this.notificationsRepository.save({
-      title: sendNotificationDto.title,
-      description: sendNotificationDto.description,
-      user: { id: sendNotificationDto.userId },
+      title: createNotificationDto.title,
+      description: createNotificationDto.description,
+      user: { id: createNotificationDto.userId },
       isRead: false,
     });
   }
@@ -69,4 +69,5 @@ export class NotificationsService {
   async remove(id: string) {
     return this.notificationsRepository.delete(id);
   }
+
 }

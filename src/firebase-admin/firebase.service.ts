@@ -26,8 +26,16 @@ export class FirebaseService {
   async addDocument(collection: string, data: Record<string, any>) {
     const docRef = await this.firebaseAdmin.firestore().collection(collection).add(data);
     return docRef.id;
-
-    
   }
+
+  // async applyActionCode(oobCode: string) {
+  //   try {
+  //     // Sử dụng Firebase Admin SDK để áp dụng action code (xác minh email hoặc thay đổi mật khẩu)
+  //     await this.firebaseAdmin.applyActionCode(oobCode);
+  //     return { message: 'Email verified successfully.' }; // Thông báo xác minh thành công
+  //   } catch (error) {
+  //     throw new Error('Error applying action code: ' + error.message); // Xử lý lỗi nếu có
+  //   }
+  // }
 
 }

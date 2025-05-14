@@ -41,7 +41,7 @@ export class AuthService {
 
     async generateLink(email: string, isReset?: boolean): Promise<String> {
         const actionCodeSettings = {
-            url: `${process.env.APP_URL}/auth/confirm-email`,
+            url: `http://localhost:8081/login `,
             handleCodeInApp: true,
         };
         // console.log(createUserDto.displayName);
@@ -72,7 +72,7 @@ export class AuthService {
                 await this.firebaseService.auth().getUserByEmail(email);
                 const link = await this.firebaseService
                     .auth()
-                    .generateEmailVerificationLink(email);
+                    .generateEmailVerificationLink(email, actionCodeSettings);
 
                 return link;
             }
@@ -124,6 +124,7 @@ export class AuthService {
         }
         //return { success: true, message: 'Email verified successfully.' };
     }
+    
 
     async changePassword(userEmail: string, oldPassword: string, newPassword: string, verifyPassword: string) {
         // Lấy người dùng từ DB

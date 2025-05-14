@@ -1,7 +1,7 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Query } from '@nestjs/common';
 import { NotificationsService } from './notifications.service';
-import { SendNotificationDto } from './dto/send-notification.dto';
 import { ApiTags, ApiQuery } from '@nestjs/swagger';
+import { CreateNotificationDto } from './dto/create-notification.dto';
 
 @ApiTags('Notifications')
 @Controller('notifications')
@@ -9,8 +9,8 @@ export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}
 
   @Post()
-  sendNotification(@Body() sendNotificationDto: SendNotificationDto) {
-    return this.notificationsService.sendAndSave(sendNotificationDto);
+  sendNotification(@Body() createNotificationDto: CreateNotificationDto) {
+    return this.notificationsService.sendAndSave(createNotificationDto);
   }
 
   @Get()

@@ -6,7 +6,7 @@ import { JwtAdminGuard } from 'src/auth/guards/jwt-admin-guard';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth-guard';
 import { NotificationsService } from 'src/notifications/notifications.service';
-import { SendNotificationDto } from 'src/notifications/dto/send-notification.dto';
+import { CreateNotificationDto } from 'src/notifications/dto/create-notification.dto';
 
 @Controller('scores')
 export class ScoresController {
@@ -44,7 +44,7 @@ export class ScoresController {
   @UseGuards(JwtAuthGuard)
   @Post('score')
   @UseInterceptors(FileInterceptor('file'))
-  async score(@UploadedFile() file: Express.Multer.File, @Body() createScoreDto : CreateScoreDto, @Req() req: any, sendNotificationDto: SendNotificationDto): Promise<string> {
+  async score(@UploadedFile() file: Express.Multer.File, @Body() createScoreDto : CreateScoreDto, @Req() req: any, createNotificationDto: CreateNotificationDto): Promise<string> {
     createScoreDto.userId = req.user['userId']; // set the userId in the createScoreDto
     
     const fileName = file.originalname; // get the original file name
@@ -56,7 +56,12 @@ export class ScoresController {
     try {
       const savedScore =  await this.scoresService.create(createScoreDto, file.buffer); // create the score in the database
 
-      // await this.notificationService.sendAndSave()
+      // createNotificationDto.title = "Complete calculating score!";
+      // createNotificationDto.description = "Hello! Your score has been calculated. Please enter the app to receive your achievement!"
+      // createNotificationDto.userId = req.user['userId'];
+      // createNotificationDto.isRead = false;
+      
+      // await this.notificationService.sendAndSave(createNotificationDto);
 
       return savedScore.finalScore.toString(); // return the id of the saved score
     }
