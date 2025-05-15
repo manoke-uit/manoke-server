@@ -3,7 +3,7 @@ import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Post } from './entities/post.entity';
-import { DeleteResult, Repository, UpdateResult } from 'typeorm';
+import { DeleteResult, In, Repository, UpdateResult } from 'typeorm';
 import { Score } from 'src/scores/entities/score.entity';
 import { User } from 'src/users/entities/user.entity';
 import { UpdateRequest } from 'firebase-admin/lib/auth/auth-config';
@@ -57,8 +57,47 @@ export class PostsService {
     );
   }
 
-  async update(id: string, updatePostDto: UpdatePostDto): Promise<UpdateResult> {
-    return await this.postRepository.update(id, updatePostDto);
+  async update(id: string, userId: string, updatePostDto: UpdatePostDto) {
+    const post = await this.postRepository.findOneBy({ id });
+    if (!post) {
+      throw new NotFoundException('Post not found');
+    }
+    if (updatePostDto.userId) {
+      const user = await this.userRepository.findOneBy({ id: updatePostDto.userId });
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+      post.user = user;
+    } else {
+      const user = await this.userRepository.findOneBy({ id: userId });
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+      post.user = user;
+    }
+    if (updatePostDto.scoreId) {
+      const score = await this.scoreRepository.findOneBy({ id: updatePostDto.scoreId });
+      if (!score) {
+        throw new NotFoundException('Score not found');
+      }
+      post.score = score;
+    }
+    if (updatePostDto.description) {
+      post.description = updatePostDto.description;
+    }
+    if (updatePostDto.createdAt) {
+      post.createdAt = new Date(updatePostDto.createdAt);
+    }
+    if (updatePostDto.commentIds) {
+      const comments = await this.commentRepository.findBy({ id: In(updatePostDto.commentIds) });
+      if (comments.length === 0) {
+        throw new NotFoundException('No comments found');
+      }
+      post.comments = comments;
+    }
+    
+   
+    return await this.postRepository.save( post);
   }
 
   async remove(id: string): Promise<DeleteResult> {

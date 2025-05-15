@@ -250,8 +250,30 @@ export class PlaylistsService {
     })
   }
 
-  async update(id: string, updatePlaylistDto: UpdatePlaylistDto) : Promise<UpdateResult> {
-    return this.playlistRepository.update(id, updatePlaylistDto);
+  async update(id: string, userId: string, updatePlaylistDto: UpdatePlaylistDto) {
+    const playlist = await this.playlistRepository.findOneBy({ id });
+    if (!playlist) {
+      throw new NotFoundException("Playlist doesn't exist!");
+    }
+    playlist.title = updatePlaylistDto.title  ?? playlist.title;
+    playlist.description = updatePlaylistDto.description ?? playlist.description;
+    playlist.isPublic = updatePlaylistDto.isPublic?? playlist.isPublic;
+    playlist.songs = updatePlaylistDto.songIds ? await this.songRepository.findBy({id: In(updatePlaylistDto.songIds)}) : playlist.songs;
+    if (updatePlaylistDto.userId){
+      const user = await this.userRepository.findOneBy({id: updatePlaylistDto.userId});
+      if (!user) {
+        throw new NotFoundException("User doesn't exist!");
+      }
+      playlist.user = user;
+    } else {
+      const user = await this.userRepository.findOneBy({id: userId});
+      if (!user) {
+        throw new NotFoundException("User doesn't exist!");
+      }
+      playlist.user = user;
+    }
+    playlist.imageUrl = updatePlaylistDto.imageUrl ?? playlist.imageUrl;
+    return await this.playlistRepository.save(playlist);
   }
 
   async remove(id: string): Promise<DeleteResult> {

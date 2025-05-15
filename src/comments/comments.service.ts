@@ -52,8 +52,28 @@ export class CommentsService {
       });
     }
   
-    async update(id: string, UpdateCommentDto: UpdateCommentDto): Promise<UpdateResult> {
-      return await this.commentRepository.update(id, UpdateCommentDto);
+    async update(id: string, userId: string,updateCommentDto: UpdateCommentDto){
+      const comment = await this.commentRepository.findOneBy({id});
+      if (!comment) {
+        throw new NotFoundException('Cannot find any scores!');
+      }
+      if(updateCommentDto.postId){
+        const post = await this.postRepository.findOneBy({id: updateCommentDto.postId});
+        if (!post) {
+          throw new NotFoundException('Cannot find any scores!');
+        }
+        comment.post = post;
+      }
+      if (userId){
+        const user = await this.userRepository.findOneBy({id: userId});
+        if (!user) {
+          throw new NotFoundException('Cannot find user!');
+        }
+        comment.user = user;
+      }
+      comment.comment = updateCommentDto.comment ?? comment.comment;
+      comment.createdAt = updateCommentDto.createdAt ? new Date(updateCommentDto.createdAt) : new Date();
+      return await this.commentRepository.save(comment);
     }
   
     async remove(id: string): Promise<DeleteResult> {

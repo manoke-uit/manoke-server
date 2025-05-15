@@ -94,35 +94,63 @@ export class KaraokesService {
     }
   }
 
-  findAll() : Promise<Karaoke[]> {
-    return this.karaokeRepository.find({
+  async findAll() : Promise<Karaoke[]> {
+    return await this.karaokeRepository.find({
       relations: ['song', 'user'],
     });
   }
 
-  findOne(id: string) : Promise<Karaoke | null> {
-    return this.karaokeRepository.findOne({
+  async findOne(id: string) : Promise<Karaoke | null> {
+    return  await this.karaokeRepository.findOne({
       where: { id },
       relations: ['song', 'user'],
     });
   }
 
-  findAllByUserId(userId: string) : Promise<Karaoke[]> {
-    return this.karaokeRepository.find({
+  async findAllByUserId(userId: string) : Promise<Karaoke[]> {
+    return await this.karaokeRepository.find({
       where: { user: { id: userId } },
       relations: ['song', 'user'],
     });
   }
   
-  findAllBySongId(songId: string) : Promise<Karaoke[]> {
-    return this.karaokeRepository.find({
+  async findAllBySongId(songId: string) : Promise<Karaoke[]> {
+    return await this.karaokeRepository.find({
       where: { song: { id: songId } },
       relations: ['song', 'user'],
     });
   }
 
-  update(id: string, updateKaraokeDto: UpdateKaraokeDto) : Promise<UpdateResult>{
-    return this.karaokeRepository.update(id, updateKaraokeDto);
+  async update(id: string, userId: string, updateKaraokeDto: UpdateKaraokeDto){
+    const karaoke = await this.karaokeRepository.findOneBy({ id });
+    if (!karaoke) {
+      throw new Error('Karaoke not found');
+    }
+    karaoke.videoUrl = updateKaraokeDto.videoUrl ?? karaoke.videoUrl;
+    karaoke.description = updateKaraokeDto.description ?? karaoke.description;
+    
+    if (updateKaraokeDto.songId) {
+      const song = await this.songRepository.findOneBy({ id: updateKaraokeDto.songId });
+      if (!song) {
+        throw new Error('Song not found');
+      }
+      karaoke.song = song;
+    }
+    if (updateKaraokeDto.userId) {
+      const user = await this.userRepository.findOneBy({ id: updateKaraokeDto.userId });
+      if (!user) {
+        throw new Error('User not found');
+      }
+      karaoke.user = user;
+    } else {
+      const user = await this.userRepository.findOneBy({ id: userId });
+      if (!user) {
+        throw new Error('User not found');
+      }
+      karaoke.user = user;
+    }
+
+    return await this.karaokeRepository.save( karaoke);
   }
 
   remove(id: string) : Promise<DeleteResult> {

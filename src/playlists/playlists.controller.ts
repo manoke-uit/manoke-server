@@ -149,7 +149,8 @@ export class PlaylistsController {
         statusCode: 403,
       });
     }
-    return await this.playlistsService.update(id, updatePlaylistDto);
+    const userId = req.user['userId'];
+    return await this.playlistsService.update(id, userId, updatePlaylistDto);
   }
 
   @UseGuards(JwtAuthGuard)

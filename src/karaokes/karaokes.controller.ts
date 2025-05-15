@@ -178,7 +178,8 @@ export class KaraokesController {
         statusCode: 403,
       });
     }
-    const updatedKaraoke = await this.karaokesService.update(id, updateKaraokeDto);
+    const userId = req.user['userId'];
+    const updatedKaraoke = await this.karaokesService.update(id, userId, updateKaraokeDto);
     if (!updatedKaraoke) {
       return responseHelper({
         message: 'Karaoke update failed',

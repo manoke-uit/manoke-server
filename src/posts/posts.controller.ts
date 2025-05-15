@@ -44,7 +44,8 @@ export class PostsController {
         statusCode: 403,
       });
     }
-    return await this.postsService.update(id, updatePostDto);
+    const userId = req.user['userId'];
+    return await this.postsService.update(id, userId, updatePostDto);
   }
 
   @UseGuards(JwtAuthGuard)
