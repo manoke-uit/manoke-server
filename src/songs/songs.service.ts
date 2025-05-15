@@ -39,8 +39,8 @@ export class SongsService {
     song.title = createSongDto.title;
     const sanitizedLyrics = (text: string): string =>
     text
-      .normalize('NFD')                           // separate accents
-      .replace(/[\u0300-\u036f]/g, '')            // remove accents
+      // .normalize('NFD')                           // separate accents
+      // .replace(/[\u0300-\u036f]/g, '')            // remove accents
       .replace(/[.,!?"]/g, '')                    // remove punctuation
       .replace(/\s+/g, ' ')                       // collapse whitespace
       .trim()

@@ -7,6 +7,7 @@ import { ApiOperation, ApiProperty, ApiResponse } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth-guard';
 import { JwtAdminGuard } from 'src/auth/guards/jwt-admin-guard';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { ConfigService } from '@nestjs/config';
 
 @Controller('karaokes')
 export class KaraokesController {
@@ -167,9 +168,18 @@ export class KaraokesController {
     });
   }
 
+  @UseGuards(JwtAuthGuard)
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() updateKaraokeDto: UpdateKaraokeDto) {
-    const updatedKaraoke = await this.karaokesService.update(id, updateKaraokeDto);
+  async update(@Param('id') id: string, @Body() updateKaraokeDto: UpdateKaraokeDto, @Req() req: any) {
+    const karaoke = await this.karaokesService.findOne(id);
+    if(karaoke?.user.id !== req.user['userId'] || karaoke?.user.adminSecret !== req.user['adminSecret']) {
+      return responseHelper({
+        message: 'You are not authorized to update this karaoke',
+        statusCode: 403,
+      });
+    }
+    const userId = req.user['userId'];
+    const updatedKaraoke = await this.karaokesService.update(id, userId, updateKaraokeDto);
     if (!updatedKaraoke) {
       return responseHelper({
         message: 'Karaoke update failed',
@@ -183,8 +193,16 @@ export class KaraokesController {
     });
   }
 
+  @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  async remove(@Param('id') id: string) {
+  async remove(@Param('id') id: string, @Req() req: any) {
+    const karaoke = await this.karaokesService.findOne(id);
+    if(karaoke?.user.id !== req.user['userId'] || karaoke?.user.adminSecret !== req.user['adminSecret']) {
+      return responseHelper({
+        message: 'You are not authorized to delete this karaoke',
+        statusCode: 403,
+      });
+    }
     const deletedKaraoke = await this.karaokesService.remove(id);
     if (!deletedKaraoke) {
       return responseHelper({

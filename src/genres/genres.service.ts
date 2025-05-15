@@ -36,8 +36,21 @@ export class GenresService {
     });
   }
 
-  async update(id: string, updateGenreDto: UpdateGenreDto) : Promise<UpdateResult> {
-    return this.genreRepository.update(id, updateGenreDto);
+  async update(id: string, updateGenreDto: UpdateGenreDto) {
+    const genre = await this.genreRepository.findOneBy({ id });
+    if (!genre) {
+      throw new Error('Genre not found');
+    }
+    if (updateGenreDto.songIds && updateGenreDto.songIds.length > 0) {
+      const songs = await this.songRepository.findBy({
+        id: In(updateGenreDto.songIds),
+      });
+      genre.songs = songs;
+    }
+    else genre.songs = [];
+    genre.name = updateGenreDto.name ?? genre.name;
+
+    return this.genreRepository.save(genre);
 
   }
 

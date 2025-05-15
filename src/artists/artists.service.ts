@@ -35,24 +35,36 @@ export class ArtistsService {
     return this.artistRepository.save(artist);
   }
 
-  findAll(): Promise<Artist[]> {
-    return this.artistRepository.find();
+  async findAll(): Promise<Artist[]> {
+    return await this.artistRepository.find();
   }
 
-  findOne(id: string): Promise<Artist | null> {
-    return this.artistRepository.findOneBy({ id });
+  async findOne(id: string): Promise<Artist | null> {
+    return await this.artistRepository.findOneBy({ id });
   }
 
   // async findOneBySpotifyId(spotifyId: string): Promise<Artist | null> {
   //   return this.artistRepository.findOneBy({ spotifyId });
   // }
 
-  update(id: string, updateArtistDto: UpdateArtistDto): Promise<UpdateResult> {
-    return this.artistRepository.update(id, updateArtistDto);
+  async update(id: string, updateArtistDto: UpdateArtistDto) {
+    const artist = await this.artistRepository.findOneBy({ id });
+    if (!artist) {
+      throw new Error('Artist not found');
+    }
+    if (updateArtistDto.songIds && updateArtistDto.songIds.length > 0) {
+      const songs = await this.songRepository.findBy({
+        id: In(updateArtistDto.songIds)
+      })
+      artist.songs = songs;
+    } else {
+      artist.songs = [];
+    }
+    return await this.artistRepository.save(artist);
   }
 
-  remove(id: string): Promise<DeleteResult> {
-    return this.artistRepository.delete(id);
+  async remove(id: string): Promise<DeleteResult> {
+    return await this.artistRepository.delete(id);
   }
 
   paginate(options: IPaginationOptions): Promise<Pagination<Artist>> {

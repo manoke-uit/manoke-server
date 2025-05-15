@@ -13,7 +13,7 @@ export class CreateFriendDto {
     @IsEnum(FriendStatus)
     @IsOptional()
     @ApiProperty({ enum: FriendStatus, description: 'Friendship status' })
-    status: FriendStatus
+    status?: FriendStatus
 
     @IsOptional()
     @IsDateString()

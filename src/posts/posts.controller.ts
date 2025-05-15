@@ -3,6 +3,7 @@ import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth-guard';
+import { responseHelper } from 'src/helpers/response.helper';
 
 @Controller('posts')
 export class PostsController {
@@ -30,17 +31,38 @@ export class PostsController {
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
   async update(@Param('id') id: string, @Body() updatePostDto: UpdatePostDto, @Req() req: any) {
-    if(req.user['userId'] !== id) {
-      throw new Error("You are not authorized to update this post");
+    const post = await this.postsService.findOne(id);
+    if (!post) {
+      return responseHelper({
+        message: 'Post not found',
+        statusCode: 404,
+      });
     }
-    return await this.postsService.update(id, updatePostDto);
+    if (post.user.id !== req.user['userId'] || post.user.adminSecret !== req.user['adminSecret']) {
+      return responseHelper({
+        message: 'You are not authorized to update this post',
+        statusCode: 403,
+      });
+    }
+    const userId = req.user['userId'];
+    return await this.postsService.update(id, userId, updatePostDto);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
   async remove(@Param('id') id: string, @Req() req: any) {
-    if(req.user['userId'] !== id) {
-      throw new Error("You are not authorized to delete this post");
+    const post = await this.postsService.findOne(id);
+    if (!post) {
+      return responseHelper({
+        message: 'Post not found',
+        statusCode: 404,
+      });
+    }
+    if (post.user.id !== req.user['userId'] || post.user.adminSecret !== req.user['adminSecret']) {
+      return responseHelper({
+        message: 'You are not authorized to delete this post',
+        statusCode: 403,
+      });
     }
     return await this.postsService.remove(id);
   }

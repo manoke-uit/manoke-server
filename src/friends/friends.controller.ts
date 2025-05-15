@@ -28,14 +28,14 @@ export class FriendsController {
     @Req() req: RequestWithUser,
     @Body() createFriendDto: CreateFriendDto
   ): Promise<Friend> {
-    const currentUserId = req.user.userId;
+    const currentUserId = req.user['userId'];
     return this.friendsService.sendFriendRequest(currentUserId, createFriendDto);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get()
   getFriendList(@Req() req: RequestWithUser): Promise<Friend[]> {
-    const currentUserId = req.user.userId;
+    const currentUserId = req.user['userId'];
     return this.friendsService.getFriendList(currentUserId);
 
   }
@@ -43,7 +43,7 @@ export class FriendsController {
   @UseGuards(JwtAuthGuard)
   @Get('requests')
   findAll(@Req() req: RequestWithUser): Promise<Friend[]> {
-    const currentUserId = req.user.userId;
+    const currentUserId = req.user['userId'];
     return this.friendsService.getRequests(currentUserId);
   }
 
@@ -53,27 +53,29 @@ export class FriendsController {
     @Param('idToFind') idToFind: string,
     @Req() req: RequestWithUser,
   ): Promise<Friend | null> {
-    const currentUserId = req.user.userId;
+    const currentUserId = req.user['userId'];
     return this.friendsService.findOne(currentUserId, idToFind);
   }
 
   @UseGuards(JwtAuthGuard)
-  @Patch()
+  @Patch(':id')
   update(
     @Req() req: RequestWithUser,
+    @Param('id') id: string,
     @Body() updateFriendDto: UpdateFriendDto
   ): Promise<UpdateResult> {
-    const currentUserId = req.user.userId;
-    return this.friendsService.updateStatus(currentUserId, updateFriendDto);
+    const currentUserId = req.user['userId'];
+    // Check if the user is the one who sent the friend request
+    return this.friendsService.updateStatus(currentUserId, id, updateFriendDto);
   }
 
   @UseGuards(JwtAuthGuard)
-  @Delete(':idToRemove')
+  @Delete(':id')
   remove(
     @Req() req: RequestWithUser, 
-    @Param('idToRemove') idToRemove: string
+    @Param('id') id: string
   ) {
-    const currentUserId = req.user.userId;
-    return this.friendsService.removeFriend(currentUserId, idToRemove);
+    const currentUserId = req.user['userId'];
+    return this.friendsService.removeFriend(currentUserId, id);
   }
 }
