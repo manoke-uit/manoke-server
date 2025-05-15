@@ -26,6 +26,8 @@ import { KaraokesModule } from './karaokes/karaokes.module';
 import { GenresModule } from './genres/genres.module';
 import { PostsModule } from './posts/posts.module';
 import { CommentsModule } from './comments/comments.module';
+import { OtpService } from './otp/otp.service';
+import { OtpModule } from './otp/otp.module';
 
 @Module({
   imports: [ConfigModule.forRoot({ // these are for joi validation
@@ -60,9 +62,10 @@ import { CommentsModule } from './comments/comments.module';
   GenresModule,
   PostsModule,
   CommentsModule,
+  OtpModule,
 ],
   controllers: [AppController],
-  providers: [AppService, JwtStrategy], // REMEMBER TO register JwtStrategy as provider whenever you use it in the module
+  providers: [AppService, JwtStrategy, OtpService], // REMEMBER TO register JwtStrategy as provider whenever you use it in the module
 })
 export class AppModule implements OnModuleInit {
   constructor(private dataSource : DataSource) {}

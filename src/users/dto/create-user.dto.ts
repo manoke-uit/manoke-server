@@ -72,4 +72,9 @@ export class CreateUserDto {
     @IsArray()
     @ApiProperty({ required: false, description: 'User comments' })
     commentIds?: string[]; // @IsArray() in dto
+
+    @IsOptional()
+    @IsString()
+    @ApiProperty({ required: false, description: 'OTP Token for verification' })
+    otpToken?: string; // @IsString() in dto
 }

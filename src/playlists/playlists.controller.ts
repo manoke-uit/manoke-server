@@ -88,7 +88,7 @@ export class PlaylistsController {
   }
 
   @UseGuards(JwtAuthGuard)
-  @Post() 
+  @Post('clonePlaylist') 
   async clonePlaylist(
     @Req() req: any, 
     @Query('q') playlistId: string

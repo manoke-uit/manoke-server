@@ -14,6 +14,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from 'src/users/entities/user.entity';
 import { Playlist } from 'src/playlists/entities/playlist.entity';
 import { Song } from 'src/songs/entities/song.entity';
+import { OtpService } from '../otp/otp.service';
 
 @Module({
   imports: [
@@ -30,7 +31,7 @@ import { Song } from 'src/songs/entities/song.entity';
     UsersModule, 
     TypeOrmModule.forFeature([User])
   ],
-  providers: [AuthService, JwtStrategy, GoogleStrategy], // register AuthService and JwtService as providers, strategy is also a provider => need to provide config module so that config service can be used inside jwt strategy
+  providers: [AuthService, JwtStrategy, GoogleStrategy, OtpService], // register AuthService and JwtService as providers, strategy is also a provider => need to provide config module so that config service can be used inside jwt strategy
   controllers: [AuthController],
   exports: [AuthService], // Export AuthService and JwtModule for use in other modules
 })

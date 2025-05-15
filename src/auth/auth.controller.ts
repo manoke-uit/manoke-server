@@ -55,17 +55,17 @@ export class AuthController {
 }
 
     @Post('reset-password')
-    async resetPassword(@Body() body: { token: string; newPassword: string, verifyNewPassword: string }) {
-    return this.authService.resetPassword(body.token, body.newPassword, body.verifyNewPassword);
+    async resetPassword(@Body() body: { email: string; newPassword: string, verifyNewPassword: string }) {
+    return this.authService.resetPassword(body.email, body.newPassword, body.verifyNewPassword);
 }
 
-    // @Post('confirm-email')
-    // @HttpCode(200)
-    // async addUserToDatabase(newUserDto: CreateUserDto = this.newUserDto) {
-    //     newUserDto = this.newUserDto;
-    //     console.log(newUserDto)
-    //     return await this.authService.addUserToDatabase(newUserDto);
-    // }
+    @Post('confirm-verification')
+    @HttpCode(200)
+    async confirmVerification(newUserDto: CreateUserDto = this.newUserDto, @Body('otp') otp: string) {
+        newUserDto = this.newUserDto;
+        console.log(newUserDto)
+        return await this.authService.confirmVerification(newUserDto, otp);
+    }
     
 
     @Get('google/login')

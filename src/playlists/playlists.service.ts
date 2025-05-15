@@ -33,7 +33,7 @@ export class PlaylistsService {
     playlist.title = createPlaylistDto.title; 
     playlist.imageUrl = createPlaylistDto.imageUrl; 
     playlist.description = createPlaylistDto.description; 
-    playlist.isPublic = !createPlaylistDto.isPublic ? false : true;
+    playlist.isPublic = !createPlaylistDto.isPublic ? false :  true;
 
     const user = await this.userRepository.findOneBy({ id: createPlaylistDto.userId });
     if (!user)

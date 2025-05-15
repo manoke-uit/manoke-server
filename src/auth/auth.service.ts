@@ -16,6 +16,7 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { v4 as uuidv4 } from 'uuid';
 import * as jwt from 'jsonwebtoken';
 import { PlaylistsService } from 'src/playlists/playlists.service';
+import { OtpService } from '../otp/otp.service';
 
 // import { firebaseAdmin } from './firebase-admin.config';
 
@@ -27,6 +28,7 @@ export class AuthService {
         private readonly usersService: UsersService,
         private jwtService: JwtService,
         private firebaseService: FirebaseService,
+        private otpService: OtpService
     ) { }
     private transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST,
@@ -39,64 +41,64 @@ export class AuthService {
     } as SMTPTransport.Options
     );
 
-    async generateLink(email: string, isReset?: boolean): Promise<String> {
-        const actionCodeSettings = {
-            url: `http://localhost:8081/login `,
-            handleCodeInApp: true,
-        };
-        // console.log(createUserDto.displayName);
-        try {
-            if (isReset) {
-                const user = this.userRepository.findOneBy({ email })
-                if (!user) {
-                    throw new NotFoundException('Cannot find user!')
-                }
+    // async generateLink(email: string, isReset?: boolean): Promise<String> {
+    //     const actionCodeSettings = {
+    //         url: `manoke://signin`,
+    //         handleCodeInApp: true,
+    //     };
+    //     // console.log(createUserDto.displayName);
+    //     try {
+    //         if (isReset) {
+    //             const user = this.userRepository.findOneBy({ email })
+    //             if (!user) {
+    //                 throw new NotFoundException('Cannot find user!')
+    //             }
 
-                const secretKey = process.env.JWT_SECRET;
+    //             const secretKey = process.env.JWT_SECRET;
 
-                if (!secretKey) {
-                    throw new Error("JWT_SECRET is not set")
-                }
+    //             if (!secretKey) {
+    //                 throw new Error("JWT_SECRET is not set")
+    //             }
 
-                const resetToken = jwt.sign(
-                    { email },
-                    secretKey, // Secret key của bạn
-                    { expiresIn: '1h' } // Token hết hạn sau 1 giờ
-                );
+    //             const resetToken = jwt.sign(
+    //                 { email },
+    //                 secretKey, // Secret key của bạn
+    //                 { expiresIn: '1h' } // Token hết hạn sau 1 giờ
+    //             );
 
-                const link = `https://localhost:3000/reset-password?token=${resetToken}`;
-                return link;
-            }
+    //             const link = `https://localhost:3000/reset-password?token=${resetToken}`;
+    //             return link;
+    //         }
 
-            else {
-                await this.firebaseService.auth().getUserByEmail(email);
-                const link = await this.firebaseService
-                    .auth()
-                    .generateEmailVerificationLink(email, actionCodeSettings);
+    //         else {
+    //             await this.firebaseService.auth().getUserByEmail(email);
+    //             const link = await this.firebaseService
+    //                 .auth()
+    //                 .generateEmailVerificationLink(email, actionCodeSettings);
 
-                return link;
-            }
-        } catch (err) {
-            throw new BadRequestException("Cannot generate verification link: " + err.message);
-        }
-    }
+    //             return link;
+    //         }
+    //     } catch (err) {
+    //         throw new BadRequestException("Cannot generate verification link: " + err.message);
+    //     }
+    // }
 
     async sendVerificationEmail(email: string, isReset?: boolean) {
         try {
-
-            const link = await this.generateLink(email, isReset);
+            // const randomNumber = 
+            const otpCode = this.otpService.decodeOtpToken(await this.otpService.generateOtpCode(email));
             const subject = isReset ? 'Reset your password' : 'Verify your email';
             const body = isReset
                 ? `
                 <p>Hello,</p>
-                <p>Please press the link below to reset your password:</p>
-                <a href="${link}">${link}</a>
+                <p>Here is the OTP Code for reseting password:</p>
+                <p>${otpCode.otp}</p>
                 <p>If you did not request, please ignore this email.</p>
               `
                 : `
                 <p>Hello,</p>
-                <p>Please press the link below to verify your email:</p>
-                <a href="${link}">${link}</a>
+                <p>Here is your sign-up code:</p>
+                <p>${otpCode.otp}</p>
                 <p>If you did not request, please ignore this email.</p>
               `;
 
@@ -115,16 +117,29 @@ export class AuthService {
     }
 
 
-    async addUserToDatabase(createUserDto: CreateUserDto) {
+    async confirmVerification(createUserDto: CreateUserDto, otp: string, isReset?: boolean) {
         try {
-            await this.usersService.create(createUserDto)
-            // return { success: true, message: 'Email verified successfully.' };
+            const otpToken = await this.otpService.getToken(createUserDto.email);
+            if (!otpToken) {
+                throw new Error("OTP Token doesn't exist!")
+            }
+
+            // Xác thực OTP
+            const isVerified = await this.otpService.verifyOtpToken(otpToken, otp);
+            // Nếu xác thực thành công và không phải reset, tạo người dùng mới
+            if (!isReset) {
+                await this.usersService.create(createUserDto);
+            }
+
+            // return isVerified;
+
+            return { success: true, message: 'Verified successfully.' };
         } catch (err) {
-            throw new BadRequestException('Cannot add user to database: ' + err.message);
+            throw new BadRequestException('Cannot confirm verification: ' + err.message);
         }
         //return { success: true, message: 'Email verified successfully.' };
     }
-    
+
 
     async changePassword(userEmail: string, oldPassword: string, newPassword: string, verifyPassword: string) {
         // Lấy người dùng từ DB
@@ -155,14 +170,15 @@ export class AuthService {
         return { message: 'Password successfully changed' };
     }
 
-    async resetPassword(token: string, newPassword: string, verifyNewPassword: string) {
+    async resetPassword(email: string, newPassword: string, verifyNewPassword: string) {
         try {
-            if (!process.env.JWT_SECRET) {
-                throw new Error("JWT_SECRET is not set")
-            }
-            const payload = jwt.verify(token, process.env.JWT_SECRET) as { email: string };
+            // token: string, 
+            // if (!process.env.JWT_SECRET) {
+            //     throw new Error("JWT_SECRET is not set")
+            // }
+            // const payload = jwt.verify(token, process.env.JWT_SECRET) as { email: string };
 
-            const user = await this.userRepository.findOne({ where: { email: payload.email } });
+            const user = await this.userRepository.findOne({ where: { email } });
             if (!user) {
                 throw new Error('User not found');
             }
@@ -198,20 +214,20 @@ export class AuthService {
 
             const newUser = createUserDto;
 
-            let existedUserInFb;
-            try {
-                existedUserInFb = await this.firebaseService.auth().getUserByEmail(newUser.email);
-            } catch (error) {
-                if (error.code === 'auth/user-not-found') {
-                    existedUserInFb = await this.firebaseService.auth().createUser({
-                        email: createUserDto.email,
-                        password: createUserDto.password,
-                        displayName: createUserDto.displayName,
-                    });
-                } else {
-                    throw error;
-                }
-            }
+            // let existedUserInFb;
+            // try {
+            //     existedUserInFb = await this.firebaseService.auth().getUserByEmail(newUser.email);
+            // } catch (error) {
+            //     if (error.code === 'auth/user-not-found') {
+            //         existedUserInFb = await this.firebaseService.auth().createUser({
+            //             email: createUserDto.email,
+            //             password: createUserDto.password,
+            //             displayName: createUserDto.displayName,
+            //         });
+            //     } else {
+            //         throw error;
+            //     }
+            // }
 
             return this.sendVerificationEmail(newUser.email);
         } catch (error) {
