@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsArray, IsNotEmpty, IsOptional, IsString, IsUrl, IsUUID } from "class-validator";
+import { IsArray, IsBoolean, IsNotEmpty, IsOptional, IsString, IsUrl, IsUUID } from "class-validator";
 
 export class CreatePlaylistDto {
     @IsNotEmpty()
@@ -19,6 +19,7 @@ export class CreatePlaylistDto {
 
     @IsOptional()
     // @IsString()
+    @IsBoolean()
     @ApiProperty({ required: false, description: 'Playlist publicity' })
     isPublic?: boolean;
 
