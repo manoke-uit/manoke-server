@@ -128,9 +128,9 @@ export class PlaylistsService {
     return favPlaylist.songs;
   }
 
-  async getSongsInPlaylist(title: string): Promise<Song[]> {
+  async getSongsInPlaylist(playlistId: string): Promise<Song[]> {
     const playlist = await this.playlistRepository.findOne({
-      where: {title}, 
+      where: {id: playlistId}, 
       relations: ['songs']
     });
 
