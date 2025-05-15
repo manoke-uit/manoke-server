@@ -44,7 +44,7 @@ export class UsersController {
   @Get('email')
   async findOneEmail(@Query('email') email: string){
     console.log(email);
-    const user = await this.usersService.findByEmail(email);
+    const user = await this.usersService.findViaEmail(email);
     if (!user) {
       return responseHelper({
         statusCode: 404,

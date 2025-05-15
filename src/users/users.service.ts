@@ -42,7 +42,7 @@ export class UsersService {
     return savedUser; // Return the saved user object
   }
 
-  async findByEmail(email: string): Promise<User | null> {
+  async findViaEmail(email: string): Promise<User | null> {
     const user = await this.usersRepository.findOne({ where: { email } }); // Find a user by email
     if (!user) {
       return null; // Return null if user not found
@@ -50,6 +50,10 @@ export class UsersService {
     user.password = ""; // Remove the password from the user object
     user.adminSecret = ""; // Remove the adminSecret from the user object
     return user; // Return the user object
+  }
+
+  async findByEmail(email: string): Promise<User | null> {
+    return this.usersRepository.findOne({ where: { email } }); // Find a user by email
   }
 
   async findByDisplayName(displayName: string): Promise<User | null> {
