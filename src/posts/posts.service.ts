@@ -7,6 +7,7 @@ import { DeleteResult, Repository, UpdateResult } from 'typeorm';
 import { Score } from 'src/scores/entities/score.entity';
 import { User } from 'src/users/entities/user.entity';
 import { UpdateRequest } from 'firebase-admin/lib/auth/auth-config';
+import { Comment } from 'src/comments/entities/comment.entity';
 
 @Injectable()
 export class PostsService {
@@ -17,12 +18,15 @@ export class PostsService {
     private scoreRepository: Repository<Score>, 
     @InjectRepository(User)
     private userRepository: Repository<User>, 
+    @InjectRepository(Comment)
+    private commentRepository: Repository<Comment>,
   ) {}
 
   async createPost(createPostDto: CreatePostDto): Promise<Post> {
     const newPost = new Post();
     const score = await this.scoreRepository.findOneBy({id: createPostDto.scoreId});
     const user = await this.userRepository.findOneBy({id: createPostDto.userId});
+    const comments = await this.commentRepository.findBy({post: { id: newPost.id } });
 
     if (!score) {
       throw new NotFoundException('Cannot find any scores!');
@@ -33,7 +37,10 @@ export class PostsService {
 
     newPost.user = user;
     newPost.score = score;
-    newPost.description = newPost.description;
+    newPost.description = createPostDto.description;
+    newPost.createdAt = createPostDto.createdAt ? new Date(createPostDto.createdAt) : new Date();
+    newPost.comments = comments;
+    
 
     return await this.postRepository.save(newPost);
   }

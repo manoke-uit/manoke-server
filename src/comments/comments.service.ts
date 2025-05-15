@@ -32,7 +32,9 @@ export class CommentsService {
   
       newComment.user = user;
       newComment.post = post;
-      newComment.comment = newComment.comment;
+      newComment.comment = createCommentDto.comment;
+      newComment.createdAt = createCommentDto.createdAt ? new Date(createCommentDto.createdAt) : new Date();
+      
   
       return await this.commentRepository.save(newComment);
     }

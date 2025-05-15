@@ -7,6 +7,8 @@ import { User } from './entities/user.entity';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth-guard';
 import { UpdateResult } from 'typeorm';
 import { Pagination } from 'nestjs-typeorm-paginate';
+import { responseHelper } from 'src/helpers/response.helper';
+import { ApiOperation } from '@nestjs/swagger';
 
 @Controller('users')
 export class UsersController {
@@ -38,9 +40,23 @@ export class UsersController {
   //   return await this.usersService.findByEmail("test"); // TODO: remove this line and implement the actual logic
 
   // }
-  @Post('email')
-  async findOneEmail(@Body('email') email: string) : Promise<User | null> {
-    return await this.usersService.findByEmail(email);
+  @ApiOperation({ summary: 'example: http://localhost:3000/users/email?email=hankhongg@gmail.com' })
+  @Get('email')
+  async findOneEmail(@Query('email') email: string){
+    console.log(email);
+    const user = await this.usersService.findByEmail(email);
+    if (!user) {
+      return responseHelper({
+        statusCode: 404,
+        message: 'User not found',
+        data: null,
+      });
+    }
+    return responseHelper({
+      statusCode: 200,
+      message: 'User found',
+      data: user,
+    });
   }
 
 

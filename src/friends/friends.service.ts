@@ -140,8 +140,8 @@ export class FriendsService {
   }
 
   // Update status: rejected or accepted
-  async updateStatus(currentUserId: string, updateFriendDto: UpdateFriendDto): Promise<UpdateResult> {
-    const { receiverId, status } = updateFriendDto;
+  async updateStatus(currentUserId: string, receiverId:string, updateFriendDto: UpdateFriendDto): Promise<UpdateResult> {
+    const { status } = updateFriendDto;
     const [fromId, toId] = [currentUserId, receiverId];
 
     const pendingRequest = await this.friendRepository.findOne({

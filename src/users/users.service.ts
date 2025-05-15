@@ -43,7 +43,13 @@ export class UsersService {
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    return this.usersRepository.findOne({ where: { email } }); // Find a user by email
+    const user = await this.usersRepository.findOne({ where: { email } }); // Find a user by email
+    if (!user) {
+      return null; // Return null if user not found
+    }
+    user.password = ""; // Remove the password from the user object
+    user.adminSecret = ""; // Remove the adminSecret from the user object
+    return user; // Return the user object
   }
 
   async findByDisplayName(displayName: string): Promise<User | null> {
