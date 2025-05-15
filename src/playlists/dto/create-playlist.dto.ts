@@ -18,7 +18,7 @@ export class CreatePlaylistDto {
     description?: string;
 
     @IsOptional()
-    @IsString()
+    // @IsString()
     @ApiProperty({ required: false, description: 'Playlist publicity' })
     isPublic?: boolean;
 
