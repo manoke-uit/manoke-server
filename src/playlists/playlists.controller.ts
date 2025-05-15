@@ -7,6 +7,7 @@ import { Playlist } from './entities/playlist.entity';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth-guard';
 import { JwtAdminGuard } from 'src/auth/guards/jwt-admin-guard';
+import { responseHelper } from 'src/helpers/response.helper';
 
 @Controller('playlists')
 export class PlaylistsController {
@@ -132,18 +133,26 @@ export class PlaylistsController {
   // only the owner of the playlist can update it
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() updatePlaylistDto: UpdatePlaylistDto, @Req() req : any): Promise<UpdateResult> {
-    if(req.user['userId'] !== id) {
-      throw new Error("You are not authorized to update this playlist");
+  async update(@Param('id') id: string, @Body() updatePlaylistDto: UpdatePlaylistDto, @Req() req: any){
+    const playlist = await this.playlistsService.findOne(id);
+    if(playlist?.user.id !== req.user['userId'] || playlist?.user.adminSecret !== req.user['adminSecret']) {
+      return responseHelper({
+        message: 'You are not authorized to update this playlist',
+        statusCode: 403,
+      });
     }
     return await this.playlistsService.update(id, updatePlaylistDto);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  async remove(@Param('id') id: string, @Req() req : any): Promise<DeleteResult> {
-    if(req.user['userId'] !== id) {
-      throw new Error("You are not authorized to delete this playlist");
+  async remove(@Param('id') id: string, @Req() req:any) {
+    const playlist = await this.playlistsService.findOne(id);
+    if(playlist?.user.id !== req.user['userId'] || playlist?.user.adminSecret !== req.user['adminSecret']) {
+      return responseHelper({
+        message: 'You are not authorized to delete this playlist',
+        statusCode: 403,
+      });
     }
     return await this.playlistsService.remove(id);
   }

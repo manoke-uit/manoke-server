@@ -64,6 +64,7 @@ export class FriendsController {
     @Body() updateFriendDto: UpdateFriendDto
   ): Promise<UpdateResult> {
     const currentUserId = req.user.userId;
+    // Check if the user is the one who sent the friend request
     return this.friendsService.updateStatus(currentUserId, updateFriendDto);
   }
 

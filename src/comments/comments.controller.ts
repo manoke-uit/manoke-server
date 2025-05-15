@@ -4,6 +4,8 @@ import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth-guard';
 import { JwtAdminGuard } from 'src/auth/guards/jwt-admin-guard';
+import { response } from 'express';
+import { responseHelper } from 'src/helpers/response.helper';
 
 @Controller('comments')
 export class CommentsController {
@@ -33,8 +35,12 @@ export class CommentsController {
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
   async update(@Param('id') id: string, @Body() updateCommentDto: UpdateCommentDto, @Req() req: any) {
-    if (req.user['userId'] !== id) {
-      throw new Error("You are not authorized to update this comment");
+    const comment = await this.commentsService.findOne(id);
+    if (comment?.user.id !== req.user['userId'] || comment?.user.adminSecret !== req.user['adminSecret']) {  
+      return responseHelper({
+        message: 'You are not authorized to update this comment',
+        statusCode: 403,
+      });
     }
 
     return await this.commentsService.update(id, updateCommentDto);
@@ -43,8 +49,12 @@ export class CommentsController {
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
   async remove(@Param('id') id: string, @Req() req: any) {
-    if (req.user['userId'] !== id) {
-      throw new Error("You are not authorized to delete this comment");
+    const comment = await this.commentsService.findOne(id);
+    if (comment?.user.id !== req.user['userId'] || comment?.user.adminSecret !== req.user['adminSecret']) {  
+      return responseHelper({
+        message: 'You are not authorized to delete this comment',
+        statusCode: 403,
+      });
     }
     return await this.commentsService.remove(id);
   }
