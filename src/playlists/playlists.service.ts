@@ -220,7 +220,9 @@ export class PlaylistsService {
   
 
   async findAll() {
-    return await this.playlistRepository.find();
+    return await this.playlistRepository.find({
+      relations: ['user', 'songs'],
+    });
   }
 
   async findPublicPlaylist() {
@@ -242,7 +244,10 @@ export class PlaylistsService {
   }
 
   async findOne(id: string): Promise<Playlist | null> {
-    return await this.playlistRepository.findOneBy({ id });
+    return await this.playlistRepository.findOne({
+      where: { id },
+      relations: ['user', 'songs'],
+    })
   }
 
   async update(id: string, updatePlaylistDto: UpdatePlaylistDto) : Promise<UpdateResult> {

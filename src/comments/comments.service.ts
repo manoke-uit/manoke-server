@@ -38,11 +38,16 @@ export class CommentsService {
     }
   
     async findAll() {
-      return await this.commentRepository.find();
+      return await this.commentRepository.find({
+        relations: ['user', 'post'],
+      });
     }
   
     async findOne(id: string): Promise<Comment | null> {
-      return await this.commentRepository.findOneBy({id});
+      return await this.commentRepository.findOne({
+        where: { id },
+        relations: ['user', 'post'], // Include relations if needed
+      });
     }
   
     async update(id: string, UpdateCommentDto: UpdateCommentDto): Promise<UpdateResult> {

@@ -78,6 +78,13 @@ export class PlaylistsController {
     return await this.playlistsService.removeSongFromFavouritePlaylist("Favourite Playlist", songId);
   }
 
+    // if the playlist is private and the user is not the owner, can't see the playlist right?
+  @UseGuards(JwtAuthGuard)
+  @Get(':id')
+  async findOne(@Param('id') id: string): Promise<Playlist | null> {
+    return await this.playlistsService.findOne(id);
+  }
+
   @UseGuards(JwtAuthGuard)
   @Get(':searchTitle')
   async searchPlaylist(@Param('searchTitle') searchTitle: string) {
@@ -104,12 +111,7 @@ export class PlaylistsController {
     return await this.playlistsService.findAll();
   }
 
-  // if the playlist is private and the user is not the owner, can't see the playlist right?
-  @UseGuards(JwtAuthGuard)
-  @Get(':id')
-  async findOne(@Param('id') id: string): Promise<Playlist | null> {
-    return await this.playlistsService.findOne(id);
-  }
+
 
   // get all the PUBLIC playlists
   @Get('publicPlaylist')
@@ -135,6 +137,12 @@ export class PlaylistsController {
   @Patch(':id')
   async update(@Param('id') id: string, @Body() updatePlaylistDto: UpdatePlaylistDto, @Req() req: any){
     const playlist = await this.playlistsService.findOne(id);
+    if(!playlist) {
+      return responseHelper({
+        message: 'Playlist not found',
+        statusCode: 404,
+      });
+    }
     if(playlist?.user.id !== req.user['userId'] || playlist?.user.adminSecret !== req.user['adminSecret']) {
       return responseHelper({
         message: 'You are not authorized to update this playlist',

@@ -39,11 +39,15 @@ export class PostsService {
   }
 
   async findAll() {
-    return await this.postRepository.find();
+    return await this.postRepository.find({
+      relations: ['user', 'score'],
+    });
   }
 
   async findOne(id: string): Promise<Post | null> {
-    return await this.postRepository.findOneBy({id});
+    return await this.postRepository.findOne(
+      { where: { id }, relations: ['user', 'score'] } // Include relations if needed
+    );
   }
 
   async update(id: string, updatePostDto: UpdatePostDto): Promise<UpdateResult> {
