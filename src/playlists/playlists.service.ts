@@ -31,8 +31,8 @@ export class PlaylistsService {
 
     const playlist = new Playlist();
     playlist.title = createPlaylistDto.title; 
-    playlist.imageUrl = createPlaylistDto.imageUrl; 
-    playlist.description = createPlaylistDto.description; 
+    playlist.imageUrl = createPlaylistDto.imageUrl ?? ""; 
+    playlist.description = createPlaylistDto.description ?? ""; 
     playlist.isPublic = !createPlaylistDto.isPublic ? false :  true;
 
     const user = await this.userRepository.findOneBy({ id: createPlaylistDto.userId });
