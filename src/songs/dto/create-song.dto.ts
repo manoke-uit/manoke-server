@@ -19,6 +19,12 @@ export class CreateSongDto {
     songUrl: string; // @IsUrl() in dto
 
     @IsOptional()
+    @ApiProperty({ description: 'Song Image URL' })
+    @IsUrl()
+    @Transform(({ value }) => value || null)
+    imageUrl?: string; // @IsUrl() in dto
+
+    @IsOptional()
     @IsUUID('4', { each: true })
     @IsArray()
     @ApiProperty({ required: false, description: 'Artists IDs' })

@@ -18,6 +18,9 @@ export class Song {
     
     @Column({type: 'text'})
     songUrl: string; // @IsUrl() in dto
+    
+    @Column({type: 'text'})
+    imageUrl: string;
 
     @ManyToMany(() => Artist, (artist) => artist.songs, { cascade: true })
     artists: Artist[]; // @IsArray() in dto
