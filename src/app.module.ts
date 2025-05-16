@@ -26,8 +26,9 @@ import { KaraokesModule } from './karaokes/karaokes.module';
 import { GenresModule } from './genres/genres.module';
 import { PostsModule } from './posts/posts.module';
 import { CommentsModule } from './comments/comments.module';
-import { OtpService } from './otp/otp.service';
-import { OtpModule } from './otp/otp.module';
+import { OtpService } from './auth/otp/otp.service';
+import { OtpModule } from './auth/otp/otp.module';
+import { TempStoreUserModule } from './auth/temp-store-user/temp-store-user.module';
 
 @Module({
   imports: [ConfigModule.forRoot({ // these are for joi validation
@@ -63,6 +64,7 @@ import { OtpModule } from './otp/otp.module';
   PostsModule,
   CommentsModule,
   OtpModule,
+  TempStoreUserModule,
 ],
   controllers: [AppController],
   providers: [AppService, JwtStrategy, OtpService], // REMEMBER TO register JwtStrategy as provider whenever you use it in the module

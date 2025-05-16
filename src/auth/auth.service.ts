@@ -16,7 +16,7 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { v4 as uuidv4 } from 'uuid';
 import * as jwt from 'jsonwebtoken';
 import { PlaylistsService } from 'src/playlists/playlists.service';
-import { OtpService } from '../otp/otp.service';
+import { OtpService } from './otp/otp.service';
 
 // import { firebaseAdmin } from './firebase-admin.config';
 
@@ -86,7 +86,7 @@ export class AuthService {
     async sendVerificationEmail(email: string, isReset?: boolean) {
         try {
             // const randomNumber = 
-            const otpCode = this.otpService.decodeOtpToken(await this.otpService.generateOtpCode(email));
+            const otpCode = await this.otpService.decodeOtpToken(await this.otpService.generateOtpToken(email));
             const subject = isReset ? 'Reset your password' : 'Verify your email';
             const body = isReset
                 ? `
@@ -117,23 +117,29 @@ export class AuthService {
     }
 
 
-    async confirmVerification(createUserDto: CreateUserDto, otp: string, isReset?: boolean) {
+    async confirmVerification(otp: string, createUserDto?: CreateUserDto, isReset?: boolean) {
         try {
-            const otpToken = await this.otpService.getToken(createUserDto.email);
-            if (!otpToken) {
-                throw new Error("OTP Token doesn't exist!")
+            if (createUserDto) {
+                const otpToken = await this.otpService.getToken(createUserDto.email);
+                console.log(otpToken);
+                if (!otpToken) {
+                    throw new Error("OTP Token doesn't exist!")
+                }
+
+                // Xác thực OTP
+                const isVerified = await this.otpService.verifyOtpToken(otpToken, otp);
+                // Nếu xác thực thành công và không phải reset, tạo người dùng mới
+                if (!isReset && isVerified) {
+                    await this.usersService.create(createUserDto);
+                    return { success: true, message: 'Verified sign-up successfully.' };
+                }
+            } else {
+                return { success: true, message: 'Resetting password verified successfully.' };
             }
 
-            // Xác thực OTP
-            const isVerified = await this.otpService.verifyOtpToken(otpToken, otp);
-            // Nếu xác thực thành công và không phải reset, tạo người dùng mới
-            if (!isReset) {
-                await this.usersService.create(createUserDto);
-            }
 
             // return isVerified;
 
-            return { success: true, message: 'Verified successfully.' };
         } catch (err) {
             throw new BadRequestException('Cannot confirm verification: ' + err.message);
         }
@@ -194,7 +200,7 @@ export class AuthService {
 
             return { message: 'Password has been reset successfully' };
         } catch (err) {
-            throw new Error('Invalid or expired token');
+            throw new Error('Cannot reset password!:' + err.message);
         }
     }
 
