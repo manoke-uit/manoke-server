@@ -33,7 +33,7 @@ export class SongsService {
     private audioService: AudioService,
     private supabaseStorageService: SupabaseStorageService,
   ) {}
-  async create(fileBuffer: Buffer, fileName: string, createSongDto: CreateSongDto): Promise<Song | null> {
+  async create(fileAudioBuffer: Buffer, fileAudioName: string, createSongDto: CreateSongDto, fileImageBuffer?:Buffer, fileImageName?:string): Promise<Song | null> {
     const song = new Song()
     
     song.title = createSongDto.title;
@@ -47,7 +47,7 @@ export class SongsService {
       .toLowerCase();
     song.lyrics = sanitizedLyrics(createSongDto.lyrics.trim());
 
-    const songBuffer = fileBuffer;
+    const songBuffer = fileAudioBuffer;
     const songLength = await this.audioService.getDurationFromBuffer(songBuffer);
     const audioFileName = `${sanitizeFileName(createSongDto.title)}-${Date.now()}.mp3`;
 
@@ -85,6 +85,18 @@ export class SongsService {
       song.songUrl = uploadedAudio || "";
     }
     
+    const imageFileName = `${sanitizeFileName(createSongDto.title)}-${Date.now()}.jpg`;
+    const imageBuffer = fileImageBuffer;
+    if (imageBuffer) {
+      const uploadedImage = await this.supabaseStorageService.uploadImageFromBuffer(imageBuffer, imageFileName);
+      if (!uploadedImage) {
+        throw new Error("Failed to upload image");
+      }
+      song.imageUrl = uploadedImage || "";
+    } else {
+      song.imageUrl = "https://example.com/default-image.jpg"; // default image URL
+    }
+
     if (createSongDto.artistIds && createSongDto.artistIds.length > 0) {
       const artists = await this.artistRepository.findBy({
         id: In(createSongDto.artistIds),

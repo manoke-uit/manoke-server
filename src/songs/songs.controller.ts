@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query, DefaultValuePipe, ParseIntPipe, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query, DefaultValuePipe, ParseIntPipe, UseInterceptors, UploadedFile, UploadedFiles } from '@nestjs/common';
 import { SongsService } from './songs.service';
 import { CreateSongDto } from './dto/create-song.dto';
 import { UpdateSongDto } from './dto/update-song.dto';
@@ -7,7 +7,7 @@ import { Pagination } from 'nestjs-typeorm-paginate';
 import { Song } from './entities/song.entity';
 import { DeleteResult, UpdateResult } from 'typeorm';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth-guard';
-import { FileInterceptor } from '@nestjs/platform-express';
+import { FileFieldsInterceptor, FileInterceptor, FilesInterceptor } from '@nestjs/platform-express';
 import { ScoresService } from 'src/scores/scores.service';
 import { response } from 'express';
 import { responseHelper } from 'src/helpers/response.helper';
@@ -20,11 +20,25 @@ export class SongsController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  @UseInterceptors(FileInterceptor('file'))
-  async create(@UploadedFile() file: Express.Multer.File,@Body() createSongDto: CreateSongDto) {
-    const fileName = file.originalname; // get the original file name
-    const fileBuffer = file.buffer; // get the file buffer
-    const createdSong = await this.songsService.create(fileBuffer, fileName,createSongDto);
+  @UseInterceptors(FileFieldsInterceptor([
+    { name: 'audio', maxCount: 1 },
+    { name: 'image', maxCount: 1 }
+  ]))
+  async create(@UploadedFiles() files: {audio: Express.Multer.File[], image?: Express.Multer.File[]},@Body() createSongDto: CreateSongDto) {
+    const fileAudio = files.audio?.[0]; // get the file
+    if (!fileAudio) {
+      return responseHelper({
+        message: 'Audio file is required',
+        statusCode: 400,
+      });
+    }
+    const fileImage = files.image?.[0]; // get the image file
+    
+    const fileAudioName = fileAudio.originalname; // get the file name
+    const fileAudioBuffer = fileAudio.buffer; // get the file buffer
+    const fileImageName = fileImage?.originalname; // get the image file name
+    const fileImageBuffer = fileImage?.buffer; // get the image file buffer
+    const createdSong = await this.songsService.create(fileAudioBuffer, fileAudioName, createSongDto, fileImageBuffer, fileImageName);
     if(!createdSong) {
       return responseHelper({
         message: 'Song creation failed',

@@ -19,7 +19,7 @@ export class Song {
     @Column({type: 'text'})
     songUrl: string; // @IsUrl() in dto
     
-    @Column({type: 'text'})
+    @Column({type: 'text', nullable: true})
     imageUrl: string;
 
     @ManyToMany(() => Artist, (artist) => artist.songs, { cascade: true })
