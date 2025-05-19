@@ -134,7 +134,12 @@ export class SongsService {
   }
 
   findOne(id: string): Promise<Song | null> {
-    return this.songRepository.findOneBy({ id })
+    const song = this.songRepository.findOne({
+      where: { id },
+      relations: { artists: true, playlists: true },
+    })
+    
+    return song;
   }
 
   findOnePrecisely(title: string, artistName: string): Promise<Song | null> {
