@@ -69,7 +69,8 @@ export class ScoresService {
   }
 
   async calculateScore(buffer: Buffer, fileName: string, songId: string): Promise<number> {
-   const foundSong = await this.songsService.findOne(songId); // find the song by id
+    const convertedBuffer = await this.audioService.convertM4aToWav(buffer); // convert the buffer to wav
+    const foundSong = await this.songsService.findOne(songId); // find the song by id
     if(!foundSong) {
       throw new Error("Song not found");
     }
@@ -83,13 +84,26 @@ export class ScoresService {
     const songPitch = await this.getPitchFromRecording(songBuffer, songFileName); 
 
     console.log('Song Pitch:', songPitch); // log the song pitch for debugging
-   
+    
     console.log("songLyrics", songLyrics); // log the song lyrics for debugging
 
     // const chunks = await this.audioService.splitAudioFile(songBuffer, songFileName); // split the audio file into chunks
     const audioFileName = `${Date.now()}-${fileName}.wav`; // create a unique file name
-    const chunks = await this.audioService.splitAudioFile(buffer, audioFileName); // split the audio file into chunks
-    let wholeChunkLyrics: string = ""; // variable to hold the whole chunk lyrics
+    const chunks = await this.audioService.splitAudioFile(convertedBuffer, audioFileName); // split the audio file into chunks
+    
+    const audioDuration = await this.audioService.getDurationFromBuffer(convertedBuffer); // get the audio duration
+    if (audioDuration < 30) {
+      console.error('Audio duration is less than 30 seconds');
+      return -1; // return -1 if the audio duration is less than 30 seconds
+    }
+    const lastChunkDuration = await this.audioService.getDurationFromBuffer(chunks[chunks.length - 1]); // get the duration of the last chunk
+    if (lastChunkDuration < 1) {
+      console.log('Last chunk duration is less than 1 second');
+      chunks.pop(); // remove the last chunk if its duration is less than 1 second
+    }
+
+
+    //let wholeChunkLyrics: string = ""; // variable to hold the whole chunk lyrics
 
     const scores : number[] = []; // array to hold the scores for each chunk 
     for (const [index, chunk] of chunks.entries()) {
@@ -99,14 +113,18 @@ export class ScoresService {
       const chunkPitch = await this.getPitchFromRecording(chunk, chunkFileName);
       console.log('Chunk Pitch:', chunkPitch);
       console.log('Chunk Lyrics:', chunkLyrics);
-      wholeChunkLyrics += chunkLyrics; // set the whole chunk lyrics to the current chunk lyrics
+      
+      
+      // wholeChunkLyrics += chunkLyrics; // set the whole chunk lyrics to the current chunk lyrics
       // compare to the user pitch and lyrics then give out the score 0.5 for pitch and 0.5 for lyrics
       const pitchScore = await this.audioService.comparePitch(songPitch, chunkPitch); // compare the pitch information
-      //const lyricsScore = await this.audioService.compareLyrics(songLyrics, chunkLyrics); // compare the lyrics
+      const lyricsScore = await this.audioService.compareLyrics(songLyrics, chunkLyrics); // compare the lyrics
       console.log('Pitch Score:', pitchScore); // log the pitch score for debugging
-      //console.log('Lyrics Score:', lyricsScore); // log the lyrics score for debugging
+      console.log('Lyrics Score:', lyricsScore); // log the lyrics score for debugging
 
-      scores.push(pitchScore); // add the score to the array
+      const finalScore = pitchScore * 0.6 + lyricsScore * 0.4; // calculate the final score
+
+      scores.push(finalScore); // add the score to the array
     }
 
     if (scores.length === 0) {
@@ -116,11 +134,12 @@ export class ScoresService {
     console.log('Scores:', scores); // log the scores for debugging
     console.log(scores.length, 'chunks found');
 
-    const maxPitchScore = Math.max(...scores); // get the maximum score from the array
-    const lyricsScore = await this.audioService.compareLyrics(songLyrics, wholeChunkLyrics); // compare the lyrics
-    console.log('Lyrics Score:', lyricsScore); // log the lyrics score for debugging
+    //const maxPitchScore = Math.max(...scores); // get the maximum score from the array
+    //const lyricsScore = await this.audioService.compareLyrics(songLyrics, wholeChunkLyrics); // compare the lyrics
+    //console.log('Lyrics Score:', lyricsScore); // log the lyrics score for debugging
 
-    const calculatedScore = (maxPitchScore + lyricsScore) / 2; // calculate the final score
+    //const calculatedScore = (maxPitchScore + lyricsScore) / 2; // calculate the final score
+    const calculatedScore = Math.max(...scores);
     console.log('Calculated Score:', calculatedScore); // log the calculated score for debugging
     //console.log('User Lyrics:', userLyrics);
     

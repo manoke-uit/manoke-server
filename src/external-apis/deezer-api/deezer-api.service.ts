@@ -48,7 +48,7 @@ export class DeezerApiService {
         // make sure the temp directory exists
         const tempDir = path.join(__dirname, '..', '..', 'temp');
         if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
-        const tempPath = path.join(tempDir, `${uuidv4()}.mp3`);
+        const tempPath = path.join(tempDir, `${uuidv4()}.wav`);
         const response = await axios.get(deezerPreviewUrl, {
             responseType: 'stream',
         });

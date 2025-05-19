@@ -49,8 +49,12 @@ export class ScoresController {
     
     const fileName = file.originalname; // get the original file name
     const fileBuffer = file.buffer; // get the file buffer
+    
 
     const calculatedScore =  await this.scoresService.calculateScore(fileBuffer,fileName, createScoreDto.songId);
+    if (calculatedScore == -1){
+      return "Please sing more than 30 seconds!";
+    }
     createScoreDto.finalScore = calculatedScore; // set the score in the DTO
     
     try {

@@ -21,7 +21,7 @@ let AudioService = class AudioService {
     async splitAudioFile(buffer, fileName, chunkDuration = 30) {
         const tempInputPath = (0, path_1.join)((0, os_1.tmpdir)(), `${Date.now()}-${fileName}`);
         const baseName = `${Date.now()}`;
-        const outputPattern = (0, path_1.join)((0, os_1.tmpdir)(), `${baseName}-chunk-%03d.mp3`);
+        const outputPattern = (0, path_1.join)((0, os_1.tmpdir)(), `${baseName}-chunk-%03d.wav`);
         (0, fs_1.writeFileSync)(tempInputPath, buffer);
         return new Promise((resolve, reject) => {
             ffmpeg(tempInputPath)
@@ -36,7 +36,7 @@ let AudioService = class AudioService {
                 const baseDir = (0, os_1.tmpdir)();
                 let index = 0;
                 while (true) {
-                    const chunkPath = (0, path_1.join)(baseDir, `${baseName}-chunk-${String(index).padStart(3, '0')}.mp3`);
+                    const chunkPath = (0, path_1.join)(baseDir, `${baseName}-chunk-${String(index).padStart(3, '0')}.wav`);
                     if (!fs.existsSync(chunkPath))
                         break;
                     chunkBuffers.push(fs.readFileSync(chunkPath));

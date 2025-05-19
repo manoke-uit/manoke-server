@@ -49,7 +49,7 @@ export class SongsService {
 
     const songBuffer = fileAudioBuffer;
     const songLength = await this.audioService.getDurationFromBuffer(songBuffer);
-    const audioFileName = `${sanitizeFileName(createSongDto.title)}-${Date.now()}.mp3`;
+    const audioFileName = `${sanitizeFileName(createSongDto.title)}-${Date.now()}.wav`;
 
     if (songLength < 30) {
       throw new Error("Audio length must be at least 30 seconds.");
