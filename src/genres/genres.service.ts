@@ -12,7 +12,7 @@ export class GenresService {
   private readonly genreRepository: Repository<Genre>;
   @InjectRepository(Song)
   private readonly songRepository: Repository<Song>;
-  async create(createGenreDto: CreateGenreDto) : Promise<Genre> {
+  async create(createGenreDto: CreateGenreDto) : Promise<Genre | null> {
     const genre = new Genre();
     genre.name = createGenreDto.name;
     if (createGenreDto.songIds && createGenreDto.songIds.length > 0) {
@@ -22,15 +22,26 @@ export class GenresService {
       genre.songs = songs;
     }
     else genre.songs = [];
-    return this.genreRepository.save(genre);
+    const savedGenre = await this.genreRepository.save(genre);
+    return await this.genreRepository.findOne({
+      where: { id: savedGenre.id },
+      relations: ['songs'],
+    });
   }
 
   async findAll() : Promise<Genre[]> {
-    return this.genreRepository.find();
+    return await this.genreRepository.find(
+      {
+        relations: ['songs'],
+        order: {
+          name: 'ASC',
+        },
+      }
+    );
   }
 
   async findOne(id: string) : Promise<Genre | null> {
-    return this.genreRepository.findOne({
+    return await  this.genreRepository.findOne({
       where: { id },
       relations: ['songs'],
     });
@@ -50,11 +61,16 @@ export class GenresService {
     else genre.songs = [];
     genre.name = updateGenreDto.name ?? genre.name;
 
-    return this.genreRepository.save(genre);
+    const updatedGenre = await this.genreRepository.save(genre);
+    return await this.genreRepository.findOne({
+      where: { id: updatedGenre.id },
+      relations: ['songs'],
+    });
+
 
   }
 
   async remove(id: string) : Promise<DeleteResult> {
-    return this.genreRepository.delete(id);
+    return await this.genreRepository.delete(id);
   }
 }

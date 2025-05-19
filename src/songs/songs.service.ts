@@ -127,23 +127,23 @@ export class SongsService {
     return result;
   }
 
-  findAll(): Promise<Song[]> {
-    return this.songRepository.find({
-      relations: { artists: true, playlists: true },
+  async findAll(): Promise<Song[]> {
+    return await this.songRepository.find({
+      relations: { artists: true, playlists: true, genres: true },
     });
   }
 
-  findOne(id: string): Promise<Song | null> {
-    const song = this.songRepository.findOne({
+  async findOne(id: string): Promise<Song | null> {
+    const song = await this.songRepository.findOne({
       where: { id },
-      relations: { artists: true, playlists: true },
+      relations: { artists: true, playlists: true, genres: true },
     })
     
     return song;
   }
 
-  findOnePrecisely(title: string, artistName: string): Promise<Song | null> {
-    return this.songRepository.findOne({
+  async findOnePrecisely(title: string, artistName: string): Promise<Song | null> {
+    return await this.songRepository.findOne({
       where: {
         title: ILike(`%${title}%`),
         artists: { name: ILike(artistName) },
@@ -152,32 +152,32 @@ export class SongsService {
     });
   }
 
-  update(id: string, updateSongDto: UpdateSongDto): Promise<UpdateResult> {
-    return this.songRepository.update(id, updateSongDto);
+  async update(id: string, updateSongDto: UpdateSongDto): Promise<UpdateResult> {
+    return await this.songRepository.update(id, updateSongDto);
   }
 
-  remove(id: string): Promise<DeleteResult> {
-    return this.songRepository.delete(id);
+  async remove(id: string): Promise<DeleteResult> {
+    return await this.songRepository.delete(id);
   }
 
   paginate(options: IPaginationOptions): Promise<Pagination<Song>> {
       return paginate<Song>(this.songRepository, options);
   }
 
-  findAllByArtist(artistId: string): Promise<Song[]> {
-    return this.songRepository.find({
+  async findAllByArtist(artistId: string): Promise<Song[]> {
+    return await this.songRepository.find({
       where: {
         artists: { id: artistId },
       },
-      relations: { artists: true, playlists: true },
+      relations: { artists: true, playlists: true, genres: true },
     });
   }
-  findAllByGenre(genreId: string): Promise<Song[]> {
-    return this.songRepository.find({
+  async findAllByGenre(genreId: string): Promise<Song[]> {
+    return await this.songRepository.find({
       where: {
         genres: { id: genreId },
       },
-      relations: { artists: true, playlists: true },
+      relations: { artists: true, playlists: true, genres: true },
     });
   }
 
@@ -201,7 +201,12 @@ export class SongsService {
   async search(query: string): Promise<Song[] | null> {
     const sanitizedQuery = normalizeString(query);
 
-    const allSongs = await this.findAll();
+    const allSongs = await this.songRepository.find({
+      relations: { artists: true, playlists: true, genres: true },
+      order: {
+        title: 'ASC',
+      },
+    });
     const filteredSongs = allSongs.filter((song) => {
       const normalizedTitle = normalizeString(song.title);
       return normalizedTitle.includes(sanitizedQuery);
@@ -216,7 +221,12 @@ export class SongsService {
     // search for songs in database
     const queryLower = artist.toLowerCase();
     const sanitizedQuery = normalizeString(queryLower);
-    const allSongs = await this.findAll();
+    const allSongs = await this.songRepository.find({
+      relations: { artists: true, playlists: true, genres: true },
+      order: {
+        title: 'ASC',
+      },
+    });
     const filteredSongs = allSongs.filter((song) => {
       const normalizedArtist = normalizeString(song.artists[0].name);
       return normalizedArtist.includes(sanitizedQuery);
@@ -226,18 +236,18 @@ export class SongsService {
   }
 
   async findOneByName(title: string): Promise<Song | null> {
-    return this.songRepository.findOne({
+    return await this.songRepository.findOne({
       where: {
         title
       },
-      relations: { artists: true, playlists: true },
+      relations: { artists: true, playlists: true, genres: true },
     });
   }
 
   async addArtistToSong(songId: string, artistId: string): Promise<Song | null> {
     const song = await this.songRepository.findOne({
       where: { id: songId },
-      relations: { artists: true },
+      relations: { artists: true, playlists: true },
     });
 
     if (!song) {
@@ -250,7 +260,12 @@ export class SongsService {
     }
 
     song.artists.push(artist);
-    return this.songRepository.save(song);
+
+    const savedSong = await this.songRepository.save(song);
+    return await this.songRepository.findOne({
+      where: { id: savedSong.id },
+      relations: { artists: true},
+    });
   }
 
   async addGenreToSong(songId: string, genreId: string): Promise<Song | null> {
@@ -269,7 +284,11 @@ export class SongsService {
     }
 
     song.genres.push(genre);
-    return this.songRepository.save(song);
+    const savedSong = await this.songRepository.save(song);
+    return await this.songRepository.findOne({
+      where: { id: savedSong.id },
+      relations: { genres: true, artists: true },
+    });
   }
 
   async removeArtistFromSong(songId: string, artistId: string): Promise<Song | null> {

@@ -48,7 +48,11 @@ export class KaraokesService {
       karaoke.user = user;
     }
     try {
-      return await this.karaokeRepository.save(karaoke);
+      const savedKaraoke = await this.karaokeRepository.save(karaoke);
+      return await this.karaokeRepository.findOne({
+        where: { id: savedKaraoke.id },
+        relations: ['song', 'user'],
+      });
     } catch (error) {
       console.error('Error creating karaoke:', error);
       return null; // or throw an exception
@@ -87,7 +91,13 @@ export class KaraokesService {
       karaoke.user = user;
     }
     try {
-      return await this.karaokeRepository.save(karaoke);
+      const savedKaraoke = await this.karaokeRepository.save(karaoke);
+      // After saving, fetch the saved karaoke with relations
+      return await this.karaokeRepository.findOne({
+        where: { id: savedKaraoke.id },
+        relations: ['song', 'user'],
+      });
+
     } catch (error) {
       console.error('Error creating karaoke:', error);
       return null; // or throw an exception
@@ -149,8 +159,12 @@ export class KaraokesService {
       }
       karaoke.user = user;
     }
+    const updatedKaraoke = await this.karaokeRepository.save(karaoke);
+    return await this.karaokeRepository.findOne({
+      where: { id: updatedKaraoke.id },
+      relations: ['song', 'user'],
+    });
 
-    return await this.karaokeRepository.save( karaoke);
   }
 
   remove(id: string) : Promise<DeleteResult> {
@@ -158,7 +172,7 @@ export class KaraokesService {
   }
 
   async findKaraokeAndChangeStatusToPublic(id: string) : Promise<Karaoke | null> {
-    return this.karaokeRepository.findOne({
+    return await this.karaokeRepository.findOne({
       where: { id },
       relations: ['song', 'user'],
     }).then(karaoke => {
@@ -171,7 +185,7 @@ export class KaraokesService {
   }
 
   async findKaraokeAndChangeStatusToPending(id: string) : Promise<Karaoke | null> {
-    return this.karaokeRepository.findOne({
+    return await this.karaokeRepository.findOne({
       where: { id },
       relations: ['song', 'user'],
     }).then(karaoke => {

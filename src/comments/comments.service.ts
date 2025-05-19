@@ -18,7 +18,7 @@ export class CommentsService {
       private userRepository: Repository<User>, 
     ) {}
   
-    async createComment(createCommentDto: CreateCommentDto): Promise<Comment> {
+    async createComment(createCommentDto: CreateCommentDto): Promise<Comment | null> {
       const newComment = new Comment();
       const post = await this.postRepository.findOneBy({id: createCommentDto.postId});
       const user = await this.userRepository.findOneBy({id: createCommentDto.userId});
@@ -34,9 +34,13 @@ export class CommentsService {
       newComment.post = post;
       newComment.comment = createCommentDto.comment;
       newComment.createdAt = createCommentDto.createdAt ? new Date(createCommentDto.createdAt) : new Date();
-      
+
+      const savedComment = await this.commentRepository.save(newComment);
+      return await this.commentRepository.findOne({
+        where: { id: savedComment.id },
+        relations: ['user', 'post'],
+      });
   
-      return await this.commentRepository.save(newComment);
     }
   
     async findAll() {
@@ -73,7 +77,12 @@ export class CommentsService {
       }
       comment.comment = updateCommentDto.comment ?? comment.comment;
       comment.createdAt = updateCommentDto.createdAt ? new Date(updateCommentDto.createdAt) : new Date();
-      return await this.commentRepository.save(comment);
+
+      const updatedComment = await this.commentRepository.save(comment);
+      return await this.commentRepository.findOne({
+        where: { id: updatedComment.id },
+        relations: ['user', 'post'],
+      });
     }
   
     async remove(id: string): Promise<DeleteResult> {
