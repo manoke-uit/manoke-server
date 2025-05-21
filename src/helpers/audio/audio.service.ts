@@ -21,7 +21,7 @@ export class AudioService {
     async splitAudioFile(buffer: Buffer, fileName: string, chunkDuration = 30): Promise<Buffer[]> {
         const tempInputPath = join(tmpdir(), `${Date.now()}-${fileName}`);
         const baseName = `${Date.now()}`;
-        const outputPattern = join(tmpdir(), `${baseName}-chunk-%03d.mp3`);
+        const outputPattern = join(tmpdir(), `${baseName}-chunk-%03d.wav`);
 
         // Save the buffer to disk temporarily
         writeFileSync(tempInputPath, buffer);
@@ -40,7 +40,7 @@ export class AudioService {
                 const baseDir = tmpdir();
                 let index = 0;
                 while (true) {
-                const chunkPath = join(baseDir, `${baseName}-chunk-${String(index).padStart(3, '0')}.mp3`);
+                const chunkPath = join(baseDir, `${baseName}-chunk-${String(index).padStart(3, '0')}.wav`);
                 if (!fs.existsSync(chunkPath)) break;
                 chunkBuffers.push(fs.readFileSync(chunkPath));
                 unlinkSync(chunkPath); // cleanup
@@ -171,6 +171,30 @@ export class AudioService {
                     resolve(duration);
                 }
             });
+        });
+    }
+
+    async convertM4aToWav(buffer: Buffer): Promise<Buffer> {
+        const tempInputPath = join(tmpdir(), `${Date.now()}-input.m4a`);
+        const tempOutputPath = join(tmpdir(), `${Date.now()}-output.wav`);
+
+        // Save the buffer to disk temporarily
+        writeFileSync(tempInputPath, buffer);
+
+        return new Promise((resolve, reject) => {
+            ffmpeg(tempInputPath)
+            .toFormat('wav')
+            .on('end', () => {
+                const outputBuffer = fs.readFileSync(tempOutputPath);
+                unlinkSync(tempInputPath); // remove input file
+                unlinkSync(tempOutputPath); // remove output file
+                resolve(outputBuffer);
+            })
+            .on('error', (err) => {
+                console.error('FFmpeg error:', err);
+                reject(err);
+            })
+            .save(tempOutputPath);
         });
     }
 }

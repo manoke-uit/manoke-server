@@ -6,9 +6,10 @@ import * as fs from 'fs';
 @Injectable()
 export class SupabaseStorageService {
     private supabase: SupabaseClient;
-    private readonly snippetBucketName: string = process.env.SUPABASE_BUCKET_NAME || 'snippets';
-    private readonly recordingBucketName: string = process.env.SUPABASE_BUCKET_NAME || 'recordings';
-    private readonly videoBucketName: string = process.env.SUPABASE_BUCKET_NAME || 'videos';
+    private readonly snippetBucketName: string = process.env.SUPABASE_SNIPPET_BUCKET || 'snippets';
+    private readonly recordingBucketName: string = process.env.SUPABASE_RECORDING_BUCKET || 'recordings';
+    private readonly videoBucketName: string = process.env.SUPABASE_VIDEO_BUCKET || 'videos';
+    private readonly songsImagesBucketName: string = process.env.SUPABASE_SONGS_IMAGES_BUCKET || 'songs-images';
 
     constructor(private configService: ConfigService) {
         const supabaseUrl = this.configService.get<string>('SUPABASE_URL') ?? "";
@@ -90,5 +91,49 @@ export class SupabaseStorageService {
         const buffer = fs.readFileSync(filePath);
         fs.unlinkSync(filePath); // or use fs.promises.unlink(tempPath)
         return await this.uploadVideoFromBuffer(buffer, fileName);
+    }
+
+    // upload images to Supabase Storage
+    async uploadImageFromBuffer(buffer: Buffer, fileName: string): Promise<string | null> {
+        const ext = fileName.split('.').pop();
+        let contentType = 'image/png'; // default fallback
+
+        switch (ext?.toLowerCase()) {
+        case 'jpg':
+        case 'jpeg':
+            contentType = 'image/jpeg';
+            break;
+        case 'png':
+            contentType = 'image/png';
+            break;
+        case 'webp':
+            contentType = 'image/webp';
+            break;
+        case 'gif':
+            contentType = 'image/gif';
+            break;
+        }
+
+        const { data, error } = await this.supabase.storage
+            .from(this.songsImagesBucketName)
+            .upload(fileName, buffer, {
+                contentType: contentType,
+                upsert: true, // Overwrite if file already exists
+            });
+
+        if (error) {
+            console.error('Upload failed:', error.message);
+             return null;
+        }
+
+        const { data: publicUrlData } = this.supabase.storage.from(this.songsImagesBucketName).getPublicUrl(fileName);
+
+        return publicUrlData?.publicUrl || '';
+    }
+
+    async uploadImageFromFile(filePath: string, fileName: string): Promise<string | null> {
+        const buffer = fs.readFileSync(filePath);
+        fs.unlinkSync(filePath); // or use fs.promises.unlink(tempPath)
+        return await this.uploadRecordingFromBuffer(buffer, fileName);
     }
 }

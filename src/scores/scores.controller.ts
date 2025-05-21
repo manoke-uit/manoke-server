@@ -21,9 +21,15 @@ export class ScoresController {
     //return this.scoresService.create(createScoreDto);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get()
-  findAll() {
-    return this.scoresService.findAll();
+  async findAll(@Req() req: any) {
+    // Check if the user is an admin
+    if (req.user['adminSecret']) {
+      return await this.scoresService.findAllForAdmin();
+    }
+    const userId = req.user['userId'];
+    return await this.scoresService.findAll(userId);
   }
 
   @Get(':id')
@@ -49,8 +55,12 @@ export class ScoresController {
     
     const fileName = file.originalname; // get the original file name
     const fileBuffer = file.buffer; // get the file buffer
+    
 
     const calculatedScore =  await this.scoresService.calculateScore(fileBuffer,fileName, createScoreDto.songId);
+    if (calculatedScore == -1){
+      return "Please sing more than 30 seconds!";
+    }
     createScoreDto.finalScore = calculatedScore; // set the score in the DTO
     
     try {

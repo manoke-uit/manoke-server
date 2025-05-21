@@ -33,7 +33,7 @@ export class SongsService {
     private audioService: AudioService,
     private supabaseStorageService: SupabaseStorageService,
   ) {}
-  async create(fileBuffer: Buffer, fileName: string, createSongDto: CreateSongDto): Promise<Song | null> {
+  async create(fileAudioBuffer: Buffer, fileAudioName: string, createSongDto: CreateSongDto, fileImageBuffer?:Buffer, fileImageName?:string): Promise<Song | null> {
     const song = new Song()
     
     song.title = createSongDto.title;
@@ -47,9 +47,9 @@ export class SongsService {
       .toLowerCase();
     song.lyrics = sanitizedLyrics(createSongDto.lyrics.trim());
 
-    const songBuffer = fileBuffer;
+    const songBuffer = fileAudioBuffer;
     const songLength = await this.audioService.getDurationFromBuffer(songBuffer);
-    const audioFileName = `${sanitizeFileName(createSongDto.title)}-${Date.now()}.mp3`;
+    const audioFileName = `${sanitizeFileName(createSongDto.title)}-${Date.now()}.wav`;
 
     if (songLength < 30) {
       throw new Error("Audio length must be at least 30 seconds.");
@@ -85,6 +85,18 @@ export class SongsService {
       song.songUrl = uploadedAudio || "";
     }
     
+    const imageFileName = `${sanitizeFileName(createSongDto.title)}-${Date.now()}.jpg`;
+    const imageBuffer = fileImageBuffer;
+    if (imageBuffer) {
+      const uploadedImage = await this.supabaseStorageService.uploadImageFromBuffer(imageBuffer, imageFileName);
+      if (!uploadedImage) {
+        throw new Error("Failed to upload image");
+      }
+      song.imageUrl = uploadedImage || "";
+    } else {
+      song.imageUrl = "https://example.com/default-image.jpg"; // default image URL
+    }
+
     if (createSongDto.artistIds && createSongDto.artistIds.length > 0) {
       const artists = await this.artistRepository.findBy({
         id: In(createSongDto.artistIds),
@@ -115,18 +127,23 @@ export class SongsService {
     return result;
   }
 
-  findAll(): Promise<Song[]> {
-    return this.songRepository.find({
-      relations: { artists: true, playlists: true },
+  async findAll(): Promise<Song[]> {
+    return await this.songRepository.find({
+      relations: { artists: true, playlists: true, genres: true },
     });
   }
 
-  findOne(id: string): Promise<Song | null> {
-    return this.songRepository.findOneBy({ id })
+  async findOne(id: string): Promise<Song | null> {
+    const song = await this.songRepository.findOne({
+      where: { id },
+      relations: { artists: true, playlists: true, genres: true },
+    })
+    
+    return song;
   }
 
-  findOnePrecisely(title: string, artistName: string): Promise<Song | null> {
-    return this.songRepository.findOne({
+  async findOnePrecisely(title: string, artistName: string): Promise<Song | null> {
+    return await this.songRepository.findOne({
       where: {
         title: ILike(`%${title}%`),
         artists: { name: ILike(artistName) },
@@ -135,32 +152,32 @@ export class SongsService {
     });
   }
 
-  update(id: string, updateSongDto: UpdateSongDto): Promise<UpdateResult> {
-    return this.songRepository.update(id, updateSongDto);
+  async update(id: string, updateSongDto: UpdateSongDto): Promise<UpdateResult> {
+    return await this.songRepository.update(id, updateSongDto);
   }
 
-  remove(id: string): Promise<DeleteResult> {
-    return this.songRepository.delete(id);
+  async remove(id: string): Promise<DeleteResult> {
+    return await this.songRepository.delete(id);
   }
 
   paginate(options: IPaginationOptions): Promise<Pagination<Song>> {
       return paginate<Song>(this.songRepository, options);
   }
 
-  findAllByArtist(artistId: string): Promise<Song[]> {
-    return this.songRepository.find({
+  async findAllByArtist(artistId: string): Promise<Song[]> {
+    return await this.songRepository.find({
       where: {
         artists: { id: artistId },
       },
-      relations: { artists: true, playlists: true },
+      relations: { artists: true, playlists: true, genres: true },
     });
   }
-  findAllByGenre(genreId: string): Promise<Song[]> {
-    return this.songRepository.find({
+  async findAllByGenre(genreId: string): Promise<Song[]> {
+    return await this.songRepository.find({
       where: {
         genres: { id: genreId },
       },
-      relations: { artists: true, playlists: true },
+      relations: { artists: true, playlists: true, genres: true },
     });
   }
 
@@ -184,7 +201,12 @@ export class SongsService {
   async search(query: string): Promise<Song[] | null> {
     const sanitizedQuery = normalizeString(query);
 
-    const allSongs = await this.findAll();
+    const allSongs = await this.songRepository.find({
+      relations: { artists: true, playlists: true, genres: true },
+      order: {
+        title: 'ASC',
+      },
+    });
     const filteredSongs = allSongs.filter((song) => {
       const normalizedTitle = normalizeString(song.title);
       return normalizedTitle.includes(sanitizedQuery);
@@ -199,7 +221,12 @@ export class SongsService {
     // search for songs in database
     const queryLower = artist.toLowerCase();
     const sanitizedQuery = normalizeString(queryLower);
-    const allSongs = await this.findAll();
+    const allSongs = await this.songRepository.find({
+      relations: { artists: true, playlists: true, genres: true },
+      order: {
+        title: 'ASC',
+      },
+    });
     const filteredSongs = allSongs.filter((song) => {
       const normalizedArtist = normalizeString(song.artists[0].name);
       return normalizedArtist.includes(sanitizedQuery);
@@ -209,18 +236,18 @@ export class SongsService {
   }
 
   async findOneByName(title: string): Promise<Song | null> {
-    return this.songRepository.findOne({
+    return await this.songRepository.findOne({
       where: {
         title
       },
-      relations: { artists: true, playlists: true },
+      relations: { artists: true, playlists: true, genres: true },
     });
   }
 
   async addArtistToSong(songId: string, artistId: string): Promise<Song | null> {
     const song = await this.songRepository.findOne({
       where: { id: songId },
-      relations: { artists: true },
+      relations: { artists: true, playlists: true },
     });
 
     if (!song) {
@@ -233,7 +260,12 @@ export class SongsService {
     }
 
     song.artists.push(artist);
-    return this.songRepository.save(song);
+
+    const savedSong = await this.songRepository.save(song);
+    return await this.songRepository.findOne({
+      where: { id: savedSong.id },
+      relations: { artists: true},
+    });
   }
 
   async addGenreToSong(songId: string, genreId: string): Promise<Song | null> {
@@ -252,7 +284,11 @@ export class SongsService {
     }
 
     song.genres.push(genre);
-    return this.songRepository.save(song);
+    const savedSong = await this.songRepository.save(song);
+    return await this.songRepository.findOne({
+      where: { id: savedSong.id },
+      relations: { genres: true, artists: true },
+    });
   }
 
   async removeArtistFromSong(songId: string, artistId: string): Promise<Song | null> {

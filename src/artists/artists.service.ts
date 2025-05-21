@@ -17,7 +17,7 @@ export class ArtistsService {
     private songRepository: Repository<Song>
   ) {}
 
-  async create(createArtistDto: CreateArtistDto): Promise<Artist> {
+  async create(createArtistDto: CreateArtistDto): Promise<Artist | null> {
     const artist = new Artist();
 
     artist.name = createArtistDto.name; 
@@ -32,15 +32,27 @@ export class ArtistsService {
       artist.songs = [];
     }
     
-    return this.artistRepository.save(artist);
+    const savedArtist = await this.artistRepository.save(artist);
+    
+    return await this.artistRepository.findOne({
+      where: { id: savedArtist.id },
+      relations: ['songs']
+    });
   }
 
   async findAll(): Promise<Artist[]> {
-    return await this.artistRepository.find();
+    return await this.artistRepository.find(
+      {
+        relations: ['songs'],
+        order: {
+          name: 'ASC'
+        }
+      }
+    );
   }
 
   async findOne(id: string): Promise<Artist | null> {
-    return await this.artistRepository.findOneBy({ id });
+    return await this.artistRepository.findOne({where: { id }, relations: ['songs']});
   }
 
   // async findOneBySpotifyId(spotifyId: string): Promise<Artist | null> {
@@ -48,7 +60,7 @@ export class ArtistsService {
   // }
 
   async update(id: string, updateArtistDto: UpdateArtistDto) {
-    const artist = await this.artistRepository.findOneBy({ id });
+    const artist = await this.artistRepository.findOne({ where: {id}, relations: ['songs'] });
     if (!artist) {
       throw new Error('Artist not found');
     }
@@ -60,7 +72,13 @@ export class ArtistsService {
     } else {
       artist.songs = [];
     }
-    return await this.artistRepository.save(artist);
+    updateArtistDto.name ? artist.name = updateArtistDto.name : null;
+    updateArtistDto.imageUrl ? artist.imageUrl = updateArtistDto.imageUrl : null;
+    const updatedArtist = await this.artistRepository.save(artist);
+    return await this.artistRepository.findOne({
+      where: { id: updatedArtist.id },
+      relations: ['songs']
+    });
   }
 
   async remove(id: string): Promise<DeleteResult> {
