@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { DeleteResult, Repository, UpdateResult } from 'typeorm';
+import { DeleteResult, In, Repository, UpdateResult } from 'typeorm';
 import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcryptjs';
@@ -9,12 +9,14 @@ import { ConfigService } from '@nestjs/config';
 import { paginate, Pagination, IPaginationOptions } from 'nestjs-typeorm-paginate'
 import { Playlist } from 'src/playlists/entities/playlist.entity';
 import { PlaylistsService } from 'src/playlists/playlists.service';
+import { SupabaseStorageService } from 'src/supabase-storage/supabase-storage.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     private readonly configService: ConfigService,
-    private readonly playlistsService: PlaylistsService
+    private readonly playlistsService: PlaylistsService,
+    private readonly supabaseStorageService: SupabaseStorageService,
   ) {} // Inject the ConfigService if needed
   @InjectRepository(User) // Inject the User repository
   private readonly usersRepository: Repository<User>; // Replace 'any' with your User entity type
@@ -64,19 +66,49 @@ export class UsersService {
     return await this.usersRepository.find(); // Find all users
   }
 
-  findOne(id: string): Promise<User | null> {
-    return this.usersRepository.findOneBy({ id });
+  async findOne(id: string): Promise<User | null> {
+    return await this.usersRepository.findOneBy({ id });
   }
 
-  update(id: string, updateUserDto: UpdateUserDto): Promise<UpdateResult> {
-    return this.usersRepository.update(id, updateUserDto);
+  async update(id: string, updateUserDto: UpdateUserDto, imageBuffer? : Buffer, imageName? : string){
+    const user = await this.usersRepository.findOneBy({ id });
+    if (!user) {
+      return null; // Return null if user not found
+    }
+    user.displayName = updateUserDto.displayName ?? user.displayName; // Update displayName if provided
+    user.email = updateUserDto.email ?? user.email; // Update email if provided
+    if (imageBuffer && imageName) {
+      const fileName = `${sanitizeFileName(imageName)}-${Date.now()}.jpg`;
+      try {
+        const uploadedImageUrl = await this.supabaseStorageService.uploadAvatarFromBuffer(imageBuffer, fileName);
+        if (uploadedImageUrl) {
+          user.imageUrl = uploadedImageUrl; // Update imageUrl with the uploaded image URL
+        } else {
+          console.error('Failed to upload image to Supabase Storage');
+          return null; // Handle error appropriately
+        }
+      } catch (error) {
+        console.error('Error uploading image:', error);
+        return null; // Handle error appropriately
+      }
+    }
+    return await this.usersRepository.save(user); // Save the updated user to the database
   }
 
-  remove(id: string): Promise<DeleteResult>  {
-    return this.usersRepository.delete(id);
+  async remove(id: string): Promise<DeleteResult>  {
+    return await this.usersRepository.delete(id);
   }
 
   paginate(options: IPaginationOptions): Promise<Pagination<User>> {
     return paginate<User>(this.usersRepository, options);
   }
+}
+
+function sanitizeFileName(title: string): string {
+  return title
+    .normalize('NFD')                     // Convert to base letters + accents
+    .replace(/[\u0300-\u036f]/g, '')     // Remove accents
+    .replace(/[^a-zA-Z0-9-_ ]/g, '')     // Remove special characters
+    .replace(/\s+/g, '-')                // Replace spaces with hyphens
+    .toLowerCase();                      // Optional: lowercase everything
 }

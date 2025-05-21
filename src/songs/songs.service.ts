@@ -88,7 +88,7 @@ export class SongsService {
     const imageFileName = `${sanitizeFileName(createSongDto.title)}-${Date.now()}.jpg`;
     const imageBuffer = fileImageBuffer;
     if (imageBuffer) {
-      const uploadedImage = await this.supabaseStorageService.uploadImageFromBuffer(imageBuffer, imageFileName);
+      const uploadedImage = await this.supabaseStorageService.uploadSongImageFromBuffer(imageBuffer, imageFileName);
       if (!uploadedImage) {
         throw new Error("Failed to upload image");
       }

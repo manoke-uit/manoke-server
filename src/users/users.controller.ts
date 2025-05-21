@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, HttpCode, ParseIntPipe, Query, DefaultValuePipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, HttpCode, ParseIntPipe, Query, DefaultValuePipe, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -9,6 +9,7 @@ import { UpdateResult } from 'typeorm';
 import { Pagination } from 'nestjs-typeorm-paginate';
 import { responseHelper } from 'src/helpers/response.helper';
 import { ApiOperation } from '@nestjs/swagger';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('users')
 export class UsersController {
@@ -75,8 +76,32 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto): Promise<UpdateResult> {
-    return await this.usersService.update(id, updateUserDto);
+  @UseInterceptors(FileInterceptor('image'))
+  async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto, @UploadedFile() image?) {
+    const user = await this.usersService.findOne(id);
+    if (!user) {
+      return responseHelper({
+        statusCode: 404,
+        message: 'User not found',
+        data: null,
+      });
+    }
+    const imageName = image?.originalname;
+    const imageBuffer = image?.buffer;
+    const updatedUser = await this.usersService.update(id, updateUserDto, imageBuffer, imageName);
+    if (!updatedUser) {
+      return responseHelper({
+        statusCode: 500,
+        message: 'Failed to update user',
+        data: null,
+      });
+    }
+    return responseHelper({
+      statusCode: 200,
+      message: 'User updated successfully',
+      data: updatedUser,
+    });
+    
   }
 
   @UseGuards(JwtAuthGuard)
