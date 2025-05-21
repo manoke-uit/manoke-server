@@ -58,7 +58,7 @@ export class AuthController {
             req.user.userId,
             changePasswordDto.oldPassword,
             changePasswordDto.newPassword,
-            changePasswordDto.verifyNewPassword
+            // changePasswordDto.verifyNewPassword
         );
     }
 

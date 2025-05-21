@@ -147,7 +147,7 @@ export class AuthService {
     }
 
 
-    async changePassword(userEmail: string, oldPassword: string, newPassword: string, verifyPassword: string) {
+    async changePassword(userEmail: string, oldPassword: string, newPassword: string, verifyPassword?: string) {
         // Lấy người dùng từ DB
         const user = await this.userRepository.findOne({ where: { email: userEmail } });
         if (!user) {
@@ -159,13 +159,13 @@ export class AuthService {
             throw new Error('Old password is incorrect');
         }
 
-        if (newPassword !== verifyPassword) {
-            throw new Error('New password and verified password do not match');
-        }
+        // if (newPassword !== verifyPassword) {
+        //     throw new Error('New password and verified password do not match');
+        // }
 
-        if (await bcrypt.compare(newPassword, user.password)) {
-            throw new Error('New password must be different from the old password');
-        }
+        // if (await bcrypt.compare(newPassword, user.password)) {
+        //     throw new Error('New password must be different from the old password');
+        // }
 
 
         const hashedNewPassword = await bcrypt.hash(newPassword, 10);
