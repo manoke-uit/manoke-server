@@ -21,10 +21,11 @@ export class ScoresController {
     //return this.scoresService.create(createScoreDto);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get()
   async findAll(@Req() req: any) {
     // Check if the user is an admin
-    if (req.user['role'] === 'admin') {
+    if (req.user['adminSecret']) {
       return await this.scoresService.findAllForAdmin();
     }
     const userId = req.user['userId'];
