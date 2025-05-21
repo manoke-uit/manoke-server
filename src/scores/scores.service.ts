@@ -52,8 +52,23 @@ export class ScoresService {
     return this.scoreRepository.save(score);
   }
 
-  findAll() {
-    return `This action returns all scores`;
+  async findAllForAdmin() : Promise<Score[]> {
+    const scores = await this.scoreRepository.find({
+      relations: ['song', 'user'],
+    });
+    return scores;
+  }
+
+  async findAll(userId: string) : Promise<Score[]> {
+    const scores = await this.scoreRepository.find({
+      where: {
+        user: {
+          id: userId,
+        },
+      },
+      relations: ['song'],
+    });
+    return scores;
   }
 
   findOne(id: number) {

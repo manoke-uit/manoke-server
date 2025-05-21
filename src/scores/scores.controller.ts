@@ -22,8 +22,13 @@ export class ScoresController {
   }
 
   @Get()
-  findAll() {
-    return this.scoresService.findAll();
+  async findAll(@Req() req: any) {
+    // Check if the user is an admin
+    if (req.user['role'] === 'admin') {
+      return await this.scoresService.findAllForAdmin();
+    }
+    const userId = req.user['userId'];
+    return await this.scoresService.findAll(userId);
   }
 
   @Get(':id')
