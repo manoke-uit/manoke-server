@@ -75,7 +75,7 @@ export class UsersController {
   }
 
   @Post('registerOrUpdateExpoPushToken')
-  async registerOrUpdateFcmToken (
+  async registerOrUpdateExpoPushToken (
     @Body() body: {userId: string; expoPushToken: string}
   ) {
     await this.usersService.registerOrUpdateExpoPushToken(body.userId, body.expoPushToken);
