@@ -14,49 +14,66 @@ export class KaraokesController {
   constructor(private readonly karaokesService: KaraokesService) {}
 
   @ApiOperation({ summary: 'create a new karaoke by user, default is private, if admin need to user another route' })
-  @Post('user')
+  @Post()
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('file'))
   async createByUser(@UploadedFile() file: Express.Multer.File ,@Body() createKaraokeDto: CreateKaraokeDto, @Req() req: any) {
+    const fileName = file.originalname; // get the original file name
+    const fileBuffer = file.buffer; // get the file buffer
     createKaraokeDto.userId = req.user['userId']; // set the userId in the createKaraokeDto
-    const fileName = file.originalname; // get the original file name
-    const fileBuffer = file.buffer; // get the file buffer
-    const createdKaraoke = await this.karaokesService.createByUser(fileBuffer, fileName,createKaraokeDto);
-    if (!createdKaraoke) {
+    if(req.user['adminSecret']) {
+      const createdKaraoke = await this.karaokesService.createByAdmin(fileBuffer, fileName,createKaraokeDto);
+      if (!createdKaraoke) {
+        return responseHelper({
+          message: 'Karaoke creation failed',
+          statusCode: 400,
+        });
+      }
       return responseHelper({
-        message: 'Karaoke creation failed',
-        statusCode: 400,
+        message: 'Karaoke created successfully',
+        data: createdKaraoke,
+        statusCode: 201,
       });
     }
-    return responseHelper({
-      message: 'Karaoke created successfully',
-      data: createdKaraoke,
-      statusCode: 201,
-    });
+    else {
+      const createdKaraoke = await this.karaokesService.createByUser(fileBuffer, fileName,createKaraokeDto);
+      if (!createdKaraoke) {
+        return responseHelper({
+          message: 'Karaoke creation failed',
+          statusCode: 400,
+        });
+      }
+      return responseHelper({
+        message: 'Karaoke created successfully',
+        data: createdKaraoke,
+        statusCode: 201,
+      });
+    }
+    
   }
 
 
-  @ApiOperation({ summary: 'create a new karaoke by admin => Public' })
-  @Post('admin')
-  @UseGuards(JwtAdminGuard)
-  @UseInterceptors(FileInterceptor('file'))
-  async createByAdmin(@UploadedFile() file: Express.Multer.File,@Body() createKaraokeDto: CreateKaraokeDto, @Req() req: any) {
-    createKaraokeDto.userId = req.user['userId'];
-    const fileName = file.originalname; // get the original file name
-    const fileBuffer = file.buffer; // get the file buffer
-    const createdKaraoke = await this.karaokesService.createByAdmin(fileBuffer, fileName,createKaraokeDto);
-    if (!createdKaraoke) {
-      return responseHelper({
-        message: 'Karaoke creation failed',
-        statusCode: 400,
-      });
-    }
-    return responseHelper({
-      message: 'Karaoke created successfully',
-      data: createdKaraoke,
-      statusCode: 201,
-    });
-  }
+  // @ApiOperation({ summary: 'create a new karaoke by admin => Public' })
+  // @Post('admin')
+  // @UseGuards(JwtAdminGuard)
+  // @UseInterceptors(FileInterceptor('file'))
+  // async createByAdmin(@UploadedFile() file: Express.Multer.File,@Body() createKaraokeDto: CreateKaraokeDto, @Req() req: any) {
+  //   createKaraokeDto.userId = req.user['userId'];
+  //   const fileName = file.originalname; // get the original file name
+  //   const fileBuffer = file.buffer; // get the file buffer
+  //   const createdKaraoke = await this.karaokesService.createByAdmin(fileBuffer, fileName,createKaraokeDto);
+  //   if (!createdKaraoke) {
+  //     return responseHelper({
+  //       message: 'Karaoke creation failed',
+  //       statusCode: 400,
+  //     });
+  //   }
+  //   return responseHelper({
+  //     message: 'Karaoke created successfully',
+  //     data: createdKaraoke,
+  //     statusCode: 201,
+  //   });
+  // }
 
   @UseGuards(JwtAuthGuard)
   @Get()
