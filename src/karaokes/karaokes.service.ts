@@ -196,6 +196,19 @@ export class KaraokesService {
       return null;
     });
   }
+
+  async findKaraokeAndChangeStatusToPrivate(id: string) : Promise<Karaoke | null> {
+    return await this.karaokeRepository.findOne({
+      where: { id },
+      relations: ['song', 'user'],
+    }).then(karaoke => {
+      if (karaoke) {
+        karaoke.status = KaraokeStatus.PRIVATE;
+        return this.karaokeRepository.save(karaoke);
+      }
+      return null;
+    });
+  }
 }
 
 function sanitizeFileName(title: string): string {

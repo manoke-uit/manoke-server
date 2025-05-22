@@ -166,6 +166,24 @@ export class KaraokesController {
     });
   }
 
+  @ApiOperation({ summary: 'when admin decline and the karaoke backs to be private' })
+  @Get('decline/:id')
+  @UseGuards(JwtAdminGuard)
+  async findKaraokeAndChangeStatusToPrivate(@Param('id') id: string) {
+    const karaoke = await this.karaokesService.findKaraokeAndChangeStatusToPrivate(id);
+    if (!karaoke) {
+      return responseHelper({
+        message: 'sth wrong',
+        statusCode: 404,
+      });
+    }
+    return responseHelper({
+      message: 'Karaoke updated successfully',
+      data: karaoke,
+      statusCode: 200,
+    });
+  }
+
   @ApiOperation({ summary: 'Get all related karaoke of a song' })
   @ApiResponse({ status: 200, description: 'Karaoke retrieved successfully' })
   @ApiResponse({ status: 404, description: 'Karaoke not found' })
