@@ -7,6 +7,7 @@ import { IsOptional, IsString } from 'class-validator';
 import { Karaoke } from 'src/karaokes/entities/karaoke.entity';
 import { Post } from 'src/posts/entities/post.entity';
 import { Comment } from 'src/comments/entities/comment.entity';
+import { UserDevice } from './user-device.entity';
 
 @Entity('users')
 export class User {
@@ -50,4 +51,7 @@ export class User {
 
     @OneToMany(() => Comment, (comment) => comment.user, { cascade: true })
     comments: Comment[]; // @IsArray() in dto
+
+    @OneToMany(() => UserDevice, (userDevice) => userDevice.user, { cascade: true })
+    userDevices: UserDevice[];
 }

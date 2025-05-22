@@ -7,11 +7,15 @@ import { Notification } from './entities/notification.entity';
 import { FirebaseService } from 'src/firebase-admin/firebase.service';
 import { FirebaseAdminProvider } from 'src/firebase-admin/firebase-admin.provider';
 import { FirebaseAdminModule } from 'src/firebase-admin/firebase-admin.module';
+import { UserDevice } from 'src/users/entities/user-device.entity';
+import { UsersService } from 'src/users/users.service';
+import { User } from 'src/users/entities/user.entity';
+import { PlaylistsModule } from 'src/playlists/playlists.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Notification]), FirebaseAdminModule],
+  imports: [TypeOrmModule.forFeature([Notification, UserDevice, User]), FirebaseAdminModule, PlaylistsModule],
   controllers: [NotificationsController],
-  providers: [NotificationsService],
+  providers: [NotificationsService, UsersService],
   exports: [NotificationsService]
 })
 export class NotificationsModule {}

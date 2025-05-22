@@ -1,52 +1,88 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Notification } from './entities/notification.entity';
 import { Repository } from 'typeorm';
 import * as firebase from 'firebase-admin';
 import { CreateNotificationDto } from './dto/create-notification.dto';
+import { UserDevice } from 'src/users/entities/user-device.entity';
+import { User } from 'src/users/entities/user.entity';
+import Expo, { ExpoPushMessage, ExpoPushTicket } from 'expo-server-sdk';
 
 @Injectable()
 export class NotificationsService {
+  private expo: Expo;
+
   constructor(
     @InjectRepository(Notification)
     private notificationsRepository: Repository<Notification>,
+    @InjectRepository(UserDevice)
+    private userDevicesRepository: Repository<UserDevice>,
+    @InjectRepository(User)
+    private usersRepository: Repository<User>
   ) { }
 
-  async sendAndSave(createNotificationDto: CreateNotificationDto) {
-    if (createNotificationDto.deviceId) {
-      await firebase.messaging().send({
-        notification: {
-          title: createNotificationDto.title,
-          body: createNotificationDto.description || '',
-        },
-        token: createNotificationDto.deviceId,
-        android: 
-        { 
-          priority: 'high', 
-          notification: { 
-            sound: 'default', 
-            channelId: 'default' 
-          } 
-        },
-        apns: {
-          headers: { 'apns-priority': '10' },
-          payload: {
-            aps: {
-              contentAvailable: true,
-              sound: 'default',
-            },
-          },
-        },
-      });
+  async sendPushNotification(
+    recipientTokens: string[],
+    title: string,
+    body: string,
+    sound: 'default' | null = 'default'
+  ) {
+    const messages: ExpoPushMessage[] = [];
+
+    for (let pushToken of recipientTokens) {
+      if (!Expo.isExpoPushToken(pushToken)) {
+        console.warn(`Push token ${pushToken} is not a valid Expo push token.`);
+        continue; // Bỏ qua token không hợp lệ
+      }
+
+      messages.push({
+        to: pushToken, sound, title, body
+      })
     }
 
-    return this.notificationsRepository.save({
-      title: createNotificationDto.title,
-      description: createNotificationDto.description,
-      user: { id: createNotificationDto.userId },
-      isRead: false,
-    });
+    let chunks = this.expo.chunkPushNotifications(messages);
+    let tickets: ExpoPushTicket[] = [];
+
+    for (let chunk of chunks) {
+      try {
+        let ticketChunk = await this.expo.sendPushNotificationsAsync(chunk);
+        console.log(`Sent chunk of notifications. Tickets: ${JSON.stringify(ticketChunk)}`);
+        tickets.push(...ticketChunk);
+      } catch (error) {
+        throw new BadRequestException(`Error sending push notification chunk: ${error.message}`, error.stack);
+        // Có thể lưu lỗi vào DB hoặc thông báo cho admin
+      }
+    }
   }
+
+  async sendNotificationToUser(createNotificationDto: CreateNotificationDto) {
+    const userDevices = await this.userDevicesRepository.find({
+      where: { user: { id: createNotificationDto.userId } },
+      select: ['expoPushToken'],
+    });
+
+    const tokens = userDevices.map(userDevice => userDevice.expoPushToken);
+
+    if (tokens.length === 0) {
+      throw new NotFoundException(`No push tokens found for user ${createNotificationDto.userId}. Notification not sent.`);
+
+    }
+    await this.sendPushNotification(tokens, createNotificationDto.title, createNotificationDto.description);
+  }
+
+  async sendNotificationToAllUser(title: string, description: string) {
+    const userDevices = await this.userDevicesRepository.find({
+      select: ['expoPushToken'],
+    });
+
+    const tokens = userDevices.map(userDevice => userDevice.expoPushToken);
+
+    if (tokens.length === 0) {
+      throw new NotFoundException(`No push tokens found for all users. Notification not sent.`);
+
+    }
+    await this.sendPushNotification(tokens, title, description);
+  } 
 
   async getAll(userId: string) {
     return this.notificationsRepository.find({

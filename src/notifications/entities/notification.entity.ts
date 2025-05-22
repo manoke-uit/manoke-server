@@ -10,7 +10,7 @@ export class Notification {
     title: string;
 
     @Column({ type: 'text' })
-    description?: string;
+    description: string;
 
     @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
     createdAt: Date; // @IsDateString() in dto
@@ -20,6 +20,5 @@ export class Notification {
 
     @ManyToOne(() => User, (user) => user.notifications, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'userId' })
-    user: User; // @IsUUID() in dto
-
+    user: User; 
 }

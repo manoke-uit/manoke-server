@@ -13,6 +13,7 @@ import { Genre } from 'src/genres/entities/genre.entity';
 import { Karaoke } from 'src/karaokes/entities/karaoke.entity';
 import { Post } from 'src/posts/entities/post.entity';
 import { Comment } from 'src/comments/entities/comment.entity';
+import { UserDevice } from 'src/users/entities/user-device.entity';
 
 export const typeOrmConfig : TypeOrmModuleAsyncOptions = {
     imports: [ConfigModule.forRoot()],
@@ -24,7 +25,7 @@ export const typeOrmConfig : TypeOrmModuleAsyncOptions = {
         username: configService.get('DB_USERNAME'),
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_DATABASE'),
-        entities: [Artist, Friend, Notification, Playlist, Score, Song, User, Genre, Karaoke, Post, Comment], // exact one for webpack usage
+        entities: [Artist, Friend, Notification, Playlist, Score, Song, User, Genre, Karaoke, Post, Comment, UserDevice], // exact one for webpack usage
         migrations: ['dist/database/migrations/*.js'],
         synchronize: true, // for dev only, set to false in prod
     })

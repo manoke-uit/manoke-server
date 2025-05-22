@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, HttpCode, ParseIntPipe, Query, DefaultValuePipe } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, HttpCode, ParseIntPipe, Query, DefaultValuePipe, HttpStatus } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -71,6 +71,18 @@ export class UsersController {
   @Get(':id')
   async findOne(@Param('id') id: string): Promise<User | null> {
     return await this.usersService.findOne(id);
+  }
+
+  @Post('registerOrUpdateExpoPushToken')
+  async registerOrUpdateFcmToken (
+    @Body() body: {userId: string; expoPushToken: string}
+  ) {
+    await this.usersService.registerOrUpdateExpoPushToken(body.userId, body.expoPushToken);
+
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Expo push token registered or updated successfully.',
+    };
   }
 
   @UseGuards(JwtAuthGuard)

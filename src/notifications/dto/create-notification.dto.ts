@@ -11,7 +11,7 @@ export class CreateNotificationDto {
     @IsString()
     @IsOptional()
     @ApiProperty({ required: false, description: 'Notification description' })
-    description?: string;
+    description: string;
 
     @IsDateString()
     @IsOptional() // default value is Date.now()
@@ -36,5 +36,5 @@ export class CreateNotificationDto {
     @ApiProperty({ example: 'fcm_device_token_123', required: false })
     @IsString()
     @IsOptional()
-    deviceId?: string; // Chỉ dùng nếu cần gửi push
+    expoPushToken?: string; // Chỉ dùng nếu cần gửi push
 }

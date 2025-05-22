@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { DeleteResult, Repository, UpdateResult } from 'typeorm';
@@ -9,12 +9,17 @@ import { ConfigService } from '@nestjs/config';
 import { paginate, Pagination, IPaginationOptions } from 'nestjs-typeorm-paginate'
 import { Playlist } from 'src/playlists/entities/playlist.entity';
 import { PlaylistsService } from 'src/playlists/playlists.service';
+import { UserDevice } from './entities/user-device.entity';
+import Expo from 'expo-server-sdk';
+import { BadRequestError } from 'openai';
 
 @Injectable()
 export class UsersService {
   constructor(
     private readonly configService: ConfigService,
-    private readonly playlistsService: PlaylistsService
+    private readonly playlistsService: PlaylistsService,
+    @InjectRepository(UserDevice)
+    private userDeviceRepository: Repository<UserDevice>
   ) {} // Inject the ConfigService if needed
   @InjectRepository(User) // Inject the User repository
   private readonly usersRepository: Repository<User>; // Replace 'any' with your User entity type
@@ -51,6 +56,29 @@ export class UsersService {
     user.adminSecret = ""; // Remove the adminSecret from the user object
     return user; // Return the user object
   }
+
+  async registerOrUpdateExpoPushToken(userId: string, expoPushToken: string) {
+    // if (!Expo.isExpoPushToken(expoPushToken)) {
+    //   throw new BadRequestException("Expo push token is invalid!")
+    // }
+
+    const user = await this.usersRepository.findOneBy({id: userId});
+    if (!user) {
+      throw new NotFoundException("User not found!")
+    }
+
+    const userDevice = await this.userDeviceRepository.findOneBy({expoPushToken});
+    if (!userDevice) {
+      const newUserDevice = new UserDevice();
+      newUserDevice.user = user; 
+      newUserDevice.expoPushToken = expoPushToken;
+      await this.userDeviceRepository.save(newUserDevice);
+    } else {
+      const currentUserDevice = userDevice;
+      currentUserDevice.user = user;
+      await this.userDeviceRepository.save(currentUserDevice);
+    }
+  } 
 
   async findByEmail(email: string): Promise<User | null> {
     return this.usersRepository.findOne({ where: { email } }); // Find a user by email
