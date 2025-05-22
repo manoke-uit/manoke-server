@@ -60,9 +60,9 @@ export class UsersService {
   }
 
   async registerOrUpdateExpoPushToken(userId: string, expoPushToken: string) {
-    // if (!Expo.isExpoPushToken(expoPushToken)) {
-    //   throw new BadRequestException("Expo push token is invalid!")
-    // }
+    if (!Expo.isExpoPushToken(expoPushToken)) {
+      throw new BadRequestException("Expo push token is invalid!")
+    }
 
     const user = await this.usersRepository.findOneBy({id: userId});
     if (!user) {
