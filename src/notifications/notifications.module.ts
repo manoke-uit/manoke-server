@@ -11,11 +11,12 @@ import { UserDevice } from 'src/users/entities/user-device.entity';
 import { UsersService } from 'src/users/users.service';
 import { User } from 'src/users/entities/user.entity';
 import { PlaylistsModule } from 'src/playlists/playlists.module';
+import { SupabaseStorageService } from 'src/supabase-storage/supabase-storage.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Notification, UserDevice, User]), FirebaseAdminModule, PlaylistsModule],
   controllers: [NotificationsController],
-  providers: [NotificationsService, UsersService],
+  providers: [NotificationsService, UsersService, SupabaseStorageService],
   exports: [NotificationsService]
 })
 export class NotificationsModule {}
