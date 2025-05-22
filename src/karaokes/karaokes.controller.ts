@@ -92,6 +92,27 @@ export class KaraokesController {
     });
   }
 
+  @ApiOperation({ summary: 'Get all related karaoke of an user' })
+  @ApiResponse({ status: 200, description: 'Karaoke retrieved successfully' })
+  @ApiResponse({ status: 404, description: 'Karaoke not found' })
+  @UseGuards(JwtAuthGuard)
+  @Get('own')
+  async findAllByUserId(@Req() req: any) {
+    const id = req.user['userId'];
+    const karaoke = await this.karaokesService.findAllByUserId(id);
+    if (!karaoke) {
+      return responseHelper({
+        message: 'Karaoke not found',
+        statusCode: 404,
+      });
+    }
+    return responseHelper({
+      message: 'Karaoke retrieved successfully',
+      data: karaoke,
+      statusCode: 200,
+    });
+  }
+
   @UseGuards(JwtAuthGuard)
   @Get(':id')
   async findOne(@Param('id') id: string) {
@@ -165,25 +186,7 @@ export class KaraokesController {
     });
   }
 
-  @ApiOperation({ summary: 'Get all related karaoke of an user' })
-  @ApiResponse({ status: 200, description: 'Karaoke retrieved successfully' })
-  @ApiResponse({ status: 404, description: 'Karaoke not found' })
-  @UseGuards(JwtAuthGuard)
-  @Get('user/:id')
-  async findAllByUserId(@Param('id') id: string) {
-    const karaoke = await this.karaokesService.findAllByUserId(id);
-    if (!karaoke) {
-      return responseHelper({
-        message: 'Karaoke not found',
-        statusCode: 404,
-      });
-    }
-    return responseHelper({
-      message: 'Karaoke retrieved successfully',
-      data: karaoke,
-      statusCode: 200,
-    });
-  }
+  
 
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
