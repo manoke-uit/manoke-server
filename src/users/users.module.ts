@@ -6,10 +6,11 @@ import { User } from './entities/user.entity';
 import { PlaylistsService } from 'src/playlists/playlists.service';
 import { Playlist } from 'src/playlists/entities/playlist.entity';
 import { Song } from 'src/songs/entities/song.entity';
+import { SupabaseStorageModule } from 'src/supabase-storage/supabase-storage.module';
 import { UserDevice } from './entities/user-device.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Playlist, Song, UserDevice])], // Import the TypeOrmModule and specify the User entity
+  imports: [TypeOrmModule.forFeature([User, Playlist, Song, UserDevice]), SupabaseStorageModule], // Import the TypeOrmModule and specify the User entity
   controllers: [UsersController],
   providers: [UsersService, PlaylistsService],
   exports: [UsersService], // Export the UsersService so it can be used in other modules
