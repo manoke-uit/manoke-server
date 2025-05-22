@@ -19,7 +19,9 @@ export class NotificationsService {
     private userDevicesRepository: Repository<UserDevice>,
     @InjectRepository(User)
     private usersRepository: Repository<User>
-  ) { }
+  ) {
+    this.expo = new Expo();
+  }
 
   async sendPushNotification(
     recipientTokens: string[],
@@ -67,6 +69,18 @@ export class NotificationsService {
       throw new NotFoundException(`No push tokens found for user ${createNotificationDto.userId}. Notification not sent.`);
 
     }
+    const notificationSent = new Notification();
+    const user = await this.usersRepository.findOneBy({id: createNotificationDto.userId })
+
+    if (!user) {
+      throw new NotFoundException('User not found')
+    }
+
+    notificationSent.title = createNotificationDto.title;
+    notificationSent.description = createNotificationDto.description;
+    notificationSent.user = user; // Liên kết với đối tượng User
+    await this.notificationsRepository.save(notificationSent);
+
     await this.sendPushNotification(tokens, createNotificationDto.title, createNotificationDto.description);
   }
 
@@ -82,7 +96,7 @@ export class NotificationsService {
 
     }
     await this.sendPushNotification(tokens, title, description);
-  } 
+  }
 
   async getAll(userId: string) {
     return this.notificationsRepository.find({

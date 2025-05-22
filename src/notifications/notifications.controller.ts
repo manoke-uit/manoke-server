@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Query, UseGuards, HttpStatus } from '@nestjs/common';
 import { NotificationsService } from './notifications.service';
 import { ApiTags, ApiQuery } from '@nestjs/swagger';
 import { CreateNotificationDto } from './dto/create-notification.dto';
@@ -8,18 +8,26 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth-guard';
 @ApiTags('Notifications')
 @Controller('notifications')
 export class NotificationsController {
-  constructor(private readonly notificationsService: NotificationsService) {}
+  constructor(private readonly notificationsService: NotificationsService) { }
 
-  @UseGuards(JwtAdminGuard)
-  @Post()
+  // @UseGuards(JwtAdminGuard)
+  @Post('sendNotificationToUser')
   async sendNotificationToUser(@Body() createNotificationDto: CreateNotificationDto) {
-    return await this.notificationsService.sendNotificationToUser(createNotificationDto);
+    await this.notificationsService.sendNotificationToUser(createNotificationDto);
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Notification sent successfully.',
+    };
   }
 
   @UseGuards(JwtAdminGuard)
-  @Post()
-  async sendNotificationToAllUser(@Body() body: {title: string, description: string}) {
-    return await this.notificationsService.sendNotificationToAllUser(body.title, body.description)
+  @Post('sendNotificationToAllUser')
+  async sendNotificationToAllUser(@Body() body: { title: string, description: string }) {
+    await this.notificationsService.sendNotificationToAllUser(body.title, body.description)
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Notification sent successfully.',
+    };
   }
 
   @UseGuards(JwtAuthGuard)
