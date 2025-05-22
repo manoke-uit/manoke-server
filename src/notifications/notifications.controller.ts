@@ -20,7 +20,7 @@ export class NotificationsController {
     };
   }
 
-  @UseGuards(JwtAdminGuard)
+  // @UseGuards(JwtAdminGuard)
   @Post('sendNotificationToAllUser')
   async sendNotificationToAllUser(@Body() body: { title: string, description: string }) {
     await this.notificationsService.sendNotificationToAllUser(body.title, body.description)

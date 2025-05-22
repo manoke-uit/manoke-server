@@ -75,10 +75,12 @@ export class UsersService {
       newUserDevice.user = user; 
       newUserDevice.expoPushToken = expoPushToken;
       await this.userDeviceRepository.save(newUserDevice);
+      console.log(userDevice)
     } else {
       const currentUserDevice = userDevice;
       currentUserDevice.user = user;
       await this.userDeviceRepository.save(currentUserDevice);
+      console.log(userDevice)
     }
   } 
 

@@ -61,7 +61,10 @@ export class NotificationsService {
     const userDevices = await this.userDevicesRepository.find({
       where: { user: { id: createNotificationDto.userId } },
       select: ['expoPushToken'],
+      relations: ['user']
     });
+
+    console.log(userDevices);
 
     const tokens = userDevices.map(userDevice => userDevice.expoPushToken);
 
@@ -86,15 +89,35 @@ export class NotificationsService {
 
   async sendNotificationToAllUser(title: string, description: string) {
     const userDevices = await this.userDevicesRepository.find({
-      select: ['expoPushToken'],
+      relations: ['user']
     });
-
     const tokens = userDevices.map(userDevice => userDevice.expoPushToken);
 
     if (tokens.length === 0) {
       throw new NotFoundException(`No push tokens found for all users. Notification not sent.`);
-
     }
+
+    const uniqueUsers = new Map<string, User>();
+    for (const device of userDevices) {
+      if (device.user) {
+        console.log(device.user.id, device.user)
+        uniqueUsers.set(device.user.id, device.user);
+      }
+    }
+
+    console.log(uniqueUsers)
+
+    const notificationsToSave: Notification[] = [];
+    for (const user of uniqueUsers.values()) {
+      const notificationSent = new Notification();
+      notificationSent.title = title;
+      notificationSent.description = description;
+      notificationSent.user = user;
+      // Thêm các trường khác nếu có
+      notificationsToSave.push(notificationSent);
+    }
+    await this.notificationsRepository.save(notificationsToSave);
+
     await this.sendPushNotification(tokens, title, description);
   }
 
