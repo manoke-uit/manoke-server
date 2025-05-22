@@ -21,7 +21,7 @@ export class UsersController {
   }
 
   @Get()
-  @UseGuards(JwtAdminGuard)
+  @UseGuards(JwtAuthGuard)
   @HttpCode(200)
   async findAll(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe)
