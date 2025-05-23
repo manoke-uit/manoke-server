@@ -61,7 +61,7 @@ export class UsersController {
   }
 
   
-  @UseGuards(JwtAdminGuard)
+  // @UseGuards(JwtAdminGuard)
   @Get('userTokenList/:userId')
   async getUserTokenList(@Param(':userId') userId: string) {
     return await this.usersService.getExpoPushTokens(userId);

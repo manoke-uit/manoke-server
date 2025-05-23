@@ -147,9 +147,9 @@ export class AuthService {
     }
 
 
-    async changePassword(userEmail: string, oldPassword: string, newPassword: string, verifyPassword?: string) {
+    async changePassword(userId: string, oldPassword: string, newPassword: string, verifyPassword?: string) {
         // Lấy người dùng từ DB
-        const user = await this.userRepository.findOne({ where: { email: userEmail } });
+        const user = await this.userRepository.findOne({ where: { id: userId } });
         if (!user) {
             throw new Error('User not found');
         }
