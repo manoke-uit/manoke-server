@@ -10,7 +10,7 @@ import { JwtAuthGuard } from 'src/auth/guards/jwt-auth-guard';
 export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) { }
 
-  // @UseGuards(JwtAdminGuard)
+  @UseGuards(JwtAdminGuard)
   @Post('sendNotificationToUser')
   async sendNotificationToUser(@Body() createNotificationDto: CreateNotificationDto) {
     await this.notificationsService.sendNotificationToUser(createNotificationDto);
@@ -20,7 +20,7 @@ export class NotificationsController {
     };
   }
 
-  // @UseGuards(JwtAdminGuard)
+  @UseGuards(JwtAdminGuard)
   @Post('sendNotificationToAllUser')
   async sendNotificationToAllUser(@Body() body: { title: string, description: string }) {
     await this.notificationsService.sendNotificationToAllUser(body.title, body.description)

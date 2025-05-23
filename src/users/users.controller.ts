@@ -60,7 +60,12 @@ export class UsersController {
     });
   }
 
-
+  
+  @UseGuards(JwtAdminGuard)
+  @Get('userTokenList/:userId')
+  async getUserTokenList(@Param(':userId') userId: string) {
+    return await this.usersService.getExpoPushTokens(userId);
+  }
 
   // @Get()
   // @UseGuards(JwtAdminGuard)
@@ -74,6 +79,7 @@ export class UsersController {
     return await this.usersService.findOne(id);
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('registerOrUpdateExpoPushToken')
   async registerOrUpdateExpoPushToken (
     @Body() body: {userId: string; expoPushToken: string}

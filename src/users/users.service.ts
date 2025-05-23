@@ -1,7 +1,7 @@
 import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { DeleteResult, In, Repository, UpdateResult } from 'typeorm';
+import { DeleteResult, In, Not, Repository, UpdateResult } from 'typeorm';
 import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcryptjs';
@@ -21,7 +21,7 @@ export class UsersService {
     private readonly playlistsService: PlaylistsService,
     private readonly supabaseStorageService: SupabaseStorageService,
     @InjectRepository(UserDevice)
-    private userDeviceRepository: Repository<UserDevice>
+    private userDevicesRepository: Repository<UserDevice>
   ) {} // Inject the ConfigService if needed
   @InjectRepository(User) // Inject the User repository
   private readonly usersRepository: Repository<User>; // Replace 'any' with your User entity type
@@ -69,20 +69,36 @@ export class UsersService {
       throw new NotFoundException("User not found!")
     }
 
-    const userDevice = await this.userDeviceRepository.findOneBy({expoPushToken});
+    const userDevice = await this.userDevicesRepository.findOneBy({expoPushToken});
     if (!userDevice) {
       const newUserDevice = new UserDevice();
       newUserDevice.user = user; 
       newUserDevice.expoPushToken = expoPushToken;
-      await this.userDeviceRepository.save(newUserDevice);
+      await this.userDevicesRepository.save(newUserDevice);
       console.log(userDevice)
     } else {
       const currentUserDevice = userDevice;
       currentUserDevice.user = user;
-      await this.userDeviceRepository.save(currentUserDevice);
+      await this.userDevicesRepository.save(currentUserDevice);
       console.log(userDevice)
     }
   } 
+
+  async getExpoPushTokens(userId: string) {
+    const userDevice = await this.userDevicesRepository.find({
+      where: { user: { id: userId } },
+      select: ['expoPushToken'],
+      relations: ['user']
+    });
+
+    if (!userDevice) {
+      throw new NotFoundException('User device not found!')
+    }
+
+    const tokenList = userDevice.map(device => device.expoPushToken)
+
+    return tokenList;
+  }
 
   async findByEmail(email: string): Promise<User | null> {
     return this.usersRepository.findOne({ where: { email } }); // Find a user by email

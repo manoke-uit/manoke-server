@@ -66,12 +66,12 @@ export class ScoresController {
     try {
       const savedScore =  await this.scoresService.create(createScoreDto, file.buffer); // create the score in the database
 
-      // createNotificationDto.title = "Complete calculating score!";
-      // createNotificationDto.description = "Hello! Your score has been calculated. Please enter the app to receive your achievement!"
-      // createNotificationDto.userId = req.user['userId'];
-      // createNotificationDto.isRead = false;
+      createNotificationDto.title = "Complete calculating score!";
+      createNotificationDto.description = "Hello! Your score has been calculated. Please enter the app to receive your achievement!"
+      createNotificationDto.userId = req.user['userId'];
+      createNotificationDto.isRead = false;
       
-      // await this.notificationService.sendAndSave(createNotificationDto);
+      await this.notificationService.sendNotificationToUser(createNotificationDto);
 
       return savedScore.finalScore.toString(); // return the id of the saved score
     }
