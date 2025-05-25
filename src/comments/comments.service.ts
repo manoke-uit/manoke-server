@@ -88,4 +88,14 @@ export class CommentsService {
     async remove(id: string): Promise<DeleteResult> {
       return await this.commentRepository.delete(id);
     }
+
+    async findByPost(postId: string): Promise<Comment[]> {
+    return await this.commentRepository.find({
+        where: { post: { id: postId } },
+        relations: ['user'],
+        order: {
+          createdAt: 'DESC'
+        }
+      });
+    }
 }

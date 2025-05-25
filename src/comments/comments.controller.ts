@@ -59,4 +59,10 @@ export class CommentsController {
     }
     return await this.commentsService.remove(id);
   }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('post/:postId')
+  async getCommentsByPost(@Param('postId') postId: string) {
+    return await this.commentsService.findByPost(postId);
+  }
 }

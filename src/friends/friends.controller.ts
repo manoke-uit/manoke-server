@@ -37,7 +37,6 @@ export class FriendsController {
   getFriendList(@Req() req: RequestWithUser): Promise<Friend[]> {
     const currentUserId = req.user['userId'];
     return this.friendsService.getFriendList(currentUserId);
-
   }
 
   @UseGuards(JwtAuthGuard)
@@ -59,7 +58,7 @@ export class FriendsController {
 
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
-  update(
+  updateFriendRequestStatus(
     @Req() req: RequestWithUser,
     @Param('id') id: string,
     @Body() updateFriendDto: UpdateFriendDto

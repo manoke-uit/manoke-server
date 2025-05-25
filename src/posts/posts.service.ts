@@ -23,37 +23,36 @@ export class PostsService {
   ) {}
 
   async createPost(createPostDto: CreatePostDto): Promise<Post> {
-    const newPost = new Post();
-    const score = await this.scoreRepository.findOneBy({id: createPostDto.scoreId});
-    const user = await this.userRepository.findOneBy({id: createPostDto.userId});
-    const comments = await this.commentRepository.findBy({post: { id: newPost.id } });
+  const newPost = new Post();
+  const score = await this.scoreRepository.findOneBy({id: createPostDto.scoreId});
+  const user = await this.userRepository.findOneBy({id: createPostDto.userId});
 
-    if (!score) {
-      throw new NotFoundException('Cannot find any scores!');
-    }
-    if (!user) {
-      throw new NotFoundException('Cannot find user!');
-    }
-
-    newPost.user = user;
-    newPost.score = score;
-    newPost.description = createPostDto.description;
-    newPost.createdAt = createPostDto.createdAt ? new Date(createPostDto.createdAt) : new Date();
-    newPost.comments = comments;
-    
-
-    return await this.postRepository.save(newPost);
+  if (!score) {
+    throw new NotFoundException('Cannot find any scores!');
   }
+  if (!user) {
+    throw new NotFoundException('Cannot find user!');
+  }
+
+  newPost.user = user;
+  newPost.score = score;
+  newPost.description = createPostDto.description;
+  newPost.createdAt = createPostDto.createdAt ? new Date(createPostDto.createdAt) : new Date();
+  newPost.comments = []; // Khởi tạo mảng comments rỗng
+
+  return await this.postRepository.save(newPost);
+}
 
   async findAll() {
-    return await this.postRepository.find({
-      relations: ['user', 'score'],
-    });
-  }
+  return await this.postRepository.find({
+    relations: ['user', 'score', 'score.song', 'comments', 'comments.user'],
+    order: { createdAt: 'DESC' }
+  });
+}
 
   async findOne(id: string): Promise<Post | null> {
     return await this.postRepository.findOne(
-      { where: { id }, relations: ['user', 'score'] } // Include relations if needed
+      { where: { id }, relations: ['user', 'score', 'comments', 'comments.user'] } 
     );
   }
 
