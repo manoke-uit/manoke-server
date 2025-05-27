@@ -11,6 +11,8 @@ export class SupabaseStorageService {
     private readonly videoBucketName: string = process.env.SUPABASE_VIDEO_BUCKET || 'videos';
     private readonly songsImagesBucketName: string = process.env.SUPABASE_SONGS_IMAGES_BUCKET || 'songs-images';
     private readonly avatarsBucketName: string = process.env.SUPABASE_PROFILE_AVATAR_BUCKET || 'avatars';
+    private readonly artistsImagesBucketName: string = process.env.SUPABASE_ARTISTS_IMAGES_BUCKET || 'artists-images';
+    private readonly playlistsImagesBucketName: string = process.env.SUPABASE_PLAYLISTS_IMAGES_BUCKET || 'playlists-images';
 
     constructor(private configService: ConfigService) {
         const supabaseUrl = this.configService.get<string>('SUPABASE_URL') ?? "";
@@ -180,5 +182,91 @@ export class SupabaseStorageService {
         const buffer = fs.readFileSync(filePath);
         fs.unlinkSync(filePath); // or use fs.promises.unlink(tempPath)
         return await this.uploadAvatarFromBuffer(buffer, fileName);
+    }
+    // upload artists images to Supabase Storage
+     async uploadArtistsImagesFromBuffer(buffer: Buffer, fileName: string): Promise<string | null> {
+        const ext = fileName.split('.').pop();
+        let contentType = 'image/png'; // default fallback
+
+        switch (ext?.toLowerCase()) {
+        case 'jpg':
+        case 'jpeg':
+            contentType = 'image/jpeg';
+            break;
+        case 'png':
+            contentType = 'image/png';
+            break;
+        case 'webp':
+            contentType = 'image/webp';
+            break;
+        case 'gif':
+            contentType = 'image/gif';
+            break;
+        }
+
+        const { data, error } = await this.supabase.storage
+            .from(this.artistsImagesBucketName)
+            .upload(fileName, buffer, {
+                contentType: contentType,
+                upsert: true, // Overwrite if file already exists
+            });
+
+        if (error) {
+            console.error('Upload failed:', error.message);
+             return null;
+        }
+
+        const { data: publicUrlData } = this.supabase.storage.from(this.artistsImagesBucketName).getPublicUrl(fileName);
+
+        return publicUrlData?.publicUrl || '';
+    }
+
+    async uploadArtistsImagesFromFile(filePath: string, fileName: string): Promise<string | null> {
+        const buffer = fs.readFileSync(filePath);
+        fs.unlinkSync(filePath); // or use fs.promises.unlink(tempPath)
+        return await this.uploadArtistsImagesFromBuffer(buffer, fileName);
+    }
+    // upload artists images to Supabase Storage
+     async uploadPlaylistsImagesFromBuffer(buffer: Buffer, fileName: string): Promise<string | null> {
+        const ext = fileName.split('.').pop();
+        let contentType = 'image/png'; // default fallback
+
+        switch (ext?.toLowerCase()) {
+        case 'jpg':
+        case 'jpeg':
+            contentType = 'image/jpeg';
+            break;
+        case 'png':
+            contentType = 'image/png';
+            break;
+        case 'webp':
+            contentType = 'image/webp';
+            break;
+        case 'gif':
+            contentType = 'image/gif';
+            break;
+        }
+
+        const { data, error } = await this.supabase.storage
+            .from(this.playlistsImagesBucketName)
+            .upload(fileName, buffer, {
+                contentType: contentType,
+                upsert: true, // Overwrite if file already exists
+            });
+
+        if (error) {
+            console.error('Upload failed:', error.message);
+             return null;
+        }
+
+        const { data: publicUrlData } = this.supabase.storage.from(this.playlistsImagesBucketName).getPublicUrl(fileName);
+
+        return publicUrlData?.publicUrl || '';
+    }
+
+    async uploadPlaylistsImagesFromFile(filePath: string, fileName: string): Promise<string | null> {
+        const buffer = fs.readFileSync(filePath);
+        fs.unlinkSync(filePath); // or use fs.promises.unlink(tempPath)
+        return await this.uploadPlaylistsImagesFromBuffer(buffer, fileName);
     }
 }

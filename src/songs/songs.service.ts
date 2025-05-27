@@ -152,8 +152,73 @@ export class SongsService {
     });
   }
 
-  async update(id: string, updateSongDto: UpdateSongDto): Promise<UpdateResult> {
-    return await this.songRepository.update(id, updateSongDto);
+  async update(id: string, updateSongDto: UpdateSongDto, fileAudioBuffer?: Buffer, fileAudioName?: string, fileImageBuffer?: Buffer, fileImageName?: string) {
+    const song = await this.songRepository.findOne({
+      where: { id },
+      relations: { artists: true, playlists: true, genres: true },
+    });
+    if (!song) {
+      throw new Error("Song not found");
+    }
+    song.title = updateSongDto.title ?? song.title;
+    const sanitizedLyrics = (text: string): string =>
+      text
+        .replace(/[.,!?"]/g, '')                    // remove punctuation
+        .replace(/\s+/g, ' ')                       // collapse whitespace
+        .trim()
+        .toLowerCase();
+    song.lyrics = sanitizedLyrics(updateSongDto.lyrics?.trim() || song.lyrics);
+    if (fileAudioBuffer) {
+      const songBuffer = fileAudioBuffer;
+      const songLength = await this.audioService.getDurationFromBuffer(songBuffer);
+      if (songLength < 30) {
+        throw new Error("Audio length must be at least 30 seconds.");
+      }
+      const audioFileName = `${sanitizeFileName(updateSongDto.title ?? song.title)}-${Date.now()}.wav`;
+      if (songLength > 30) {
+        const chunks = await this.audioService.splitAudioFile(songBuffer, audioFileName);
+        if (chunks.length > 0) {
+          if(chunks.length > 3){
+            const chunk = chunks[Math.ceil(chunks.length/2)];
+            const uploadedAudio = await this.supabaseStorageService.uploadSnippetFromBuffer(chunk, audioFileName);
+            if (!uploadedAudio) {
+              throw new Error("Failed to upload audio chunk");
+            }
+            song.songUrl = uploadedAudio || "";
+          }
+          else {
+            const chosenIndex = Math.floor(Math.random() * chunks.length);
+            const chunk = chunks[chosenIndex];
+            const uploadedAudio = await this.supabaseStorageService.uploadSnippetFromBuffer(chunk, audioFileName);
+            if (!uploadedAudio) {
+              throw new Error("Failed to upload audio chunk");
+            }
+            song.songUrl = uploadedAudio || "";
+          }
+          
+        }
+      } else {
+        const uploadedAudio = await this.supabaseStorageService.uploadSnippetFromBuffer(songBuffer, audioFileName);
+        if (!uploadedAudio) {
+          throw new Error("Failed to upload audio");
+        }
+        song.songUrl = uploadedAudio || "";
+      }
+    }
+    if (fileImageBuffer) {
+      const imageFileName = `${sanitizeFileName(updateSongDto.title ?? song.title)}-${Date.now()}.jpg`;
+      const uploadedImage = await this.supabaseStorageService.uploadSongImageFromBuffer(fileImageBuffer, imageFileName);
+      if (!uploadedImage) {
+        throw new Error("Failed to upload image");
+      }
+      song.imageUrl = uploadedImage || "";
+    }
+    const savedSong = await this.songRepository.save(song);
+    return await this.songRepository.findOne({
+      where: { id: savedSong.id },
+      relations: { artists: true, playlists: true, genres: true },
+    });
+
   }
 
   async remove(id: string): Promise<DeleteResult> {

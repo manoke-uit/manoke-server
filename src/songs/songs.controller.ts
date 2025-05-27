@@ -12,7 +12,7 @@ import { ScoresService } from 'src/scores/scores.service';
 import { response } from 'express';
 import { responseHelper } from 'src/helpers/response.helper';
 import { ApiOperation, ApiQuery } from '@nestjs/swagger';
-import { ar } from '@faker-js/faker/.';
+import { ar, fi } from '@faker-js/faker/.';
 
 @Controller('songs')
 export class SongsController {
@@ -319,8 +319,20 @@ export class SongsController {
 
   @UseGuards(JwtAdminGuard)
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() updateSongDto: UpdateSongDto){
-    const updatedSong = await this.songsService.update(id, updateSongDto);
+  @UseInterceptors(FileFieldsInterceptor([
+    { name: 'audio', maxCount: 1 },
+    { name: 'image', maxCount: 1 }
+  ]))
+  async update(@Param('id') id: string,@UploadedFiles() files: {audio?: Express.Multer.File[], image?: Express.Multer.File[]}  ,@Body() updateSongDto: UpdateSongDto){
+    const fileAudio = files.audio?.[0]; // get the file
+    
+    const fileImage = files.image?.[0]; // get the image file
+    
+    const fileAudioName = fileAudio?.originalname; // get the file name
+    const fileAudioBuffer = fileAudio?.buffer; // get the file buffer
+    const fileImageName = fileImage?.originalname; // get the image file name
+    const fileImageBuffer = fileImage?.buffer; // get the image file buffer
+    const updatedSong = await this.songsService.update(id, updateSongDto, fileAudioBuffer, fileAudioName, fileImageBuffer, fileImageName);
     if(!updatedSong) {
       return responseHelper({
         message: 'Song update failed',
