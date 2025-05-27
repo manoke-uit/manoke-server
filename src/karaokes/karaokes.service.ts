@@ -131,7 +131,7 @@ export class KaraokesService {
     });
   }
 
-  async update(id: string, userId: string, updateKaraokeDto: UpdateKaraokeDto){
+  async update(id: string, userId: string,updateKaraokeDto: UpdateKaraokeDto, fileBuffer?: Buffer, fileName?: string ){
     const karaoke = await this.karaokeRepository.findOneBy({ id });
     if (!karaoke) {
       throw new Error('Karaoke not found');
@@ -158,6 +158,13 @@ export class KaraokesService {
         throw new Error('User not found');
       }
       karaoke.user = user;
+    }
+    if (fileBuffer && fileName) {
+      const uploadedVideo = await this.supabaseStorageService.uploadVideoFromBuffer(fileBuffer, sanitizeFileName(fileName));
+      if (!uploadedVideo) {
+        throw new Error('Video upload failed');
+      }
+      karaoke.videoUrl = uploadedVideo; // Update the videoUrl with the new uploaded video
     }
     const updatedKaraoke = await this.karaokeRepository.save(karaoke);
     return await this.karaokeRepository.findOne({

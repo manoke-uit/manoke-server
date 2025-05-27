@@ -208,8 +208,11 @@ export class KaraokesController {
 
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() updateKaraokeDto: UpdateKaraokeDto, @Req() req: any) {
+  @UseInterceptors(FileInterceptor('file'))
+  async update(@Param('id') id: string, @Body() updateKaraokeDto: UpdateKaraokeDto, @Req() req: any, @UploadedFile() file?: Express.Multer.File ) {
     const karaoke = await this.karaokesService.findOne(id);
+    const fileName = file?.originalname; // get the original file name
+    const fileBuffer = file?.buffer; // get the file buffer
     if(karaoke?.user.id !== req.user['userId'] || karaoke?.user.adminSecret !== req.user['adminSecret']) {
       return responseHelper({
         message: 'You are not authorized to update this karaoke',
@@ -217,7 +220,7 @@ export class KaraokesController {
       });
     }
     const userId = req.user['userId'];
-    const updatedKaraoke = await this.karaokesService.update(id, userId, updateKaraokeDto);
+    const updatedKaraoke = await this.karaokesService.update(id, userId, updateKaraokeDto,  fileBuffer, fileName);
     if (!updatedKaraoke) {
       return responseHelper({
         message: 'Karaoke update failed',
