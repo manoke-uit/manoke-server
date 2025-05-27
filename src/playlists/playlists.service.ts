@@ -57,7 +57,7 @@ export class PlaylistsService {
       if (!uploadedImage) {
         throw new Error('Image upload failed');
       }
-      playlist.imageUrl = imageName; // Set the image URL or path
+      playlist.imageUrl = uploadedImage; // Set the image URL or path
     }
    
 
@@ -288,7 +288,7 @@ export class PlaylistsService {
       if (!uploadedImage) {
         throw new Error('Image upload failed');
       }
-      playlist.imageUrl = imageName; // Set the image URL or path
+      playlist.imageUrl = uploadedImage; // Set the image URL or path
     }
     return await this.playlistRepository.save(playlist);
   }

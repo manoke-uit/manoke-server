@@ -24,6 +24,21 @@ export class PlaylistsController {
     return this.playlistsService.create(createPlaylistDto, imageBuffer, imageName);
   }
 
+    @Get('userPlaylist')
+  @UseGuards(JwtAuthGuard)
+  async findUserPlaylist(
+    @Req() req: any
+  ): Promise<Playlist[]> {
+    return await this.playlistsService.findUserPlaylist(req.user['userId']);
+  }
+  // get all the PUBLIC playlists
+  @Get('publicPlaylist')
+  @UseGuards(JwtAuthGuard)
+  async findPublicPlaylist(): Promise<Playlist[]> {
+    return await this.playlistsService.findPublicPlaylist();
+  }
+
+
   @UseGuards(JwtAuthGuard)
   @Patch(':playlistID/songs/:songId')
   async addSongToPlaylist(
@@ -117,20 +132,8 @@ export class PlaylistsController {
 
 
 
-  // get all the PUBLIC playlists
-  @Get('publicPlaylist')
-  @UseGuards(JwtAuthGuard)
-  async findPublicPlaylist(): Promise<Playlist[]> {
-    return await this.playlistsService.findPublicPlaylist();
-  }
+  
 
-  @Get('userPlaylist')
-  @UseGuards(JwtAuthGuard)
-  async findUserPlaylist(
-    @Req() req: any
-  ): Promise<Playlist[]> {
-    return await this.playlistsService.findUserPlaylist(req.user['userId']);
-  }
 
 
   // TODO: check if the user is the owner of the playlist before getting the playlist
@@ -150,7 +153,7 @@ export class PlaylistsController {
         statusCode: 404,
       });
     }
-    if(playlist?.user.id !== req.user['userId'] || playlist?.user.adminSecret !== req.user['adminSecret']) {
+    if(playlist?.user.id !== req.user['userId'] && playlist?.user.adminSecret !== req.user['adminSecret']) {
       return responseHelper({
         message: 'You are not authorized to update this playlist',
         statusCode: 403,
@@ -164,7 +167,7 @@ export class PlaylistsController {
   @Delete(':id')
   async remove(@Param('id') id: string, @Req() req:any) {
     const playlist = await this.playlistsService.findOne(id);
-    if(playlist?.user.id !== req.user['userId'] || playlist?.user.adminSecret !== req.user['adminSecret']) {
+    if(playlist?.user.id !== req.user['userId'] && playlist?.user.adminSecret !== req.user['adminSecret']) {
       return responseHelper({
         message: 'You are not authorized to delete this playlist',
         statusCode: 403,

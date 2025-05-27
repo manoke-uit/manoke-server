@@ -37,7 +37,7 @@ export class CommentsController {
   async update(@Param('id') id: string, @Body() updateCommentDto: UpdateCommentDto, @Req() req: any) {
     const comment = await this.commentsService.findOne(id);
     const userId = req.user['userId'];
-    if (comment?.user.id !== req.user['userId'] || comment?.user.adminSecret !== req.user['adminSecret']) {  
+    if (comment?.user.id !== req.user['userId'] && comment?.user.adminSecret !== req.user['adminSecret']) {  
       return responseHelper({
         message: 'You are not authorized to update this comment',
         statusCode: 403,
@@ -51,7 +51,7 @@ export class CommentsController {
   @Delete(':id')
   async remove(@Param('id') id: string, @Req() req: any) {
     const comment = await this.commentsService.findOne(id);
-    if (comment?.user.id !== req.user['userId'] || comment?.user.adminSecret !== req.user['adminSecret']) {  
+    if (comment?.user.id !== req.user['userId'] && comment?.user.adminSecret !== req.user['adminSecret']) {  
       return responseHelper({
         message: 'You are not authorized to delete this comment',
         statusCode: 403,

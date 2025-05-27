@@ -213,7 +213,7 @@ export class KaraokesController {
     const karaoke = await this.karaokesService.findOne(id);
     const fileName = file?.originalname; // get the original file name
     const fileBuffer = file?.buffer; // get the file buffer
-    if(karaoke?.user.id !== req.user['userId'] || karaoke?.user.adminSecret !== req.user['adminSecret']) {
+    if(karaoke?.user.id !== req.user['userId'] && karaoke?.user.adminSecret !== req.user['adminSecret']) {
       return responseHelper({
         message: 'You are not authorized to update this karaoke',
         statusCode: 403,
@@ -238,7 +238,7 @@ export class KaraokesController {
   @Delete(':id')
   async remove(@Param('id') id: string, @Req() req: any) {
     const karaoke = await this.karaokesService.findOne(id);
-    if(karaoke?.user.id !== req.user['userId'] || karaoke?.user.adminSecret !== req.user['adminSecret']) {
+    if(karaoke?.user.id !== req.user['userId'] && karaoke?.user.adminSecret !== req.user['adminSecret']) {
       return responseHelper({
         message: 'You are not authorized to delete this karaoke',
         statusCode: 403,

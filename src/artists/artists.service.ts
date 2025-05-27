@@ -38,7 +38,7 @@ export class ArtistsService {
       if (!uploadedImage) {
         throw new Error('Image upload failed');
       }
-      artist.imageUrl = imageName; // Set the image URL or path
+      artist.imageUrl = uploadedImage; // Set the image URL or path
     }
     
     const savedArtist = await this.artistRepository.save(artist);
@@ -87,7 +87,7 @@ export class ArtistsService {
       if (!uploadedImage) {
         throw new Error('Image upload failed');
       }
-      artist.imageUrl = imageName; // Set the image URL or path
+      artist.imageUrl = uploadedImage; // Set the image URL or path
     }
     const updatedArtist = await this.artistRepository.save(artist);
     return await this.artistRepository.findOne({

@@ -38,7 +38,7 @@ export class PostsController {
         statusCode: 404,
       });
     }
-    if (post.user.id !== req.user['userId'] || post.user.adminSecret !== req.user['adminSecret']) {
+    if (post.user.id !== req.user['userId'] && post.user.adminSecret !== req.user['adminSecret']) {
       return responseHelper({
         message: 'You are not authorized to update this post',
         statusCode: 403,
@@ -58,7 +58,7 @@ export class PostsController {
         statusCode: 404,
       });
     }
-    if (post.user.id !== req.user['userId'] || post.user.adminSecret !== req.user['adminSecret']) {
+    if (post.user.id !== req.user['userId'] && post.user.adminSecret !== req.user['adminSecret']) {
       return responseHelper({
         message: 'You are not authorized to delete this post',
         statusCode: 403,
