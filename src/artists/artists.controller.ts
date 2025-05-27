@@ -9,7 +9,9 @@ import {
   ParseIntPipe, 
   UseGuards, 
   Query, 
-  DefaultValuePipe 
+  DefaultValuePipe, 
+  UseInterceptors,
+  UploadedFile
 } from '@nestjs/common';
 import { ArtistsService } from './artists.service';
 import { CreateArtistDto } from './dto/create-artist.dto';
@@ -19,6 +21,7 @@ import { Pagination } from 'nestjs-typeorm-paginate';
 import { Artist } from './entities/artist.entity';
 import { responseHelper } from 'src/helpers/response.helper';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth-guard';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('artists')
 export class ArtistsController {
@@ -26,8 +29,11 @@ export class ArtistsController {
 
   @UseGuards(JwtAuthGuard)  
   @Post()
-  async create(@Body() createArtistDto: CreateArtistDto) {
-    const createdArtist = await this.artistsService.create(createArtistDto);
+  @UseInterceptors(FileInterceptor('image'))
+  async create(@Body() createArtistDto: CreateArtistDto, @UploadedFile() image?: Express.Multer.File) {
+    const imageName = image?.originalname; // get the original image name
+    const imageBuffer = image?.buffer; // get the file buffer
+    const createdArtist = await this.artistsService.create(createArtistDto, imageBuffer, imageName);
     if(!createdArtist) {
       return responseHelper({
         message: 'Artist creation failed',
@@ -75,8 +81,11 @@ export class ArtistsController {
 
   @UseGuards(JwtAdminGuard)  
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() updateArtistDto: UpdateArtistDto) {
-    const updatedArtist = await this.artistsService.update(id, updateArtistDto);
+  @UseInterceptors(FileInterceptor('image'))
+  async update(@Param('id') id: string, @Body() updateArtistDto: UpdateArtistDto, @UploadedFile() image?: Express.Multer.File) {
+    const imageName = image?.originalname; // get the original image name
+    const imageBuffer = image?.buffer; // get the file buffer
+    const updatedArtist = await this.artistsService.update(id, updateArtistDto, imageBuffer, imageName);
     if(!updatedArtist) {
       return responseHelper({
         message: 'Artist update failed',
