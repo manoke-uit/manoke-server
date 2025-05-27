@@ -24,6 +24,7 @@ export class CreateNotificationDto {
 
     @IsBoolean()
     @IsOptional() // default value is false
+    @Transform(({ value }) => value === 'true' || value === true)
     @ApiProperty({ required: false, description: 'Notification read status' })
     isRead?: boolean;
 

@@ -115,6 +115,15 @@ export class SongsService {
       song.playlists = [];
     }
 
+    if (createSongDto.genreIds && createSongDto.genreIds.length > 0) {
+      const genres = await this.genreRepository.findBy({
+        id: In(createSongDto.genreIds),
+      });
+      song.genres = genres;
+    } else {
+      song.genres = [];
+    }
+
     const savedSong = await this.songRepository.save(song);
     const result = await this.songRepository.findOne({
       where: {id: savedSong.id},
@@ -213,6 +222,31 @@ export class SongsService {
       }
       song.imageUrl = uploadedImage || "";
     }
+    if (updateSongDto.artistIds && updateSongDto.artistIds.length > 0) {
+      const artists = await this.artistRepository.findBy({
+        id: In(updateSongDto.artistIds),
+      });
+      song.artists = artists;
+    } else {
+      song.artists = [];
+    }
+    if (updateSongDto.playlistIds && updateSongDto.playlistIds.length > 0) {
+      const playlists = await this.playlistRepository.findBy({
+        id: In(updateSongDto.playlistIds), 
+      });
+      song.playlists = playlists; 
+    } else {
+      song.playlists = [];
+    }
+    if (updateSongDto.genreIds && updateSongDto.genreIds.length > 0) {
+      const genres = await this.genreRepository.findBy({
+        id: In(updateSongDto.genreIds),
+      });
+      song.genres = genres;
+    } else {
+      song.genres = [];
+    }
+    
     const savedSong = await this.songRepository.save(song);
     return await this.songRepository.findOne({
       where: { id: savedSong.id },
