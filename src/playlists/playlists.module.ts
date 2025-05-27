@@ -6,9 +6,10 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Song } from 'src/songs/entities/song.entity';
 import { User } from 'src/users/entities/user.entity';
 import { Notification } from 'src/notifications/entities/notification.entity';
+import { SupabaseStorageModule } from 'src/supabase-storage/supabase-storage.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Playlist, Song, User])], // Import the TypeOrmModule and specify the User entity
+  imports: [TypeOrmModule.forFeature([Playlist, Song, User]), SupabaseStorageModule], // Import the TypeOrmModule and specify the User entity
   controllers: [PlaylistsController],
   providers: [PlaylistsService],
   exports: [PlaylistsService]

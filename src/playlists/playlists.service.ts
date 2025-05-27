@@ -7,6 +7,7 @@ import { DeleteResult, ILike, In, Repository, UpdateResult } from 'typeorm';
 import { Song } from 'src/songs/entities/song.entity';
 import { User } from 'src/users/entities/user.entity';
 import { IPaginationOptions, paginate, Pagination } from 'nestjs-typeorm-paginate';
+import { SupabaseStorageService } from 'src/supabase-storage/supabase-storage.service';
 
 @Injectable()
 export class PlaylistsService {
@@ -16,11 +17,12 @@ export class PlaylistsService {
     @InjectRepository(Song)
     private songRepository: Repository<Song>,
     @InjectRepository(User)
-    private userRepository: Repository<User>
+    private userRepository: Repository<User>,
+    private readonly supabaseStorageService: SupabaseStorageService, // Assuming you have a service to handle image uploads
   ) {}
 
   
-  async create(createPlaylistDto: CreatePlaylistDto): Promise<Playlist> {
+  async create(createPlaylistDto: CreatePlaylistDto, imageBuffer?: Buffer, imageName?: string): Promise<Playlist> {
     const existingPlaylist = await this.playlistRepository.findOne({
       where: { title: createPlaylistDto.title, user: { id: createPlaylistDto.userId } },
       relations: ['user'],
@@ -31,7 +33,6 @@ export class PlaylistsService {
 
     const playlist = new Playlist();
     playlist.title = createPlaylistDto.title; 
-    playlist.imageUrl = createPlaylistDto.imageUrl ?? ""; 
     playlist.description = createPlaylistDto.description ?? ""; 
     playlist.isPublic = !createPlaylistDto.isPublic ? false :  true;
 
@@ -49,6 +50,16 @@ export class PlaylistsService {
     } else {
       playlist.songs = [];
     }
+
+    if (imageBuffer && imageName) {
+      // Assuming you have a service to handle image uploads
+      const uploadedImage = await this.supabaseStorageService.uploadPlaylistsImagesFromBuffer(imageBuffer, sanitizeFileName(imageName));
+      if (!uploadedImage) {
+        throw new Error('Image upload failed');
+      }
+      playlist.imageUrl = imageName; // Set the image URL or path
+    }
+   
 
     return this.playlistRepository.save(playlist);
   }
@@ -250,7 +261,7 @@ export class PlaylistsService {
     })
   }
 
-  async update(id: string, userId: string, updatePlaylistDto: UpdatePlaylistDto) {
+  async update(id: string, userId: string, updatePlaylistDto: UpdatePlaylistDto, imageBuffer?: Buffer, imageName?: string): Promise<Playlist> {
     const playlist = await this.playlistRepository.findOneBy({ id });
     if (!playlist) {
       throw new NotFoundException("Playlist doesn't exist!");
@@ -272,7 +283,13 @@ export class PlaylistsService {
       }
       playlist.user = user;
     }
-    playlist.imageUrl = updatePlaylistDto.imageUrl ?? playlist.imageUrl;
+    if (imageBuffer && imageName) {
+      const uploadedImage = await this.supabaseStorageService.uploadPlaylistsImagesFromBuffer(imageBuffer, sanitizeFileName(imageName));
+      if (!uploadedImage) {
+        throw new Error('Image upload failed');
+      }
+      playlist.imageUrl = imageName; // Set the image URL or path
+    }
     return await this.playlistRepository.save(playlist);
   }
 
@@ -290,4 +307,12 @@ export class PlaylistsService {
   paginate(options: IPaginationOptions): Promise<Pagination<Playlist>> {
     return paginate<Playlist>(this.playlistRepository, options);
   }
+}
+function sanitizeFileName(title: string): string {
+  return title
+    .normalize('NFD')                     // Convert to base letters + accents
+    .replace(/[\u0300-\u036f]/g, '')     // Remove accents
+    .replace(/[^a-zA-Z0-9-_ ]/g, '')     // Remove special characters
+    .replace(/\s+/g, '-')                // Replace spaces with hyphens
+    .toLowerCase();                      // Optional: lowercase everything
 }

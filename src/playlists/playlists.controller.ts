@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Query, DefaultValuePipe, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, Query, DefaultValuePipe, UseGuards, Req, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { PlaylistsService } from './playlists.service';
 import { CreatePlaylistDto } from './dto/create-playlist.dto';
 import { UpdatePlaylistDto } from './dto/update-playlist.dto';
@@ -8,6 +8,7 @@ import { Pagination } from 'nestjs-typeorm-paginate';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth-guard';
 import { JwtAdminGuard } from 'src/auth/guards/jwt-admin-guard';
 import { responseHelper } from 'src/helpers/response.helper';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('playlists')
 export class PlaylistsController {
@@ -15,9 +16,12 @@ export class PlaylistsController {
 
   @UseGuards(JwtAuthGuard)
   @Post()
-  async create(@Body() createPlaylistDto: CreatePlaylistDto, @Req() req:any): Promise<Playlist> {
+  @UseInterceptors(FileInterceptor('image'))
+  async create(@Body() createPlaylistDto: CreatePlaylistDto, @Req() req:any, @UploadedFile() image?: Express.Multer.File): Promise<Playlist> {
+    const imageName = image?.originalname; // get the original image name
+    const imageBuffer = image?.buffer; // get the file buffer
     createPlaylistDto.userId = req.user['userId']; // set the userId from the request
-    return this.playlistsService.create(createPlaylistDto);
+    return this.playlistsService.create(createPlaylistDto, imageBuffer, imageName);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -135,7 +139,10 @@ export class PlaylistsController {
   // only the owner of the playlist can update it
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() updatePlaylistDto: UpdatePlaylistDto, @Req() req: any){
+  @UseInterceptors(FileInterceptor('image'))
+  async update(@Param('id') id: string, @Body() updatePlaylistDto: UpdatePlaylistDto, @Req() req: any, @UploadedFile() image?: Express.Multer.File) {
+    const imageName = image?.originalname; // get the original image name
+    const imageBuffer = image?.buffer; // get the file buffer
     const playlist = await this.playlistsService.findOne(id);
     if(!playlist) {
       return responseHelper({
@@ -150,7 +157,7 @@ export class PlaylistsController {
       });
     }
     const userId = req.user['userId'];
-    return await this.playlistsService.update(id, userId, updatePlaylistDto);
+    return await this.playlistsService.update(id, userId, updatePlaylistDto, imageBuffer, imageName);
   }
 
   @UseGuards(JwtAuthGuard)
