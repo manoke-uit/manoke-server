@@ -25,8 +25,8 @@ export class Karaoke {
     @Column({type: 'timestamp', default: () => 'CURRENT_TIMESTAMP'})
     createdAt: Date; // @IsDateString() in dto
 
-    @ManyToOne(() => Song, (song) => song.karaokes)
-    song: Song; // @IsArray() in dto
+    @ManyToOne(() => Song, (song) => song.karaokes, {nullable: true, onDelete: 'SET NULL'})
+    song: Song | null; // @IsArray() in dto
 
     @ManyToOne(() => User, (user) => user.karaokes, { onDelete: 'SET NULL'})
     user: User; // @IsString() in dto

@@ -15,6 +15,7 @@ import * as ytdl from 'ytdl-core';
 import { AudioService } from 'src/helpers/audio/audio.service';
 import { SupabaseStorageService } from 'src/supabase-storage/supabase-storage.service';
 import { Genre } from 'src/genres/entities/genre.entity';
+import { Karaoke } from 'src/karaokes/entities/karaoke.entity';
 
 @Injectable()
 export class SongsService {
@@ -27,6 +28,8 @@ export class SongsService {
     private playlistRepository: Repository<Playlist>,
     @InjectRepository(Genre)
     private genreRepository: Repository<Genre>,
+    @InjectRepository(Karaoke)
+    private karaokeRepository: Repository<Karaoke>,
 
     private spotifyApiService: SpotifyApiService,
     private deezerApiService: DeezerApiService,
@@ -256,6 +259,37 @@ export class SongsService {
   }
 
   async remove(id: string): Promise<DeleteResult> {
+    const song = await this.songRepository.findOne({
+      where: { id },
+      relations: { artists: true, playlists: true, genres: true },
+    });
+    if (!song) {
+      throw new Error("Song not found");
+    }
+    // Remove song from playlists
+    for (const playlist of song.playlists) {
+      playlist.songs = playlist.songs.filter((s) => s.id !== song.id);
+      await this.playlistRepository.save(playlist);
+    }
+    // Remove song from artists
+    for (const artist of song.artists) {
+      artist.songs = artist.songs.filter((s) => s.id !== song.id);
+      await this.artistRepository.save(artist);
+    }
+    // Remove song from genres
+    for (const genre of song.genres) {
+      genre.songs = genre.songs.filter((s) => s.id !== song.id);
+      await this.genreRepository.save(genre);
+    }
+    // Remove song from karaokes
+    const karaoke = await this.karaokeRepository.findOne({
+      where: { song: { id } },
+      relations: { song: true },
+    });
+    if (karaoke) {
+      karaoke.song = null; // Remove the song from the karaoke
+      await this.karaokeRepository.save(karaoke);
+    }
     return await this.songRepository.delete(id);
   }
 
