@@ -108,7 +108,7 @@ export class AuthController {
 
     @Get('google/login')
     @UseGuards(GoogleGuard)
-    async googleLogin() {
+    async googleLogin(@Req() req: any, @Query('redirect_url') redirectUrl: string) {
         // Initiates the Google authentication process
     }
     @Get('google/callback')
@@ -116,12 +116,13 @@ export class AuthController {
     async googleLoginCallback(@Req() req: any, @Res() res: any) {
         //return this.authService.googleLogin(user);
         const user = req.user;
+        const redirect_url = req.query.redirect_url || 'http://localhost:3000/auth/success';
 
         // need to sign the access token
         const payload = { email: user.email, userId: user.id };
         const accessToken = await this.authService.signAccessToken(payload);
         // redirect to frontend later
-        res.redirect(`http://localhost:3000/auth/success?accessToken=${accessToken}`);
+        res.redirect(`${redirect_url}?accessToken=${accessToken}`);
 
     }
 }
