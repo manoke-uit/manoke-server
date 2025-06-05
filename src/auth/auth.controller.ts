@@ -108,20 +108,28 @@ export class AuthController {
 
     @Get('google/login')
     @UseGuards(GoogleGuard)
-    async googleLogin(@Req() req: any, @Query('redirect_url') redirectUrl: string) {
+    async googleLogin(@Req() req: any,@Res() res, @Query('redirect_url') redirectUrl: string) {
         // Initiates the Google authentication process
+        res.cookie('redirect_url', redirectUrl, {
+        httpOnly: true,
+        secure: true, // only on HTTPS!
+        sameSite: 'lax',
+    });
+    return res.redirect('/auth/google');
+  // Let G
     }
     @Get('google/callback')
     @UseGuards(GoogleGuard)
     async googleLoginCallback(@Req() req: any, @Res() res: any) {
         //return this.authService.googleLogin(user);
         const user = req.user;
-        const redirect_url = req.query.redirect_url || 'http://localhost:3000/auth/success';
+        const redirect_url = req.cookies.redirect_url || 'http://localhost:3000/auth/success';
 
         // need to sign the access token
         const payload = { email: user.email, userId: user.id };
         const accessToken = await this.authService.signAccessToken(payload);
         // redirect to frontend later
+        res.clearCookie('redirect_url'); // Clear the cookie after use
         res.redirect(`${redirect_url}?accessToken=${accessToken}`);
 
     }
