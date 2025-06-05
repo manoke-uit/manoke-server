@@ -134,7 +134,7 @@ export class AuthService {
                     return { success: true, message: 'Verified sign-up successfully.' };
                 }
             } else {
-                return { success: true, message: 'Resetting password verified successfully.' };
+                return { success: false, message: 'Resetting password verified successfully.' };
             }
 
 
