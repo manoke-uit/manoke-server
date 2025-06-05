@@ -52,6 +52,7 @@ export class ScoresController {
   @UseInterceptors(FileInterceptor('file'))
   async score(@UploadedFile() file: Express.Multer.File, @Body() createScoreDto : CreateScoreDto, @Req() req: any, createNotificationDto: CreateNotificationDto): Promise<string> {
     createScoreDto.userId = req.user['userId']; // set the userId in the createScoreDto
+    createNotificationDto = new CreateNotificationDto();
     
     const fileName = file.originalname; // get the original file name
     const fileBuffer = file.buffer; // get the file buffer
