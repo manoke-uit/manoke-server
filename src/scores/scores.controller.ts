@@ -50,7 +50,7 @@ export class ScoresController {
   @UseGuards(JwtAuthGuard)
   @Post('score')
   @UseInterceptors(FileInterceptor('file'))
-  async score(@UploadedFile() file: Express.Multer.File, @Body() createScoreDto : CreateScoreDto, @Req() req: any, createNotificationDto: CreateNotificationDto): Promise<string> {
+  async score(@UploadedFile() file: Express.Multer.File, createScoreDto : CreateScoreDto, @Req() req: any, createNotificationDto: CreateNotificationDto): Promise<string> {
     createScoreDto.userId = req.user['userId']; // set the userId in the createScoreDto
     
     const fileName = file.originalname; // get the original file name
