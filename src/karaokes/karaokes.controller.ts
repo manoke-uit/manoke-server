@@ -11,18 +11,18 @@ import { ConfigService } from '@nestjs/config';
 
 @Controller('karaokes')
 export class KaraokesController {
-  constructor(private readonly karaokesService: KaraokesService) {}
+  constructor(private readonly karaokesService: KaraokesService) { }
 
   @ApiOperation({ summary: 'create a new karaoke by user, default is private, if admin need to user another route' })
   @Post()
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(FileInterceptor('file'))
-  async createByUser(@UploadedFile() file: Express.Multer.File ,@Body() createKaraokeDto: CreateKaraokeDto, @Req() req: any) {
+  async createByUser(@UploadedFile() file: Express.Multer.File, @Body() createKaraokeDto: CreateKaraokeDto, @Req() req: any) {
     const fileName = file.originalname; // get the original file name
     const fileBuffer = file.buffer; // get the file buffer
     createKaraokeDto.userId = req.user['userId']; // set the userId in the createKaraokeDto
-    if(req.user['adminSecret']) {
-      const createdKaraoke = await this.karaokesService.createByAdmin(fileBuffer, fileName,createKaraokeDto);
+    if (req.user['adminSecret']) {
+      const createdKaraoke = await this.karaokesService.createByAdmin(fileBuffer, fileName, createKaraokeDto);
       if (!createdKaraoke) {
         return responseHelper({
           message: 'Karaoke creation failed',
@@ -36,7 +36,7 @@ export class KaraokesController {
       });
     }
     else {
-      const createdKaraoke = await this.karaokesService.createByUser(fileBuffer, fileName,createKaraokeDto);
+      const createdKaraoke = await this.karaokesService.createByUser(fileBuffer, fileName, createKaraokeDto);
       if (!createdKaraoke) {
         return responseHelper({
           message: 'Karaoke creation failed',
@@ -49,7 +49,7 @@ export class KaraokesController {
         statusCode: 201,
       });
     }
-    
+
   }
 
 
@@ -116,7 +116,7 @@ export class KaraokesController {
   @UseGuards(JwtAuthGuard)
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    const karaoke= await this.karaokesService.findOne(id);
+    const karaoke = await this.karaokesService.findOne(id);
     if (!karaoke) {
       return responseHelper({
         message: 'Karaoke not found',
@@ -204,28 +204,33 @@ export class KaraokesController {
     });
   }
 
-  
+
 
   @UseGuards(JwtAuthGuard)
   @Patch(':id')
   @UseInterceptors(FileInterceptor('file'))
-  async update(@Param('id') id: string, @Body() updateKaraokeDto: UpdateKaraokeDto, @Req() req: any, @UploadedFile() file?: Express.Multer.File ) {
+  async update(@Param('id') id: string, @Body() updateKaraokeDto: UpdateKaraokeDto, @Req() req: any, @UploadedFile() file?: Express.Multer.File) {
     const karaoke = await this.karaokesService.findOne(id);
-    const fileName = file?.originalname; // get the original file name
-    const fileBuffer = file?.buffer; // get the file buffer
-    if(karaoke?.user.id !== req.user['userId'] && karaoke?.user.adminSecret !== req.user['adminSecret']) {
-      return responseHelper({
-        message: 'You are not authorized to update this karaoke',
+    const fileName = file?.originalname;
+    const fileBuffer = file?.buffer;
+    const isOwner = karaoke?.user.id === req.user['userId'];
+    const isAdmin =
+      karaoke?.user.adminSecret &&
+      req.user['adminSecret'] &&
+      karaoke.user.adminSecret === req.user['adminSecret'];
+    if (!isOwner && !isAdmin) {
+      return {
         statusCode: 403,
-      });
+        message: 'You are not authorized to update this karaoke',
+      };
     }
     const userId = req.user['userId'];
-    const updatedKaraoke = await this.karaokesService.update(id, userId, updateKaraokeDto,  fileBuffer, fileName);
+    const updatedKaraoke = await this.karaokesService.update(id, userId, updateKaraokeDto, fileBuffer, fileName);
     if (!updatedKaraoke) {
-      return responseHelper({
-        message: 'Karaoke update failed',
+      return {
         statusCode: 400,
-      });
+        message: 'Karaoke update failed',
+      };
     }
     return responseHelper({
       message: 'Karaoke updated successfully',
@@ -234,22 +239,26 @@ export class KaraokesController {
     });
   }
 
-  @UseGuards(JwtAuthGuard)
   @Delete(':id')
   async remove(@Param('id') id: string, @Req() req: any) {
     const karaoke = await this.karaokesService.findOne(id);
-    if(karaoke?.user.id !== req.user['userId'] && karaoke?.user.adminSecret !== req.user['adminSecret']) {
-      return responseHelper({
-        message: 'You are not authorized to delete this karaoke',
+    const isOwner = karaoke?.user.id === req.user['userId'];
+    const isAdmin =
+      karaoke?.user.adminSecret &&
+      req.user['adminSecret'] &&
+      karaoke.user.adminSecret === req.user['adminSecret'];
+    if (!isOwner && !isAdmin) {
+      return {
         statusCode: 403,
-      });
+        message: 'You are not authorized to delete this karaoke',
+      };
     }
     const deletedKaraoke = await this.karaokesService.remove(id);
     if (!deletedKaraoke) {
-      return responseHelper({
-        message: 'Karaoke deletion failed',
+      return {
         statusCode: 400,
-      });
+        message: 'Karaoke deletion failed',
+      };
     }
     return responseHelper({
       message: 'Karaoke deleted successfully',

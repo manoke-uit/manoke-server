@@ -8,14 +8,14 @@ import { JwtService } from '@nestjs/jwt';
 import { User } from 'src/users/entities/user.entity';
 import * as nodemailer from 'nodemailer'
 import SMTPTransport from 'nodemailer/lib/smtp-transport';
-import { FirebaseAdminProvider } from 'src/firebase-admin/firebase-admin.provider';
-import { FirebaseService } from 'src/firebase-admin/firebase.service';
+// import { FirebaseAdminProvider } from 'src/firebase-admin/firebase-admin.provider';
+// import { FirebaseService } from 'src/firebase-admin/firebase.service';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { ForgotPasswordDto } from './dto/forgot-password.dto';
-import { v4 as uuidv4 } from 'uuid';
-import * as jwt from 'jsonwebtoken';
-import { PlaylistsService } from 'src/playlists/playlists.service';
+// import { ForgotPasswordDto } from './dto/forgot-password.dto';
+// import { v4 as uuidv4 } from 'uuid';
+// import * as jwt from 'jsonwebtoken';
+// import { PlaylistsService } from 'src/playlists/playlists.service';
 import { OtpService } from './otp/otp.service';
 
 // import { firebaseAdmin } from './firebase-admin.config';
@@ -27,7 +27,7 @@ export class AuthService {
         private userRepository: Repository<User>,
         private readonly usersService: UsersService,
         private jwtService: JwtService,
-        private firebaseService: FirebaseService,
+        // private firebaseService: FirebaseService,
         private otpService: OtpService
     ) { }
     private transporter = nodemailer.createTransport({
@@ -214,8 +214,8 @@ export class AuthService {
                 }
             )
 
-            if (existedUserInDb !== null) {
-                throw new ForbiddenException("Email already existed")
+            if (existedUserInDb) {
+                throw new ForbiddenException('Email already existed');
             }
 
             const newUser = createUserDto;
@@ -237,6 +237,7 @@ export class AuthService {
 
             return this.sendVerificationEmail(newUser.email);
         } catch (error) {
+            if (error instanceof ForbiddenException) throw error;
             throw new Error(`Cannot sign up new user: ${error}`);
         }
 
@@ -247,13 +248,14 @@ export class AuthService {
         // For example, you can validate the user credentials and return a JWT token
         const user = await this.usersService.findByEmail(loginDto.email);
 
-        if (!user) {
-            throw new UnauthorizedException('Invalid email');
-        }
         // Compare the password with the hashed password in the database
+        if (!user || !user.password) {
+            throw new UnauthorizedException('Invalid email or password');
+        }
+
         const isPasswordValid = await bcrypt.compare(loginDto.password, user.password);
         if (!isPasswordValid) {
-            throw new UnauthorizedException('Invalid password');
+            throw new UnauthorizedException('Invalid email or password');
         }
 
         // Generate a JWT token and return it
@@ -265,6 +267,9 @@ export class AuthService {
     }
     // handle google login
     async validateGoogleUser(googleUser: CreateUserDto): Promise<User> {
+        if (!googleUser || !googleUser.email) {
+            throw new BadRequestException('Google user email is required');
+        }
         const user = await this.usersService.findByEmail(googleUser.email);
         // not exist => create a new one
         if (!user) {
