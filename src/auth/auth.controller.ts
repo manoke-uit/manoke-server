@@ -125,6 +125,8 @@ export class AuthController {
         const user = req.user;
         const redirect_url = req.cookies.redirect_url || 'http://localhost:3000/auth/success';
 
+        console.log('Redirect URL:', redirect_url);
+
         // need to sign the access token
         const payload = { email: user.email, userId: user.id };
         const accessToken = await this.authService.signAccessToken(payload);
