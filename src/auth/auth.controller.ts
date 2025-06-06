@@ -15,6 +15,7 @@ import { RequestWithUser } from 'src/interfaces/request-with-user.interface';
 import { TempStoreUserModule } from './temp-store-user/temp-store-user.module';
 import { OtpService } from './otp/otp.service';
 import { TempStoreUserService } from './temp-store-user/temp-store-user.service';
+import { Response } from 'express';
 
 
 @Controller('auth')
@@ -106,33 +107,40 @@ export class AuthController {
     }
 
 
+    // remove guard
     @Get('google/login')
-    @UseGuards(GoogleGuard)
-    async googleLogin(@Req() req: any,@Res() res, @Query('redirect_url') redirectUrl: string) {
-        // Initiates the Google authentication process
-        res.cookie('redirect_url', redirectUrl, {
+    async googleLogin(
+    @Res() res: Response,
+    @Query('redirect_url') redirectUrl: string,
+    ) {
+    res.cookie('redirect_url', redirectUrl, {
         httpOnly: true,
-        secure: true, // only on HTTPS!
+        secure: process.env.NODE_ENV === 'production', // only HTTPS in prod
         sameSite: 'lax',
     });
+
     return res.redirect('/auth/google');
-  // Let G
     }
+
+   // add pure passport entry point
+    @Get('google')
+    @UseGuards(GoogleGuard)
+    async googleAuth() {
+    }
+
+    // google -> callback -> client
     @Get('google/callback')
     @UseGuards(GoogleGuard)
-    async googleLoginCallback(@Req() req: any, @Res() res: any) {
-        //return this.authService.googleLogin(user);
-        const user = req.user;
-        const redirect_url = req.cookies.redirect_url || 'http://localhost:3000/auth/success';
+    async googleCallback(@Req() req: any, @Res() res: Response) {
+    const user = req.user;
+    const redirect_url =
+        req.cookies.redirect_url || 'http://localhost:3000/auth/success';
 
-        console.log('Redirect URL:', redirect_url);
+    const payload = { email: user.email, userId: user.id };
+    const accessToken = await this.authService.signAccessToken(payload);
 
-        // need to sign the access token
-        const payload = { email: user.email, userId: user.id };
-        const accessToken = await this.authService.signAccessToken(payload);
-        // redirect to frontend later
-        res.clearCookie('redirect_url'); // Clear the cookie after use
-        res.redirect(`${redirect_url}?accessToken=${accessToken}`);
-
+    res.clearCookie('redirect_url');
+    return res.redirect(`${redirect_url}?accessToken=${accessToken}`);
     }
+
 }
