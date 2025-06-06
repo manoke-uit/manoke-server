@@ -52,7 +52,7 @@ export class UsersService {
   async findViaEmail(email: string): Promise<User | null> {
     const user = await this.usersRepository.findOne({ where: { email } }); // Find a user by email
     if (!user) {
-      return null; // Return null if user not found
+      throw new NotFoundException; // Return null if user not found
     }
     user.password = ""; // Remove the password from the user object
     user.adminSecret = ""; // Remove the adminSecret from the user object
@@ -85,61 +85,63 @@ export class UsersService {
   } 
 
   async getExpoPushTokens(userId: string) {
-    const userDevice = await this.userDevicesRepository.find({
-      where: { user: { id: userId } },
-      select: ['expoPushToken'],
-      relations: ['user']
-    });
+  const userDevice = await this.userDevicesRepository.find({
+    where: { user: { id: userId } },
+    select: ['expoPushToken'],
+    relations: ['user']
+  });
 
-    if (!userDevice) {
-      throw new NotFoundException('User device not found!')
-    }
-
-    const tokenList = userDevice.map(device => device.expoPushToken)
-
-    return tokenList;
+  if (!userDevice) {
+    throw new NotFoundException('User device not found!');
   }
 
-  async findByEmail(email: string): Promise<User | null> {
-    return this.usersRepository.findOne({ where: { email } }); // Find a user by email
-  }
+  return userDevice.map(device => device.expoPushToken);
+}
 
-  async findByDisplayName(displayName: string): Promise<User | null> {
-    return this.usersRepository.findOne({ where: { displayName } }); // Find a user by display name
-  }
+  async findByEmail(email: string): Promise<User> {
+  const user = await this.usersRepository.findOne({ where: { email } });
+  if (!user) throw new NotFoundException('User not found');
+  return user;
+}
+
+  async findByDisplayName(displayName: string): Promise<User> {
+  const user = await this.usersRepository.findOne({ where: { displayName } });
+  if (!user) throw new NotFoundException('User not found');
+  return user;
+}
 
   async findAll(): Promise<User[]> {
     return await this.usersRepository.find(); // Find all users
   }
 
-  async findOne(id: string): Promise<User | null> {
-    return await this.usersRepository.findOneBy({ id });
+  async findOne(id: string): Promise<User> {
+    const user = await this.usersRepository.findOneBy({ id });
+    if (!user) throw new NotFoundException('User not found');
+    return user;
   }
 
-  async update(id: string, updateUserDto: UpdateUserDto, imageBuffer? : Buffer, imageName? : string){
-    const user = await this.usersRepository.findOneBy({ id });
-    if (!user) {
-      return null; // Return null if user not found
-    }
-    user.displayName = updateUserDto.displayName ?? user.displayName; // Update displayName if provided
-    user.email = updateUserDto.email ?? user.email; // Update email if provided
-    if (imageBuffer && imageName) {
-      const fileName = `${sanitizeFileName(imageName)}-${Date.now()}.jpg`;
-      try {
-        const uploadedImageUrl = await this.supabaseStorageService.uploadAvatarFromBuffer(imageBuffer, fileName);
-        if (uploadedImageUrl) {
-          user.imageUrl = uploadedImageUrl; // Update imageUrl with the uploaded image URL
-        } else {
-          console.error('Failed to upload image to Supabase Storage');
-          return null; // Handle error appropriately
-        }
-      } catch (error) {
-        console.error('Error uploading image:', error);
-        return null; // Handle error appropriately
+  async update(id: string, updateUserDto: UpdateUserDto, imageBuffer?: Buffer, imageName?: string) {
+  const user = await this.usersRepository.findOneBy({ id });
+  if (!user) throw new NotFoundException('User not found');
+
+  user.displayName = updateUserDto.displayName ?? user.displayName;
+  user.email = updateUserDto.email ?? user.email;
+
+  if (imageBuffer && imageName) {
+    const fileName = `${sanitizeFileName(imageName)}-${Date.now()}.jpg`;
+    try {
+      const uploadedImageUrl = await this.supabaseStorageService.uploadAvatarFromBuffer(imageBuffer, fileName);
+      if (uploadedImageUrl) {
+        user.imageUrl = uploadedImageUrl;
+      } else {
+        throw new Error('Failed to upload image to Supabase Storage');
       }
+    } catch (error) {
+      throw new Error('Error uploading image: ' + error.message);
     }
-    return await this.usersRepository.save(user); // Save the updated user to the database
   }
+  return await this.usersRepository.save(user);
+}
 
   async remove(id: string): Promise<DeleteResult>  {
     return await this.usersRepository.delete(id);
