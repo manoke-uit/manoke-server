@@ -8,9 +8,9 @@ import { Artist } from 'src/artists/entities/artist.entity';
 import { Score } from 'src/scores/entities/score.entity';
 import { Playlist } from 'src/playlists/entities/playlist.entity';
 import { IPaginationOptions, paginate, Pagination } from 'nestjs-typeorm-paginate';
-import { SpotifyApiService } from 'src/external-apis/spotify-api/spotify-api.service';
+// import { SpotifyApiService } from 'src/external-apis/spotify-api/spotify-api.service';
 import { title } from 'process';
-import { DeezerApiService } from 'src/external-apis/deezer-api/deezer-api.service';
+// import { DeezerApiService } from 'src/external-apis/deezer-api/deezer-api.service';
 import * as ytdl from 'ytdl-core';
 import { AudioService } from 'src/helpers/audio/audio.service';
 import { SupabaseStorageService } from 'src/supabase-storage/supabase-storage.service';
@@ -31,8 +31,8 @@ export class SongsService {
     @InjectRepository(Karaoke)
     private karaokeRepository: Repository<Karaoke>,
 
-    private spotifyApiService: SpotifyApiService,
-    private deezerApiService: DeezerApiService,
+    // private spotifyApiService: SpotifyApiService,
+    // private deezerApiService: DeezerApiService,
     private audioService: AudioService,
     private supabaseStorageService: SupabaseStorageService,
   ) {}
