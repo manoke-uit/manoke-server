@@ -42,12 +42,12 @@ export class NotificationsService {
       })
     }
 
-    let chunks = this.expo.chunkPushNotifications(messages);
+    // let chunks = this.expo.chunkPushNotifications(messages);
     let tickets: ExpoPushTicket[] = [];
 
-    for (let chunk of chunks) {
+    for (const message of messages) {
       try {
-        let ticketChunk = await this.expo.sendPushNotificationsAsync(chunk);
+        let ticketChunk = await this.expo.sendPushNotificationsAsync([message]);
         console.log(`Sent chunk of notifications. Tickets: ${JSON.stringify(ticketChunk)}`);
         tickets.push(...ticketChunk);
       } catch (error) {
