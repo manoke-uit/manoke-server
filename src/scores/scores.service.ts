@@ -123,6 +123,7 @@ export class ScoresService {
     const scores : number[] = []; // array to hold the scores for each chunk 
     for (const [index, chunk] of chunks.entries()) {
       const chunkFileName = `${Date.now()}-${songId}-${index}.wav`;
+      await sleep(3000); 
       const chunkLyrics = await this.getLyricsFromRecording(chunk, chunkFileName);
       const chunkPitch = await this.getPitchFromRecording(chunk, chunkFileName);
       console.log('Chunk Pitch:', chunkPitch);
@@ -173,7 +174,7 @@ export class ScoresService {
         headers: {
           ...form.getHeaders(),
         }
-      }).pipe(timeout(10000 * 6))); // set a timeout of 5 minutes
+      }).pipe(timeout(10000 * 6 * 5))); // set a timeout of 5 minutes
       //console.log('Response from Whisper API:', response.data);
       return response.data.transcription; // return the transcription from the response
     } catch (error) {
@@ -195,7 +196,7 @@ export class ScoresService {
         headers: {
           ...form.getHeaders(),
         }
-      }).pipe(timeout(10000 * 6 ))); // set a timeout of 5 minutes
+      }).pipe(timeout(10000 * 6 * 5))); // set a timeout of 5 minutes
       const pitchData = response.data.pitch_data;
 
       if (!pitchData || !Array.isArray(pitchData)) {
