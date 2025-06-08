@@ -122,6 +122,11 @@ export class ScoresService {
 
     const scores : number[] = []; // array to hold the scores for each chunk 
     for (const [index, chunk] of chunks.entries()) {
+      const chunkDuration = await this.audioService.getDurationFromBuffer(chunk); // get the duration of the chunk
+      if (chunkDuration < 1) {
+        console.log(`Chunk ${index} duration is less than 1 second, skipping...`);
+        continue; // skip the chunk if its duration is less than 1 second
+      }
       const chunkFileName = `${Date.now()}-${songId}-${index}.wav`;
       const chunkLyrics = await this.getLyricsFromRecording(chunk, chunkFileName);
       const chunkPitch = await this.getPitchFromRecording(chunk, chunkFileName);
