@@ -80,28 +80,28 @@ export class PlaylistsService {
     return this.playlistRepository.save(favPlaylist);
   }
 
-  async addSongToPlaylist(playlistId: string, songId: string) {
-    const song = await this.songRepository.findOneBy({id: songId});
-    if (!song) {
-      throw new NotFoundException("Song doesn't exist!");
-    }
+  // async addSongToPlaylist(playlistId: string, songId: string) {
+  //   const song = await this.songRepository.findOneBy({id: songId});
+  //   if (!song) {
+  //     throw new NotFoundException("Song doesn't exist!");
+  //   }
 
-    const playlist = await this.playlistRepository.findOne({
-      where: {id: playlistId}, 
-      relations: ['songs']
-    });
-    if (!playlist) {
-      throw new NotFoundException("Playlist doesn't exist!");
-    }
+  //   const playlist = await this.playlistRepository.findOne({
+  //     where: {id: playlistId}, 
+  //     relations: ['songs']
+  //   });
+  //   if (!playlist) {
+  //     throw new NotFoundException("Playlist doesn't exist!");
+  //   }
 
-    const songAlreadyInPlaylist = playlist.songs.some(existingSong => existingSong.id === songId);
-    if (songAlreadyInPlaylist) {
-      throw new ConflictException("Song already exists in the playlist!");
-    }
+  //   const songAlreadyInPlaylist = playlist.songs.some(existingSong => existingSong.id === songId);
+  //   if (songAlreadyInPlaylist) {
+  //     throw new ConflictException("Song already exists in the playlist!");
+  //   }
 
-    playlist.songs.push(song);
-    return await this.playlistRepository.save(playlist);
-  }
+  //   playlist.songs.push(song);
+  //   return await this.playlistRepository.save(playlist);
+  // }
 
   async addSongToFavouritePlaylist(title: string, songId: string) {
     const song = await this.songRepository.findOneBy({id: songId});
@@ -124,6 +124,7 @@ export class PlaylistsService {
         return existingSong.id === songId;
       }
     });
+
     if (songAlreadyInPlaylist) {
       throw new ConflictException("Song already exists in the playlist!");
     }
@@ -204,7 +205,7 @@ export class PlaylistsService {
   async clonePlaylist(userId: string, playlistId: string) {
     const playlistToClone = await this.playlistRepository.findOne({
       where: { id: playlistId },
-      relations: ['user', 'songs'],
+      relations: ['user']
     });
 
     const userWantToClone = await this.userRepository.findOneBy({id: userId});
@@ -223,24 +224,6 @@ export class PlaylistsService {
       user: userWantToClone, 
       title: `${playlistToClone.title} (Copy)`, 
     });
-
-    // for(const song of playlistToClone.songs) {
-    //   const songExists = await this.songRepository.findOneBy({id: song.id});
-    //   if (!songExists) {
-    //     throw new NotFoundException(`Song with ID ${song.id} not found in the original playlist.`);
-    //   }
-    //   console.log(`Song with ID ${song.id} exists in the original playlist.`);
-    // }
-    // clonedPlaylist.songs = playlistToClone.songs; // Clone the songs as well
-    // for (const song of clonedPlaylist.songs) {
-    //   const songExists = await this.songRepository.findOneBy({id: song.id});
-    //   if (!songExists) {
-    //     throw new NotFoundException(`Song with ID ${song.id} not found in the original playlist.`);
-    //   }
-    //   console.log(`Song with ID ${song.id} exists in the original playlist.`);
-    // }
-
-
 
     return this.playlistRepository.save(clonedPlaylist);
   }
