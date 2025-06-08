@@ -218,6 +218,9 @@ export class PlaylistsService {
       title: `${playlistToClone.title} (Copy)`, 
     });
 
+    clonedPlaylist.songs = [...playlistToClone.songs]; // Clone the songs as well
+    
+
     return this.playlistRepository.save(clonedPlaylist);
   }
 
