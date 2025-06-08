@@ -51,34 +51,35 @@ export class ScoresController {
   @Post('score')
   @UseInterceptors(FileInterceptor('file'))
   async score(@UploadedFile() file: Express.Multer.File, @Body() createScoreDto : CreateScoreDto, @Req() req: any, createNotificationDto: CreateNotificationDto): Promise<string> {
-    createScoreDto.userId = req.user['userId']; // set the userId in the createScoreDto
-    createNotificationDto = new CreateNotificationDto();
+  //   createScoreDto.userId = req.user['userId']; // set the userId in the createScoreDto
+  //   createNotificationDto = new CreateNotificationDto();
     
-    const fileName = file.originalname; // get the original file name
-    const fileBuffer = file.buffer; // get the file buffer
+  //   const fileName = file.originalname; // get the original file name
+  //   const fileBuffer = file.buffer; // get the file buffer
     
 
-    const calculatedScore =  await this.scoresService.calculateScore(fileBuffer,fileName, createScoreDto.songId);
-    if (calculatedScore == -1){
-      return "Please sing more than 30 seconds!";
-    }
-    createScoreDto.finalScore = calculatedScore; // set the score in the DTO
+  //   const calculatedScore =  await this.scoresService.calculateScore(fileBuffer,fileName, createScoreDto.songId);
+  //   if (calculatedScore == -1){
+  //     return "Please sing more than 30 seconds!";
+  //   }
+  //   createScoreDto.finalScore = calculatedScore; // set the score in the DTO
     
-    try {
-      const savedScore =  await this.scoresService.create(createScoreDto, file.buffer); // create the score in the database
+  //   try {
+  //     const savedScore =  await this.scoresService.create(createScoreDto, file.buffer); // create the score in the database
 
-      createNotificationDto.title = "Complete calculating score!";
-      createNotificationDto.description = "Hello! Your score has been calculated. Please enter the app to receive your achievement!"
-      createNotificationDto.userId = req.user['userId'];
-      createNotificationDto.isRead = false;
+  //     createNotificationDto.title = "Complete calculating score!";
+  //     createNotificationDto.description = "Hello! Your score has been calculated. Please enter the app to receive your achievement!"
+  //     createNotificationDto.userId = req.user['userId'];
+  //     createNotificationDto.isRead = false;
       
-      await this.notificationService.sendNotificationToUser(createNotificationDto);
+  //     await this.notificationService.sendNotificationToUser(createNotificationDto);
 
-      return savedScore.finalScore.toString(); // return the id of the saved score
-    }
-    catch (error) {
-      console.error('Error creating score:', error);
-      throw new Error('Failed to create score');
-    }
+  //     return savedScore.finalScore.toString(); // return the id of the saved score
+  //   }
+  //   catch (error) {
+  //     console.error('Error creating score:', error);
+  //     throw new Error('Failed to create score');
+  //   }
+  return "Score creation endpoint is not implemented yet.";
   }
 }
