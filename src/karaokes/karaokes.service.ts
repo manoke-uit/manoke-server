@@ -166,6 +166,7 @@ export class KaraokesService {
       }
       karaoke.videoUrl = uploadedVideo; // Update the videoUrl with the new uploaded video
     }
+    karaoke.status = updateKaraokeDto.status ?? karaoke.status; // Update status if provided, otherwise keep the current status
     const updatedKaraoke = await this.karaokeRepository.save(karaoke);
     return await this.karaokeRepository.findOne({
       where: { id: updatedKaraoke.id },
