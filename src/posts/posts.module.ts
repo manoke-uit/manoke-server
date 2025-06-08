@@ -11,5 +11,6 @@ import { Comment } from 'src/comments/entities/comment.entity';
   imports: [TypeOrmModule.forFeature([Post, User, Score, Comment])],
   controllers: [PostsController],
   providers: [PostsService],
+  exports: [PostsService], // Exporting PostsService to be used in other modules
 })
 export class PostsModule {}
