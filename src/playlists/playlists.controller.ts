@@ -39,14 +39,14 @@ export class PlaylistsController {
   }
 
 
-  @UseGuards(JwtAuthGuard)
-  @Patch(':playlistID/songs/:songId')
-  async addSongToPlaylist(
-    @Param('playlistId') playlistId: string,
-    @Param('songId') songId: string
-  ): Promise<Playlist> {
-    return await this.playlistsService.addSongToPlaylist(playlistId, songId)
-  }
+  // @UseGuards(JwtAuthGuard)
+  // @Patch(':playlistID/songs/:songId')
+  // async addSongToPlaylist(
+  //   @Param('playlistId') playlistId: string,
+  //   @Param('songId') songId: string
+  // ): Promise<Playlist> {
+  //   return await this.playlistsService.addSongToPlaylist(playlistId, songId)
+  // }
 
   @UseGuards(JwtAuthGuard)
   @Patch('favPlaylist/songs/:songId')

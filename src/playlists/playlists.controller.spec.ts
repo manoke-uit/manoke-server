@@ -76,14 +76,14 @@ describe('PlaylistsController', () => {
     });
   });
 
-  describe('addSongToPlaylist', () => {
-    it('should add song to playlist', async () => {
-      service.addSongToPlaylist.mockResolvedValue({ id: '1', songs: [{ id: 'song1' }] });
-      const result = await controller.addSongToPlaylist('playlist1', 'song1');
-      expect(service.addSongToPlaylist).toHaveBeenCalledWith('playlist1', 'song1');
-      expect(result).toHaveProperty('songs');
-    });
-  });
+  // describe('addSongToPlaylist', () => {
+  //   it('should add song to playlist', async () => {
+  //     service.addSongToPlaylist.mockResolvedValue({ id: '1', songs: [{ id: 'song1' }] });
+  //     const result = await controller.addSongToPlaylist('playlist1', 'song1');
+  //     expect(service.addSongToPlaylist).toHaveBeenCalledWith('playlist1', 'song1');
+  //     expect(result).toHaveProperty('songs');
+  //   });
+  // });
 
   describe('addSongToFavouritePlaylist', () => {
     it('should add song to favourite playlist', async () => {
