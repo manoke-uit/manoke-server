@@ -178,7 +178,7 @@ export class ScoresService {
         headers: {
           ...form.getHeaders(),
         }
-      }).pipe(timeout(10000 * 6 ))); // set a timeout of 5 minutes
+      }).pipe(timeout(10000 * 6 * 5 ))); // set a timeout of 5 minutes
       //console.log('Response from Whisper API:', response.data);
       return response.data.transcription; // return the transcription from the response
     } catch (error) {
@@ -200,7 +200,7 @@ export class ScoresService {
         headers: {
           ...form.getHeaders(),
         }
-      }).pipe(timeout(10000 * 6))); // set a timeout of 5 minutes
+      }).pipe(timeout(10000 * 6 * 5))); // set a timeout of 5 minutes
       const pitchData = response.data.pitch_data;
 
       if (!pitchData || !Array.isArray(pitchData)) {
