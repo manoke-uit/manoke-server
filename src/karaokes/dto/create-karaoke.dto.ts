@@ -23,6 +23,11 @@ export class CreateKaraokeDto {
     @ApiProperty({ required: false, description: 'Karaoke creation date' })
     createdAt?: string; // @IsDateString() in dto
 
+    @IsEnum(KaraokeStatus)
+    @IsOptional()
+    @ApiProperty({ enum: KaraokeStatus, required: false, description: 'Karaoke status' })
+    status?: KaraokeStatus; // @IsEnum(KaraokeStatus) in dto
+
     @IsString()
     @IsNotEmpty()
     @ApiProperty({ description: 'ID of the karaoke\'s song' })

@@ -122,8 +122,12 @@ export class ScoresService {
 
     const scores : number[] = []; // array to hold the scores for each chunk 
     for (const [index, chunk] of chunks.entries()) {
+      const chunkDuration = await this.audioService.getDurationFromBuffer(chunk); // get the duration of the chunk
+      if (chunkDuration < 1) {
+        console.log(`Chunk ${index} duration is less than 1 second, skipping...`);
+        continue; // skip the chunk if its duration is less than 1 second
+      }
       const chunkFileName = `${Date.now()}-${songId}-${index}.wav`;
-      await sleep(3000); 
       const chunkLyrics = await this.getLyricsFromRecording(chunk, chunkFileName);
       const chunkPitch = await this.getPitchFromRecording(chunk, chunkFileName);
       console.log('Chunk Pitch:', chunkPitch);
@@ -174,7 +178,7 @@ export class ScoresService {
         headers: {
           ...form.getHeaders(),
         }
-      }).pipe(timeout(10000 * 6 * 5))); // set a timeout of 5 minutes
+      }).pipe(timeout(10000 * 6 * 5 ))); // set a timeout of 5 minutes
       //console.log('Response from Whisper API:', response.data);
       return response.data.transcription; // return the transcription from the response
     } catch (error) {
