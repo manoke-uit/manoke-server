@@ -21,4 +21,16 @@ export class AppController {
     }
     return req.user;
   }
+
+  @Get('test-tunnel')
+async testTunnel() {
+  try {
+    const res = await fetch('https://glass-puts-guam-hosts.trycloudflare.com/');
+    const text = await res.text();
+    return { status: res.status, body: text };
+  } catch (e) {
+    return { error: e.message };
+  }
+}
+
 }
