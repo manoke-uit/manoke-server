@@ -49,7 +49,7 @@ export class ScoresController {
 
   @UseGuards(JwtAuthGuard)
   @Post('score')
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(FileInterceptor('file' ,{limits: { fileSize: 25 * 1024 * 1024 }})) // limit file size to 25MB
   async score(@UploadedFile() file: Express.Multer.File, @Body() createScoreDto : CreateScoreDto, @Req() req: any, createNotificationDto: CreateNotificationDto): Promise<string> {
   //   createScoreDto.userId = req.user['userId']; // set the userId in the createScoreDto
   //   createNotificationDto = new CreateNotificationDto();
