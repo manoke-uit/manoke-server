@@ -9,7 +9,7 @@ import whisper
 os.environ["XDG_CACHE_HOME"] = "/tmp/.cache"
 
 app = FastAPI()
-model = whisper.load_model("small")
+model = whisper.load_model("medium")
 
 @app.get("/health")
 def health():
