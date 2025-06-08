@@ -117,7 +117,13 @@ export class PlaylistsService {
       throw new NotFoundException("Playlist doesn't exist!");
     }
 
-    const songAlreadyInPlaylist = favPlaylist.songs.some(existingSong => existingSong.id === songId);
+    const songAlreadyInPlaylist = favPlaylist.songs.some(existingSong => {
+      if (existingSong.id === songId) {
+        console.log(existingSong.id)
+        console.log(songId)
+        return existingSong.id === songId;
+      }
+    });
     if (songAlreadyInPlaylist) {
       throw new ConflictException("Song already exists in the playlist!");
     }
