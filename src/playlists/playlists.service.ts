@@ -218,8 +218,23 @@ export class PlaylistsService {
       title: `${playlistToClone.title} (Copy)`, 
     });
 
-    clonedPlaylist.songs = [...playlistToClone.songs]; // Clone the songs as well
-    
+    for(const song of playlistToClone.songs) {
+      const songExists = await this.songRepository.findOneBy({id: song.id});
+      if (!songExists) {
+        throw new NotFoundException(`Song with ID ${song.id} not found in the original playlist.`);
+      }
+      console.log(`Song with ID ${song.id} exists in the original playlist.`);
+    }
+    clonedPlaylist.songs = playlistToClone.songs; // Clone the songs as well
+    for (const song of clonedPlaylist.songs) {
+      const songExists = await this.songRepository.findOneBy({id: song.id});
+      if (!songExists) {
+        throw new NotFoundException(`Song with ID ${song.id} not found in the original playlist.`);
+      }
+      console.log(`Song with ID ${song.id} exists in the original playlist.`);
+    }
+
+
 
     return this.playlistRepository.save(clonedPlaylist);
   }
