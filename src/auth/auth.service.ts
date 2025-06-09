@@ -267,9 +267,10 @@ export class AuthService {
     }
     // handle google login
     async validateGoogleUser(googleUser: CreateUserDto): Promise<User> {
-        console.log('Google user:', googleUser);
         // Check if the googleUser object has an email 
-        
+        googleUser.displayName = sanitizeName(googleUser.displayName);
+                console.log('Google user:', googleUser);
+
         if (!googleUser || !googleUser.email) {
             throw new BadRequestException('Google user email is required');
         }
@@ -287,5 +288,10 @@ export class AuthService {
         return this.jwtService.signAsync(payload);
     }
 }
+
+function sanitizeName(name: string): string {
+  return name.replace(/\s+/g, '').toLowerCase();
+}
+
 
 
