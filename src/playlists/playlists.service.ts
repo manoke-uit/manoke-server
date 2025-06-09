@@ -205,7 +205,7 @@ export class PlaylistsService {
   async clonePlaylist(userId: string, playlistId: string) {
     const playlistToClone = await this.playlistRepository.findOne({
       where: { id: playlistId },
-      relations: ['user']
+      relations: ['user', 'songs']
     });
 
     const userWantToClone = await this.userRepository.findOneBy({id: userId});
@@ -220,9 +220,10 @@ export class PlaylistsService {
 
     const clonedPlaylist = this.playlistRepository.create({
       ...playlistToClone, 
+      isPublic: false,
       id: undefined, 
       user: userWantToClone, 
-      title: `${playlistToClone.title} (Copy)`, 
+      title: `${playlistToClone.title} (Clone)`, 
     });
 
     return this.playlistRepository.save(clonedPlaylist);
