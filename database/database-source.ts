@@ -27,7 +27,7 @@ export const typeOrmConfig : TypeOrmModuleAsyncOptions = {
         database: configService.get('DB_DATABASE'),
         entities: [Artist, Friend, Notification, Playlist, Score, Song, User, Genre, Karaoke, Post, Comment, UserDevice], // exact one for webpack usage
         migrations: ['dist/database/migrations/*.js'],
-        synchronize: false, // for dev only, set to false in prod
+        synchronize: true, // for dev only, set to false in prod
     })
 }
 
