@@ -122,7 +122,7 @@ export class AuthService {
         try {
             if (createUserDto) {
                 const otpToken = await this.otpService.getToken(createUserDto.email);
-                console.log(otpToken);
+                //console.log(otpToken);
                 if (!otpToken) {
                     throw new Error("OTP Token doesn't exist!")
                 }
@@ -273,7 +273,7 @@ export class AuthService {
                 
         // create a secure password using googleId
         googleUser.password = generateSecurePassword(googleUser.email) + "@MANOKE"; // append "@manoke" to the password for consistency
-        console.log('Google user:', googleUser);
+        //console.log('Google user:', googleUser);
         if (!googleUser || !googleUser.email) {
             throw new BadRequestException('Google user email is required');
         }

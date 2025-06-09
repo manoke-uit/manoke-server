@@ -20,7 +20,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy){
         profile: any,
         done: VerifyCallback,
     ){
-        console.log('Google profile:', profile);
+        //console.log('Google profile:', profile);
         try {
             const user = await this.authService.validateGoogleUser({
             displayName: profile.displayName || "",

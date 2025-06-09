@@ -41,7 +41,7 @@ export class UsersService {
     }
 
     const savedUser = await this.usersRepository.save(user); // Save the user to the database
-    console.log(this.playlistsService.createFavouritePlaylist(createUserDto.email));
+    //console.log(this.playlistsService.createFavouritePlaylist(createUserDto.email));
 
 
     savedUser.password = ""; // Remove the password from the saved user object
@@ -75,12 +75,12 @@ export class UsersService {
       newUserDevice.user = user; 
       newUserDevice.expoPushToken = expoPushToken;
       await this.userDevicesRepository.save(newUserDevice);
-      console.log(userDevice)
+      //console.log(userDevice)
     } else {
       const currentUserDevice = userDevice;
       currentUserDevice.user = user;
       await this.userDevicesRepository.save(currentUserDevice);
-      console.log(userDevice)
+      //console.log(userDevice)
     }
   } 
 
