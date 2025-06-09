@@ -280,8 +280,14 @@ export class AuthService {
         const user = await this.usersService.findByEmail(googleUser.email);
         // not exist => create a new one
         if (!user) {
-            const newUser = await this.usersService.create(googleUser);
-            return newUser;
+            try {
+                const newUser = await this.usersService.create(googleUser);
+                return newUser;
+            }
+            catch (error) {
+                throw new BadRequestException(`Cannot create user from Google: ${error.message}`);
+            }
+            
         }
         // else => return the existed user
         return user;
