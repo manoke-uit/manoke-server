@@ -290,7 +290,12 @@ export class AuthService {
 }
 
 function sanitizeName(name: string): string {
-  return name.replace(/\s+/g, '').toLowerCase();
+  return name
+    .normalize('NFD')              // Break characters into base + diacritics
+    .replace(/[\u0300-\u036f]/g, '') // Remove diacritics
+    .replace(/[^\x00-\x7F]/g, '')  // Remove non-ASCII characters
+    .replace(/\s+/g, '')           // Remove all spaces
+    .toLowerCase();                // Lowercase everything
 }
 
 
