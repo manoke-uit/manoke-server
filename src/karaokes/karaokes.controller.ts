@@ -224,8 +224,7 @@ export class KaraokesController {
         message: 'You are not authorized to update this karaoke',
       };
     }
-    const userId = req.user['userId'];
-    const updatedKaraoke = await this.karaokesService.update(id, userId, updateKaraokeDto, fileBuffer, fileName);
+    const updatedKaraoke = await this.karaokesService.update(id, updateKaraokeDto, fileBuffer, fileName);
     if (!updatedKaraoke) {
       return {
         statusCode: 400,

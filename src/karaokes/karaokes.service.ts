@@ -131,7 +131,7 @@ export class KaraokesService {
     });
   }
 
-  async update(id: string, userId: string,updateKaraokeDto: UpdateKaraokeDto, fileBuffer?: Buffer, fileName?: string ){
+  async update(id: string, updateKaraokeDto: UpdateKaraokeDto, fileBuffer?: Buffer, fileName?: string ){
     const karaoke = await this.karaokeRepository.findOneBy({ id });
     if (!karaoke) {
       throw new Error('Karaoke not found');
@@ -146,19 +146,19 @@ export class KaraokesService {
       }
       karaoke.song = song;
     }
-    if (updateKaraokeDto.userId) {
-      const user = await this.userRepository.findOneBy({ id: updateKaraokeDto.userId });
-      if (!user) {
-        throw new Error('User not found');
-      }
-      karaoke.user = user;
-    } else {
-      const user = await this.userRepository.findOneBy({ id: userId });
-      if (!user) {
-        throw new Error('User not found');
-      }
-      karaoke.user = user;
-    }
+    // if (updateKaraokeDto.userId) {
+    //   const user = await this.userRepository.findOneBy({ id: updateKaraokeDto.userId });
+    //   if (!user) {
+    //     throw new Error('User not found');
+    //   }
+    //   karaoke.user = user;
+    // } else {
+    //   const user = await this.userRepository.findOneBy({ id: userId });
+    //   if (!user) {
+    //     throw new Error('User not found');
+    //   }
+    //   karaoke.user = user;
+    // }
     if (fileBuffer && fileName) {
       const uploadedVideo = await this.supabaseStorageService.uploadVideoFromBuffer(fileBuffer, sanitizeFileName(fileName));
       if (!uploadedVideo) {
