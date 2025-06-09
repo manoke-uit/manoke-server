@@ -27,7 +27,7 @@ export class CommentsController {
         statusCode: 404,
       });
     }
-    if (!isFriend.some(friend => friend.userId_1 === post.user.id) || !isFriend.some(friend => friend.userId_2 === post.user.id)) {
+    if (!isFriend.some(friend => friend.userId_1 === post.user.id) && !isFriend.some(friend => friend.userId_2 === post.user.id)) {
       return responseHelper({
         message: 'You can only comment on posts of your friends',
         statusCode: 403,
