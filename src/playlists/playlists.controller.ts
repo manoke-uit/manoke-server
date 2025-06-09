@@ -167,7 +167,7 @@ export class PlaylistsController {
   @Delete(':id')
   async remove(@Param('id') id: string, @Req() req:any) {
     const playlist = await this.playlistsService.findOne(id);
-    if(playlist?.user.id !== req.user['userId'] && !playlist?.user.adminSecret) {
+    if(playlist?.user.id !== req.user['userId'] && !req.user['adminSecret']) {
       return responseHelper({
         message: 'You are not authorized to delete this playlist',
         statusCode: 403,
