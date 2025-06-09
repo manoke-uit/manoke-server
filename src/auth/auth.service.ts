@@ -270,10 +270,10 @@ export class AuthService {
     async validateGoogleUser(googleUser: CreateUserDto): Promise<User> {
         // sanitize displayName
         googleUser.displayName = sanitizeName(googleUser.displayName);
-                console.log('Google user:', googleUser);
+                
         // create a secure password using googleId
         googleUser.password = generateSecurePassword(googleUser.email);
-        
+        console.log('Google user:', googleUser);
         if (!googleUser || !googleUser.email) {
             throw new BadRequestException('Google user email is required');
         }
