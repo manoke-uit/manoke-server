@@ -220,9 +220,10 @@ export class PlaylistsService {
 
     const clonedPlaylist = this.playlistRepository.create({
       ...playlistToClone, 
+      isPublic: false,
       id: undefined, 
       user: userWantToClone, 
-      title: `${playlistToClone.title} (Copy)`, 
+      title: `${playlistToClone.title} (Clone)`, 
     });
 
     return this.playlistRepository.save(clonedPlaylist);
