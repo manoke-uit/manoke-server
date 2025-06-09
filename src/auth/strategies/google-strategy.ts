@@ -25,7 +25,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy){
             displayName: profile.displayName || "",
             email: profile.email || "",
             imageUrl: profile.picture || "",
-            password: profile.id || "", // Use Google ID as password for simplicity});
+            password: "", // Use Google ID as password for simplicity});
         });
         if(!user){
             return done(new Error("User not found"), false);

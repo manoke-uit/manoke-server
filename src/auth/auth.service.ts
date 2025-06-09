@@ -8,6 +8,7 @@ import { JwtService } from '@nestjs/jwt';
 import { User } from 'src/users/entities/user.entity';
 import * as nodemailer from 'nodemailer'
 import SMTPTransport from 'nodemailer/lib/smtp-transport';
+import * as crypto from 'crypto';
 // import { FirebaseAdminProvider } from 'src/firebase-admin/firebase-admin.provider';
 // import { FirebaseService } from 'src/firebase-admin/firebase.service';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -267,10 +268,12 @@ export class AuthService {
     }
     // handle google login
     async validateGoogleUser(googleUser: CreateUserDto): Promise<User> {
-        // Check if the googleUser object has an email 
+        // sanitize displayName
         googleUser.displayName = sanitizeName(googleUser.displayName);
                 console.log('Google user:', googleUser);
-
+        // create a secure password using googleId
+        googleUser.password = generateSecurePassword(googleUser.email);
+        
         if (!googleUser || !googleUser.email) {
             throw new BadRequestException('Google user email is required');
         }
@@ -296,6 +299,14 @@ function sanitizeName(name: string): string {
     .replace(/[^\x00-\x7F]/g, '')  // Remove non-ASCII characters
     .replace(/\s+/g, '')           // Remove all spaces
     .toLowerCase();                // Lowercase everything
+}
+
+function generateSecurePassword(googleId: string): string {
+            return crypto
+                .createHash('sha256')
+                .update(googleId + Date.now().toString())
+                .digest('hex')
+                .slice(0, 16); 
 }
 
 
