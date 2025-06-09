@@ -68,7 +68,14 @@ export class ScoresController {
       const savedScore =  await this.scoresService.create(createScoreDto, file.buffer); // create the score in the database
 
       createNotificationDto.title = "Complete calculating score!";
-      createNotificationDto.description = "Hello! Your score has been calculated. Please enter the app to receive your achievement!"
+      if (calculatedScore < 50)
+        createNotificationDto.description = `Hello! Your score has been calculated. You got ${calculatedScore} points, it might be device's fault... Try again maybe ;)`
+      else if (calculatedScore < 80)
+        createNotificationDto.description = `Hello! Your score has been calculated. You got ${calculatedScore} points, you can do better!`
+      else if (calculatedScore < 90)
+        createNotificationDto.description = `Hello! Your score has been calculated. You got ${calculatedScore} points, you are such an expert!`
+      else 
+        createNotificationDto.description = `Hello! Your score has been calculated. You got ${calculatedScore} points!!! Charlie Puth is shaking...`;
       createNotificationDto.userId = req.user['userId'];
       createNotificationDto.isRead = false;
       
