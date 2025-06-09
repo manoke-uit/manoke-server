@@ -285,6 +285,7 @@ export class AuthService {
                 return newUser;
             }
             catch (error) {
+                console.error('Error creating user from Google:', error);
                 throw new BadRequestException(`Cannot create user from Google: ${error.message}`);
             }
             

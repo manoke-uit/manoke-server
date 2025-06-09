@@ -21,7 +21,8 @@ export class GoogleStrategy extends PassportStrategy(Strategy){
         done: VerifyCallback,
     ){
         console.log('Google profile:', profile);
-        const user = await this.authService.validateGoogleUser({
+        try {
+            const user = await this.authService.validateGoogleUser({
             displayName: profile.displayName || "",
             email: profile.email || "",
             imageUrl: profile.picture || "",
@@ -31,6 +32,11 @@ export class GoogleStrategy extends PassportStrategy(Strategy){
             return done(new Error("User not found"), false);
         }
         else return done("", user);
+        } catch (error) {
+            console.error('Error validating Google user:', error);
+            return done(error, false);
+        }
+        
     }
     
 }
