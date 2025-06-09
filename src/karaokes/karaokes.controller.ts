@@ -100,8 +100,8 @@ export class KaraokesController {
   async findAllByUserId(@Req() req: any) {
     const id = req.user['userId'];
     const karaoke = await this.karaokesService.findAllByUserId(id);
-    console.log('id', id);
-    console.log('karaoke', karaoke);
+    // console.log('id', id);
+    // console.log('karaoke', karaoke);
     if (!karaoke) {
       return responseHelper({
         message: 'Karaoke not found',
