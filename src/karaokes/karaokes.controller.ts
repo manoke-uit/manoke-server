@@ -216,11 +216,9 @@ export class KaraokesController {
     const fileName = file?.originalname;
     const fileBuffer = file?.buffer;
     const isOwner = karaoke?.user.id === req.user['userId'];
-    const debug = req.user['adminSecret'];
-    console.log('debug', debug)
-    const isAdmin = karaoke?.user.adminSecret ===
+
+    const isAdmin = 
       req.user['adminSecret']
-    console.log('isAdmin', isAdmin);
     if (!isOwner && !isAdmin) {
       return {
         statusCode: 403,

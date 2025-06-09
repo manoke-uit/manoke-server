@@ -269,7 +269,7 @@ export class PlaylistsService {
     })
   }
 
-  async update(id: string, userId: string, updatePlaylistDto: UpdatePlaylistDto, imageBuffer?: Buffer, imageName?: string): Promise<Playlist> {
+  async update(id: string,  updatePlaylistDto: UpdatePlaylistDto, imageBuffer?: Buffer, imageName?: string): Promise<Playlist> {
     const playlist = await this.playlistRepository.findOneBy({ id });
     if (!playlist) {
       throw new NotFoundException("Playlist doesn't exist!");
@@ -278,19 +278,7 @@ export class PlaylistsService {
     playlist.description = updatePlaylistDto.description ?? playlist.description;
     playlist.isPublic = updatePlaylistDto.isPublic?? playlist.isPublic;
     playlist.songs = updatePlaylistDto.songIds ? await this.songRepository.findBy({id: In(updatePlaylistDto.songIds)}) : playlist.songs;
-    if (updatePlaylistDto.userId){
-      const user = await this.userRepository.findOneBy({id: updatePlaylistDto.userId});
-      if (!user) {
-        throw new NotFoundException("User doesn't exist!");
-      }
-      playlist.user = user;
-    } else {
-      const user = await this.userRepository.findOneBy({id: userId});
-      if (!user) {
-        throw new NotFoundException("User doesn't exist!");
-      }
-      playlist.user = user;
-    }
+    
     if (imageBuffer && imageName) {
       const uploadedImage = await this.supabaseStorageService.uploadPlaylistsImagesFromBuffer(imageBuffer, sanitizeFileName(imageName));
       if (!uploadedImage) {

@@ -153,14 +153,14 @@ export class PlaylistsController {
         statusCode: 404,
       });
     }
-    if(playlist?.user.id !== req.user['userId'] && playlist?.user.adminSecret !== req.user['adminSecret']) {
+    console.log('adminSecret', req.user['adminSecret']);
+    if(playlist?.user.id !== req.user['userId'] && !req.user['adminSecret']) {
       return responseHelper({
         message: 'You are not authorized to update this playlist',
         statusCode: 403,
       });
     }
-    const userId = req.user['userId'];
-    return await this.playlistsService.update(id, userId, updatePlaylistDto, imageBuffer, imageName);
+    return await this.playlistsService.update(id, updatePlaylistDto, imageBuffer, imageName);
   }
 
   @UseGuards(JwtAuthGuard)
