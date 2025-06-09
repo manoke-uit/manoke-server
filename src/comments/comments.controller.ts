@@ -33,12 +33,12 @@ export class CommentsController {
         statusCode: 403,
       });
     }
-    if (post.user.id !== req.user['userId'] && post.user.adminSecret !== req.user['adminSecret']) {
-      return responseHelper({
-        message: 'You are not authorized to comment on this post',
-        statusCode: 403,
-      });
-    }
+    // if (post.user.id !== req.user['userId'] && post.user.adminSecret !== req.user['adminSecret']) {
+    //   return responseHelper({
+    //     message: 'You are not authorized to comment on this post',
+    //     statusCode: 403,
+    //   });
+    // }
     return await this.commentsService.createComment(createCommentDto);
   }
 
