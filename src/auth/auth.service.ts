@@ -272,7 +272,7 @@ export class AuthService {
         googleUser.displayName = sanitizeName(googleUser.displayName);
                 
         // create a secure password using googleId
-        googleUser.password = generateSecurePassword(googleUser.email);
+        googleUser.password = generateSecurePassword(googleUser.email) + "@MANOKE"; // append "@manoke" to the password for consistency
         console.log('Google user:', googleUser);
         if (!googleUser || !googleUser.email) {
             throw new BadRequestException('Google user email is required');
@@ -301,10 +301,10 @@ function sanitizeName(name: string): string {
     .toLowerCase();                // Lowercase everything
 }
 
-function generateSecurePassword(googleId: string): string {
+function generateSecurePassword(googleEmail: string): string {
             return crypto
                 .createHash('sha256')
-                .update(googleId + Date.now().toString())
+                .update(googleEmail + Date.now().toString())
                 .digest('hex')
                 .slice(0, 16); 
 }
