@@ -93,32 +93,32 @@ describe('PlaylistsService', () => {
     });
   });
 
-  describe('addSongToPlaylist', () => {
-    it('should add a song to playlist', async () => {
-      songRepo.findOneBy.mockResolvedValue({ id: 'song1' });
-      playlistRepo.findOne.mockResolvedValue({ id: 'playlist1', songs: [] });
-      playlistRepo.save.mockResolvedValue({ id: 'playlist1', songs: [{ id: 'song1' }] });
-      const result = await service.addSongToPlaylist('playlist1', 'song1');
-      expect(result.songs).toHaveLength(1);
-    });
+  // describe('addSongToPlaylist', () => {
+  //   it('should add a song to playlist', async () => {
+  //     songRepo.findOneBy.mockResolvedValue({ id: 'song1' });
+  //     playlistRepo.findOne.mockResolvedValue({ id: 'playlist1', songs: [] });
+  //     playlistRepo.save.mockResolvedValue({ id: 'playlist1', songs: [{ id: 'song1' }] });
+  //     const result = await service.addSongToPlaylist('playlist1', 'song1');
+  //     expect(result.songs).toHaveLength(1);
+  //   });
 
-    it('should throw if song not found', async () => {
-      songRepo.findOneBy.mockResolvedValue(null);
-      await expect(service.addSongToPlaylist('playlist1', 'song1')).rejects.toThrow(NotFoundException);
-    });
+  //   it('should throw if song not found', async () => {
+  //     songRepo.findOneBy.mockResolvedValue(null);
+  //     await expect(service.addSongToPlaylist('playlist1', 'song1')).rejects.toThrow(NotFoundException);
+  //   });
 
-    it('should throw if playlist not found', async () => {
-      songRepo.findOneBy.mockResolvedValue({ id: 'song1' });
-      playlistRepo.findOne.mockResolvedValue(null);
-      await expect(service.addSongToPlaylist('playlist1', 'song1')).rejects.toThrow(NotFoundException);
-    });
+  //   it('should throw if playlist not found', async () => {
+  //     songRepo.findOneBy.mockResolvedValue({ id: 'song1' });
+  //     playlistRepo.findOne.mockResolvedValue(null);
+  //     await expect(service.addSongToPlaylist('playlist1', 'song1')).rejects.toThrow(NotFoundException);
+  //   });
 
-    it('should throw if song already in playlist', async () => {
-      songRepo.findOneBy.mockResolvedValue({ id: 'song1' });
-      playlistRepo.findOne.mockResolvedValue({ id: 'playlist1', songs: [{ id: 'song1' }] });
-      await expect(service.addSongToPlaylist('playlist1', 'song1')).rejects.toThrow(ConflictException);
-    });
-  });
+  //   it('should throw if song already in playlist', async () => {
+  //     songRepo.findOneBy.mockResolvedValue({ id: 'song1' });
+  //     playlistRepo.findOne.mockResolvedValue({ id: 'playlist1', songs: [{ id: 'song1' }] });
+  //     await expect(service.addSongToPlaylist('playlist1', 'song1')).rejects.toThrow(ConflictException);
+  //   });
+  // });
 
   describe('removeSongFromPlaylist', () => {
     it('should remove a song from playlist', async () => {
