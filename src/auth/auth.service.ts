@@ -267,6 +267,9 @@ export class AuthService {
     }
     // handle google login
     async validateGoogleUser(googleUser: CreateUserDto): Promise<User> {
+        console.log('Google user:', googleUser);
+        // Check if the googleUser object has an email 
+        
         if (!googleUser || !googleUser.email) {
             throw new BadRequestException('Google user email is required');
         }
